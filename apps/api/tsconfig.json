@@ -1,5 +1,7 @@
 {
+  "exclude": ["node_modules"],
   "compilerOptions": {
+    "outDir": "./build",
     "target": "ESNext",
     "module": "NodeNext",
     "strict": true,

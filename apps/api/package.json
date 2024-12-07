@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsx build src/index.ts"
+    "build": "tsc"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",
@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
-    "tsx": "^4.7.1"
+    "tsx": "^4.7.1",
+    "typescript": "^5.7.2"
   }
 }
