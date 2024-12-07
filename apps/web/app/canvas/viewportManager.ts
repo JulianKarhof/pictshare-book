@@ -19,7 +19,7 @@ export class ViewportManager {
     this.setupViewportPlugins();
     this.setupEventListeners();
     this.lastGridSize = 0;
-    this.handleZoom();
+    this.handleZoomPan();
   }
 
   private createViewport(): VP.Viewport {
@@ -48,10 +48,11 @@ export class ViewportManager {
   }
 
   private setupEventListeners(): void {
-    this._viewport.addEventListener("zoomed", () => this.handleZoom());
+    this._viewport.addEventListener("zoomed", () => this.handleZoomPan());
+    this._viewport.addEventListener("moved", () => this.handleZoomPan());
   }
 
-  private handleZoom(): void {
+  private handleZoomPan(): void {
     this.updateBackgroundPosition();
     this.updateBackgroundSize();
     this.updateGridSize();

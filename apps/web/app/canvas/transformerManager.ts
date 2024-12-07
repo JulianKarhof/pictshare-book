@@ -23,6 +23,7 @@ export class TransformerManager {
     this.app.stage.on("pointerupoutside", this.onDragEnd.bind(this));
     this.app.stage.on("dragging", this.moveTransformer.bind(this));
     this.viewport.on("zoomed", this.moveTransformer.bind(this));
+    this.viewport.on("moved", this.moveTransformer.bind(this));
   }
 
   public moveTransformer(): void {

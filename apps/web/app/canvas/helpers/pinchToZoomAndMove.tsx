@@ -42,7 +42,7 @@ export class PinchToZoomAndMove extends Plugin {
   private pan(event: WheelEvent) {
     this.parent.x += event.deltaX * this.options.moveSpeed * this.moveReverse;
     this.parent.y += event.deltaY * this.options.moveSpeed * this.moveReverse;
-    this.parent.emit("zoomed");
+    this.parent.emit("moved", { type: "drag", viewport: this.parent });
   }
 
   private clamp(value: number, min: number, max: number) {
@@ -66,6 +66,6 @@ export class PinchToZoomAndMove extends Plugin {
     const newPoint = this.parent.toGlobal(oldPoint);
     this.parent.x += point.x - newPoint.x;
     this.parent.y += point.y - newPoint.y;
-    this.parent.emit("zoomed");
+    this.parent.emit("zoomed", { type: "wheel", viewport: this.parent });
   }
 }
