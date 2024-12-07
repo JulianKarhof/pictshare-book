@@ -8,6 +8,9 @@ export class TransformerManager {
   private handles: Graphics[];
   private target: Graphics | Sprite | null = null;
   private isResizing: boolean = false;
+  private initialSize = { width: 0, height: 0 };
+  private initialPosition = { x: 0, y: 0 };
+  private initialPointerPosition = { x: 0, y: 0 };
 
   constructor(app: Application, viewport: Viewport) {
     this.app = app;
@@ -48,7 +51,7 @@ export class TransformerManager {
         .rect(
           pos.x - dimensions.width / 2 - padding,
           pos.y - dimensions.height / 2 - padding,
-          dimensions.height + padding * 2,
+          dimensions.width + padding * 2,
           dimensions.height + padding * 2,
         )
         .stroke({ color: 0x3c82f6, width: lineSize, alignment: 0 });
@@ -81,6 +84,19 @@ export class TransformerManager {
     console.log("resize start", index);
     this.isResizing = true;
 
+    this.initialSize = {
+      width: this.target.width,
+      height: this.target.height,
+    };
+    this.initialPosition = {
+      x: this.target.x,
+      y: this.target.y,
+    };
+    this.initialPointerPosition = {
+      x: event.global.x,
+      y: event.global.y,
+    };
+
     const handleMove = (e: FederatedPointerEvent) =>
       this.onResizeMove(e, index);
     const handleEnd = () => {
@@ -94,10 +110,50 @@ export class TransformerManager {
     this.app.stage.on("pointerup", handleEnd);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private onResizeMove(_event: FederatedPointerEvent, index: number): void {
+  private onResizeMove(event: FederatedPointerEvent, index: number): void {
     if (!this.isResizing || !this.target) return;
-    console.log("resize move");
+
+    const dx =
+      (event.global.x - this.initialPointerPosition.x) / this.viewport.scale.x;
+    const dy =
+      (event.global.y - this.initialPointerPosition.y) / this.viewport.scale.y;
+
+    let newWidth = this.initialSize.width;
+    let newHeight = this.initialSize.height;
+    let newX = this.initialPosition.x;
+    let newY = this.initialPosition.y;
+
+    switch (index) {
+      case 0: // Top-left
+        newWidth = this.initialSize.width - dx;
+        newHeight = this.initialSize.height - dy;
+        newX = this.initialPosition.x + dx / 2;
+        newY = this.initialPosition.y + dy / 2;
+        break;
+      case 1: // Top-right
+        newWidth = this.initialSize.width + dx;
+        newHeight = this.initialSize.height - dy;
+        newX = this.initialPosition.x + dx / 2;
+        newY = this.initialPosition.y + dy / 2;
+        break;
+      case 2: // Bottom-left
+        newWidth = this.initialSize.width - dx;
+        newHeight = this.initialSize.height + dy;
+        newX = this.initialPosition.x + dx / 2;
+        newY = this.initialPosition.y + dy / 2;
+        break;
+      case 3: // Bottom-right
+        newWidth = this.initialSize.width + dx;
+        newHeight = this.initialSize.height + dy;
+        newX = this.initialPosition.x + dx / 2;
+        newY = this.initialPosition.y + dy / 2;
+        break;
+    }
+
+    this.target.width = newWidth;
+    this.target.height = newHeight;
+    this.target.position.set(newX, newY);
+    this.moveTransformer();
   }
 
   public createTransformer(): void {
