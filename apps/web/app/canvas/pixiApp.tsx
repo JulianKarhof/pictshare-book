@@ -77,6 +77,9 @@ const Pixi = () => {
     viewport.addEventListener("pinch", () => {
       setCurrentScale(viewportManagerRef.current!.scale);
     });
+    viewport.on("clicked", () => {
+      transformerManagerRef.current!.reset();
+    });
 
     await Assets.load(
       "https://fastly.picsum.photos/id/404/2000/2000.jpg?hmac=pCwJvO67FP1G3bObWhz5HjADxB2tS8v8s7TqrfqYEd0",
@@ -108,10 +111,9 @@ const Pixi = () => {
     sprite.on("pointerdown", (event) =>
       dragManagerRef.current!.onDragStart(event, sprite),
     );
-    sprite.on("click", (event) =>
-      transformerManagerRef.current!.onSelect(event, sprite),
-    );
+    sprite.on("click", () => transformerManagerRef.current!.onSelect(sprite));
 
+    transformerManagerRef.current!.onSelect(sprite);
     viewport.addChild(sprite);
   }, []);
 
@@ -131,10 +133,9 @@ const Pixi = () => {
     gr.on("pointerdown", (event) =>
       dragManagerRef.current!.onDragStart(event, gr),
     );
-    gr.on("click", (event) =>
-      transformerManagerRef.current!.onSelect(event, gr),
-    );
+    gr.on("click", () => transformerManagerRef.current!.onSelect(gr));
 
+    transformerManagerRef.current!.onSelect(gr);
     viewport.addChild(gr);
   }, []);
 
@@ -153,10 +154,9 @@ const Pixi = () => {
     gr.on("pointerdown", (event) =>
       dragManagerRef.current!.onDragStart(event, gr),
     );
-    gr.on("click", (event) =>
-      transformerManagerRef.current!.onSelect(event, gr),
-    );
+    gr.on("click", () => transformerManagerRef.current!.onSelect(gr));
 
+    transformerManagerRef.current!.onSelect(gr);
     viewport.addChild(gr);
   }, []);
 

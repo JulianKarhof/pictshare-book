@@ -22,14 +22,15 @@ export class TransformerManager {
   }
 
   private setupEventListeners(): void {
-    this.app.stage.on("pointerup", this.onDragEnd.bind(this));
-    this.app.stage.on("pointerupoutside", this.onDragEnd.bind(this));
     this.app.stage.on("dragging", this.moveTransformer.bind(this));
     this.viewport.on("zoomed", this.moveTransformer.bind(this));
     this.viewport.on("moved", this.moveTransformer.bind(this));
   }
 
   public moveTransformer(): void {
+    this.transformer.clear();
+    this.handles.forEach((handle) => handle.clear());
+
     if (this.target) {
       const padding = 0;
 
@@ -43,9 +44,6 @@ export class TransformerManager {
         width: this.target.width,
         height: this.target.height,
       };
-
-      this.transformer.clear();
-      this.handles.forEach((handle) => handle.clear());
 
       this.transformer
         .rect(
@@ -77,37 +75,6 @@ export class TransformerManager {
           offset.x * offset.y === 1 ? "nwse-resize" : "nesw-resize";
       });
     }
-  }
-
-  private onResizeStart(event: FederatedPointerEvent, index: number): void {
-    if (!this.target) return;
-    console.log("resize start", index);
-    this.isResizing = true;
-
-    this.initialSize = {
-      width: this.target.width,
-      height: this.target.height,
-    };
-    this.initialPosition = {
-      x: this.target.x,
-      y: this.target.y,
-    };
-    this.initialPointerPosition = {
-      x: event.global.x,
-      y: event.global.y,
-    };
-
-    const handleMove = (e: FederatedPointerEvent) =>
-      this.onResizeMove(e, index);
-    const handleEnd = () => {
-      this.isResizing = false;
-      this.app.stage.off("pointermove", handleMove);
-      this.app.stage.off("pointerup", handleEnd);
-      console.log("resize done");
-    };
-
-    this.app.stage.on("pointermove", handleMove);
-    this.app.stage.on("pointerup", handleEnd);
   }
 
   private onResizeMove(event: FederatedPointerEvent, index: number): void {
@@ -178,15 +145,49 @@ export class TransformerManager {
     this.transformer.zIndex = 1000;
   }
 
-  public onSelect(
-    event: FederatedPointerEvent,
-    target: Graphics | Sprite,
-  ): void {
+  private onResizeStart(event: FederatedPointerEvent, index: number): void {
+    if (!this.target) return;
+    console.log("resize start", index);
+    this.isResizing = true;
+
+    this.initialSize = {
+      width: this.target.width,
+      height: this.target.height,
+    };
+    this.initialPosition = {
+      x: this.target.x,
+      y: this.target.y,
+    };
+    this.initialPointerPosition = {
+      x: event.global.x,
+      y: event.global.y,
+    };
+
+    const handleMove = (e: FederatedPointerEvent) =>
+      this.onResizeMove(e, index);
+    const handleEnd = () => {
+      this.isResizing = false;
+      this.app.stage.off("pointermove", handleMove);
+      this.app.stage.off("pointerup", handleEnd);
+      console.log("resize done");
+    };
+
+    this.app.stage.on("pointermove", handleMove);
+    this.app.stage.on("pointerup", handleEnd);
+  }
+
+  public onSelect(target: Graphics | Sprite): void {
     if (this.target !== target) this.target = target;
     this.moveTransformer();
   }
 
-  private onDragEnd(): void {}
+  public reset(): void {
+    this.target = null;
+    this.moveTransformer();
+  }
 
-  public cleanup(): void {}
+  public cleanup(): void {
+    this.transformer.destroy();
+    this.handles.forEach((handle) => handle.destroy());
+  }
 }
