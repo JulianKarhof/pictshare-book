@@ -12,6 +12,7 @@ export class TransformerManager {
   private initialPosition = { x: 0, y: 0 };
   private initialPointerPosition = { x: 0, y: 0 };
   private shiftPressed = false;
+  private optionPressed = false;
   private initialScale = { x: 1, y: 1 };
   private signs = [
     { x: -1, y: -1 },
@@ -39,9 +40,11 @@ export class TransformerManager {
 
   public handleKeyDown(event: KeyboardEvent): void {
     if (event.key === "Shift") this.shiftPressed = true;
+    if (event.key === "Alt") this.optionPressed = true;
   }
   public handleKeyUp(event: KeyboardEvent): void {
     if (event.key === "Shift") this.shiftPressed = false;
+    if (event.key === "Alt") this.optionPressed = false;
   }
 
   public moveTransformer(): void {
@@ -136,8 +139,12 @@ export class TransformerManager {
         this.initialSize.height * (scaleY / this.initialScale.y - 1);
     }
 
-    const newX = this.initialPosition.x + (deltaWidth / 2) * signX;
-    const newY = this.initialPosition.y + (deltaHeight / 2) * signY;
+    const newX = this.optionPressed
+      ? this.initialPosition.x
+      : this.initialPosition.x + (deltaWidth / 2) * signX;
+    const newY = this.optionPressed
+      ? this.initialPosition.y
+      : this.initialPosition.y + (deltaHeight / 2) * signY;
     this.target.scale.set(scaleX, scaleY);
     this.target.position.set(newX, newY);
 
