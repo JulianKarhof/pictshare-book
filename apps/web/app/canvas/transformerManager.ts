@@ -11,6 +11,14 @@ export class TransformerManager {
   private initialSize = { width: 0, height: 0 };
   private initialPosition = { x: 0, y: 0 };
   private initialPointerPosition = { x: 0, y: 0 };
+  private shiftPressed = false;
+  private initialScale = { x: 1, y: 1 };
+  private signs = [
+    { x: -1, y: -1 },
+    { x: 1, y: -1 },
+    { x: -1, y: 1 },
+    { x: 1, y: 1 },
+  ];
 
   constructor(app: Application, viewport: Viewport) {
     this.app = app;
@@ -25,6 +33,15 @@ export class TransformerManager {
     this.app.stage.on("dragging", this.moveTransformer.bind(this));
     this.viewport.on("zoomed", this.moveTransformer.bind(this));
     this.viewport.on("moved", this.moveTransformer.bind(this));
+    window.addEventListener("keydown", this.handleKeyDown.bind(this));
+    window.addEventListener("keyup", this.handleKeyUp.bind(this));
+  }
+
+  public handleKeyDown(event: KeyboardEvent): void {
+    if (event.key === "Shift") this.shiftPressed = true;
+  }
+  public handleKeyUp(event: KeyboardEvent): void {
+    if (event.key === "Shift") this.shiftPressed = false;
   }
 
   public moveTransformer(): void {
@@ -52,16 +69,10 @@ export class TransformerManager {
           dimensions.width + padding * 2,
           dimensions.height + padding * 2,
         )
+        .rect(this.target.position.x, this.target.position.y, 1, 1)
         .stroke({ color: 0x3c82f6, width: lineSize, alignment: 0 });
 
-      const handlePositions = [
-        { x: -1, y: -1 },
-        { x: 1, y: -1 },
-        { x: -1, y: 1 },
-        { x: 1, y: 1 },
-      ];
-
-      handlePositions.forEach((offset, index) => {
+      this.signs.forEach((offset, index) => {
         this.handles[index]
           .rect(
             pos.x + dimensions.width * offset.x * 0.5 - handleSize / 2,
@@ -80,46 +91,56 @@ export class TransformerManager {
   private onResizeMove(event: FederatedPointerEvent, index: number): void {
     if (!this.isResizing || !this.target) return;
 
+    const signX = this.signs[index].x;
+    const signY = this.signs[index].y;
+
     const dx =
-      (event.global.x - this.initialPointerPosition.x) / this.viewport.scale.x;
+      ((event.global.x - this.initialPointerPosition.x) /
+        this.viewport.scale.x) *
+      signX;
     const dy =
-      (event.global.y - this.initialPointerPosition.y) / this.viewport.scale.y;
+      ((event.global.y - this.initialPointerPosition.y) /
+        this.viewport.scale.y) *
+      signY;
 
-    let newWidth = this.initialSize.width;
-    let newHeight = this.initialSize.height;
-    let newX = this.initialPosition.x;
-    let newY = this.initialPosition.y;
+    let scaleX: number;
+    let scaleY: number;
+    let deltaWidth: number;
+    let deltaHeight: number;
 
-    switch (index) {
-      case 0: // Top-left
-        newWidth = this.initialSize.width - dx;
-        newHeight = this.initialSize.height - dy;
-        newX = this.initialPosition.x + dx / 2;
-        newY = this.initialPosition.y + dy / 2;
-        break;
-      case 1: // Top-right
-        newWidth = this.initialSize.width + dx;
-        newHeight = this.initialSize.height - dy;
-        newX = this.initialPosition.x + dx / 2;
-        newY = this.initialPosition.y + dy / 2;
-        break;
-      case 2: // Bottom-left
-        newWidth = this.initialSize.width - dx;
-        newHeight = this.initialSize.height + dy;
-        newX = this.initialPosition.x + dx / 2;
-        newY = this.initialPosition.y + dy / 2;
-        break;
-      case 3: // Bottom-right
-        newWidth = this.initialSize.width + dx;
-        newHeight = this.initialSize.height + dy;
-        newX = this.initialPosition.x + dx / 2;
-        newY = this.initialPosition.y + dy / 2;
-        break;
+    if (this.shiftPressed) {
+      const scaleDeltaX =
+        (this.initialSize.width + dx) / this.initialSize.width;
+      const scaleDeltaY =
+        (this.initialSize.height + dy) / this.initialSize.height;
+      const scaleDelta =
+        Math.abs(scaleDeltaX) > Math.abs(scaleDeltaY)
+          ? scaleDeltaX
+          : scaleDeltaY;
+
+      scaleX = this.initialScale.x * scaleDelta;
+      scaleY = this.initialScale.y * scaleDelta;
+
+      deltaWidth = this.initialSize.width * (scaleDelta - 1);
+      deltaHeight = this.initialSize.height * (scaleDelta - 1);
+    } else {
+      scaleX =
+        (this.initialScale.x * (this.initialSize.width + dx)) /
+        this.initialSize.width;
+      scaleY =
+        (this.initialScale.y * (this.initialSize.height + dy)) /
+        this.initialSize.height;
+
+      deltaWidth = this.initialSize.width * (scaleX / this.initialScale.x - 1);
+      deltaHeight =
+        this.initialSize.height * (scaleY / this.initialScale.y - 1);
     }
 
-    this.target.width = newWidth;
-    this.target.height = newHeight;
+    const newX = this.initialPosition.x + (deltaWidth / 2) * signX;
+    const newY = this.initialPosition.y + (deltaHeight / 2) * signY;
+    this.target.scale.set(scaleX, scaleY);
     this.target.position.set(newX, newY);
+
     this.moveTransformer();
   }
 
@@ -162,6 +183,7 @@ export class TransformerManager {
       x: event.global.x,
       y: event.global.y,
     };
+    this.initialScale = { x: this.target.scale.x, y: this.target.scale.y };
 
     const handleMove = (e: FederatedPointerEvent) =>
       this.onResizeMove(e, index);
