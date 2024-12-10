@@ -1,21 +1,13 @@
 "use client";
-import {
-  Application,
-  Assets,
-  Graphics,
-  GraphicsContext,
-  Sprite,
-  Texture,
-} from "pixi.js";
+import { Application, Assets, Sprite, Texture } from "pixi.js";
 import { initDevtools } from "@pixi/devtools";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { ViewportManager } from "./viewportManager";
 import { DragManager } from "./dragManager";
 import { Settings } from "./settings";
 import { TransformerManager } from "./transformerManager";
-
-const postItContext = new GraphicsContext().rect(0, 0, 400, 400).fill(0xcb9df0);
-const circleContext = new GraphicsContext().circle(0, 0, 200).fill(0xcb9df0);
+import { RectangleShape } from "./shapes/rectangle";
+import { CircleShape } from "./shapes/circle";
 
 const Pixi = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -86,78 +78,47 @@ const Pixi = () => {
     );
   };
 
-  const handleAddPicture = useCallback(() => {
+  const handleAdd = useCallback((type: "square" | "circle" | "picture") => {
     if (!viewportManagerRef.current || !dragManagerRef.current) return;
 
-    const texture = Texture.from(
-      "https://fastly.picsum.photos/id/404/2000/2000.jpg?hmac=pCwJvO67FP1G3bObWhz5HjADxB2tS8v8s7TqrfqYEd0",
-    );
-
-    const sprite = new Sprite({
-      texture,
-      width: 400,
-      height: 400,
-    });
-
     const viewport = viewportManagerRef.current.viewport;
+    let element;
 
-    sprite.eventMode = "static";
-    sprite.cursor = "pointer";
+    switch (type) {
+      case "square":
+        element = new RectangleShape();
+        element.pivot.set(element.width / 2, element.height / 2);
+        break;
+      case "circle":
+        element = new CircleShape();
+        break;
+      case "picture":
+        const texture = Texture.from(
+          "https://fastly.picsum.photos/id/404/2000/2000.jpg?hmac=pCwJvO67FP1G3bObWhz5HjADxB2tS8v8s7TqrfqYEd0",
+        );
+        element = new Sprite({
+          texture,
+          width: 400,
+          height: 400,
+        });
+        element.anchor.set(0.5);
+        break;
+    }
 
-    sprite.anchor.set(0.5);
-    sprite.x = viewport.center.x;
-    sprite.y = viewport.center.y;
+    if (!element) return;
 
-    sprite.on("pointerdown", (event) =>
-      dragManagerRef.current!.onDragStart(event, sprite),
+    element.eventMode = "static";
+    element.cursor = "pointer";
+    element.x = viewport.center.x;
+    element.y = viewport.center.y;
+
+    element.on("pointerdown", (event) =>
+      dragManagerRef.current!.onDragStart(event, element),
     );
-    sprite.on("click", () => transformerManagerRef.current!.onSelect(sprite));
+    element.on("click", () => transformerManagerRef.current!.onSelect(element));
 
-    transformerManagerRef.current!.onSelect(sprite);
-    viewport.addChild(sprite);
-  }, []);
-
-  const handleAddSquare = useCallback(() => {
-    if (!viewportManagerRef.current || !dragManagerRef.current) return;
-
-    const gr = new Graphics(postItContext);
-    const viewport = viewportManagerRef.current.viewport;
-
-    gr.eventMode = "static";
-    gr.cursor = "pointer";
-
-    gr.pivot.set(gr.width / 2, gr.height / 2);
-    gr.x = viewport.center.x;
-    gr.y = viewport.center.y;
-
-    gr.on("pointerdown", (event) =>
-      dragManagerRef.current!.onDragStart(event, gr),
-    );
-    gr.on("click", () => transformerManagerRef.current!.onSelect(gr));
-
-    transformerManagerRef.current!.onSelect(gr);
-    viewport.addChild(gr);
-  }, []);
-
-  const handleAddCircle = useCallback(() => {
-    if (!viewportManagerRef.current || !dragManagerRef.current) return;
-
-    const gr = new Graphics(circleContext);
-    const viewport = viewportManagerRef.current.viewport;
-
-    gr.eventMode = "static";
-    gr.cursor = "pointer";
-
-    gr.x = viewport.center.x;
-    gr.y = viewport.center.y;
-
-    gr.on("pointerdown", (event) =>
-      dragManagerRef.current!.onDragStart(event, gr),
-    );
-    gr.on("click", () => transformerManagerRef.current!.onSelect(gr));
-
-    transformerManagerRef.current!.onSelect(gr);
-    viewport.addChild(gr);
+    transformerManagerRef.current!.onSelect(element);
+    viewport.addChild(element);
   }, []);
 
   return (
@@ -166,19 +127,19 @@ const Pixi = () => {
         <div className="pl-3">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={() => handleAddSquare()}
+            onClick={() => handleAdd("square")}
           >
-            Post It
+            Square
           </button>
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
-            onClick={() => handleAddCircle()}
+            onClick={() => handleAdd("circle")}
           >
             Circle
           </button>
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
-            onClick={handleAddPicture}
+            onClick={() => handleAdd("picture")}
           >
             Picture
           </button>
