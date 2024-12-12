@@ -79,6 +79,24 @@ const Pixi = () => {
           </button>
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
+            onClick={() => stageManagerRef.current?.download()}
+          >
+            Download
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
+            onClick={() => stageManagerRef.current?.saveToFile()}
+          >
+            Save
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
+            onClick={() => stageManagerRef.current?.loadFromFile()}
+          >
+            Load
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
             onClick={() => {
               stageManagerRef.current?.settings.setTheme(
                 stageManagerRef.current?.settings.getTheme() === "light"

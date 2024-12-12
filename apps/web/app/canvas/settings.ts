@@ -1,4 +1,4 @@
-"use client";
+import { CookieHelper } from "./helpers/cookieHelper";
 
 type Theme = "light" | "dark";
 
@@ -23,10 +23,7 @@ export class Settings {
   };
 
   private constructor() {
-    const savedTheme = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("theme="))
-      ?.split("=")[1] as Theme | undefined;
+    const savedTheme = CookieHelper.getCookie("theme") as Theme | undefined;
 
     if (savedTheme) {
       this.currentTheme = savedTheme;
@@ -46,7 +43,7 @@ export class Settings {
 
   public setTheme(theme: Theme): void {
     this.currentTheme = theme;
-    document.cookie = `theme=${theme};max-age=31536000;path=/`;
+    CookieHelper.setCookie("theme", theme);
     window.location.reload();
   }
 

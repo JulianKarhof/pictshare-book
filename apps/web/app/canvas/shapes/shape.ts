@@ -13,8 +13,8 @@ export interface SerializedShape {
 }
 
 export abstract class BaseShape extends Graphics {
-  protected type: string;
-  protected color: number;
+  type: string;
+  color: number;
 
   constructor(
     context: GraphicsContext,
@@ -47,7 +47,7 @@ export abstract class BaseShape extends Graphics {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static from(data: SerializedShape) {
+  public static from(data: SerializedShape): BaseShape {
     throw new Error("Method not implemented! Use derived class");
   }
 }
