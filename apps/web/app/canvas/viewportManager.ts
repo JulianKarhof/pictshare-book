@@ -40,11 +40,10 @@ export class ViewportManager {
       "wheel",
       new PinchToZoomAndMove(this._viewport, {
         zoomReverse: true,
-        zoomSpeed: 5,
         moveSpeed: 1.5,
       }),
     );
-    this._viewport.pinch();
+    this._viewport.pinch().drag({mouseButtons: "middle-right"});
   }
 
   private setupEventListeners(): void {

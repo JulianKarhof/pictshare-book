@@ -62,24 +62,32 @@ export class StageManager {
     this._app.stage.eventMode = "static";
     this._app.stage.hitArea = this._app.screen;
 
-    const viewport = this.viewportManager.viewport;
-    viewport.addEventListener("wheel", () => {
+
+    this.viewportManager?.viewport.addChild(this.parentContainer);
+
+    this.setupEventListeners();
+    this.loadAssets();
+  }
+
+  private setupEventListeners(): void {
+    const viewport = this.viewportManager?.viewport;
+    viewport?.addEventListener("wheel", () => {
       this.currentScale = this.viewportManager?.scale ?? 0.2;
       this.onScaleChange?.(this.currentScale);
     });
-    viewport.addEventListener("pinch", () => {
+    viewport?.addEventListener("pinch", () => {
       this.currentScale = this.viewportManager?.scale ?? 0.2;
       this.onScaleChange?.(this.currentScale);
     });
-    viewport.on("clicked", () => {
+    viewport?.on("clicked", () => {
       this.transformerManager?.reset();
     });
     this.app.stage.on("dragging", this.save.bind(this));
     this.app.stage.on("click", this.save.bind(this));
     this.app.stage.on("drag-end", this.save.bind(this));
+  }
 
-    this.viewportManager?.viewport.addChild(this.parentContainer);
-
+  private async loadAssets(): Promise<void> {
     await Assets.load(
       "https://fastly.picsum.photos/id/404/2000/2000.jpg?hmac=pCwJvO67FP1G3bObWhz5HjADxB2tS8v8s7TqrfqYEd0",
     );
@@ -89,6 +97,7 @@ export class StageManager {
       await this.load(JSON.parse(canvasData));
     }
   }
+
 
   public addInteractiveChild(
     child: BaseShape | Sprite,

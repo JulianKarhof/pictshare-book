@@ -5,6 +5,7 @@ type Options = {
   moveReverse: boolean;
   zoomSpeed: number;
   zoomReverse: boolean;
+  trackPadZoomSpeed: number;
 };
 
 const defaults: Options = {
@@ -12,6 +13,7 @@ const defaults: Options = {
   moveReverse: false,
   zoomSpeed: 1,
   zoomReverse: false,
+  trackPadZoomSpeed: 5,
 };
 
 export class PinchToZoomAndMove extends Plugin {
@@ -19,6 +21,8 @@ export class PinchToZoomAndMove extends Plugin {
   private options: Options;
   private moveReverse: number;
   private zoomReverse: number;
+  private lastWheelTime: number = 0;
+  private isTrackpad: boolean = false;
 
   constructor(parent: Viewport, options: Partial<Options>) {
     super(parent);
@@ -30,6 +34,22 @@ export class PinchToZoomAndMove extends Plugin {
   }
 
   wheel(event: WheelEvent) {
+    const currentTime = Date.now();
+    const timeDelta = currentTime - this.lastWheelTime;
+
+    if (
+      Math.abs(event.deltaY) < 40 &&
+      timeDelta < 50 &&
+      event.deltaMode === 0 &&
+      !Number.isInteger(event.deltaY)
+    ) {
+      this.isTrackpad = true;
+    } else if (timeDelta > 500) {
+      this.isTrackpad = false;
+    }
+
+    this.lastWheelTime = currentTime;
+
     if (event.ctrlKey) {
       this.zoom(event);
       return true;
@@ -50,8 +70,12 @@ export class PinchToZoomAndMove extends Plugin {
   }
 
   private zoom(event: WheelEvent) {
+    const zoomSpeed = this.isTrackpad
+      ? this.options.trackPadZoomSpeed
+      : this.options.zoomSpeed;
+
     const delta =
-      1 - (this.zoomReverse * event.deltaY * this.options.zoomSpeed) / 300;
+      1 - (this.zoomReverse * event.deltaY * zoomSpeed) / 300;
 
     const point = this.parent.input.getPointerPosition(event);
     const oldPoint = this.parent.toLocal(point);
@@ -59,7 +83,6 @@ export class PinchToZoomAndMove extends Plugin {
     this.parent.scale.x *= delta;
     this.parent.scale.y *= delta;
 
-    // clamp zoom
     this.parent.scale.x = this.clamp(this.parent.scale.x, 0.0246, 1.5);
     this.parent.scale.y = this.clamp(this.parent.scale.y, 0.0246, 1.5);
 
