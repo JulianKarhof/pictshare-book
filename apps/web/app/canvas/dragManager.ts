@@ -28,13 +28,21 @@ export class DragManager {
       y: localPosition.y - target.y,
     };
 
-    this.app.stage.on("pointermove", this.onDragMove.bind(this));
+    window.addEventListener("pointermove", this.onDragMove.bind(this));
+    window.addEventListener("pointerup", this.onDragEnd.bind(this));
   }
 
-  private onDragMove(event: FederatedPointerEvent): void {
+  private onDragMove(event: PointerEvent): void {
     if (this.dragTarget) {
       this.app.stage.emit("dragging");
-      const newPosition = this.dragTarget.parent.toLocal(event.global);
+
+      const canvas = this.app.canvas;
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      const newPosition = this.dragTarget.parent.toLocal({ x, y });
+
       this.dragTarget.position.set(
         newPosition.x - this.dragOffset.x,
         newPosition.y - this.dragOffset.y,
@@ -44,13 +52,17 @@ export class DragManager {
 
   private onDragEnd(): void {
     if (this.dragTarget) {
-      this.app.stage.off("pointermove", this.onDragMove.bind(this));
+      window.removeEventListener("pointermove", this.onDragMove.bind(this));
+      window.removeEventListener("pointerup", this.onDragEnd.bind(this));
+
       this.dragTarget.alpha = 1;
       this.dragTarget = null;
     }
   }
 
   public cleanup(): void {
+    window.removeEventListener("pointermove", this.onDragMove.bind(this));
+    window.removeEventListener("pointerup", this.onDragEnd.bind(this));
     this.app.stage.off("pointerup", this.onDragEnd.bind(this));
     this.app.stage.off("pointerupoutside", this.onDragEnd.bind(this));
   }
