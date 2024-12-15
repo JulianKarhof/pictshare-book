@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id       String    @id @default(cuid())
+  name     String
+  elements Element[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Element {
+  id     String      @id @default(cuid())
+  type   ElementType
+  x      Float
+  y      Float
+  width  Float
+  height Float
+  scaleX Float       @default(1)
+  scaleY Float       @default(1)
+  angle  Float       @default(0)
+  zIndex Int         @default(0)
+
+  image Image?
+  text  Text?
+  shape Shape?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
+
+  @@index([zIndex])
+}
+
+enum ElementType {
+  IMAGE
+  TEXT
+  SHAPE
+}
+
+model Image {
+  id  String @id @default(cuid())
+  url String
+
+  element   Element @relation(fields: [elementId], references: [id])
+  elementId String  @unique
+}
+
+model Text {
+  id         String  @id @default(cuid())
+  content    String
+  fontSize   Int     @default(16)
+  fontFamily String?
+  color      Int?
+
+  element   Element @relation(fields: [elementId], references: [id])
+  elementId String  @unique
+}
+
+model Shape {
+  id          String    @id @default(cuid())
+  shapeType   ShapeType
+  fill        Int?
+  stroke      Int?
+  strokeWidth Float?
+  points      Json
+
+  element   Element @relation(fields: [elementId], references: [id])
+  elementId String  @unique
+}
+
+enum ShapeType {
+  RECTANGLE
+  CIRCLE
+  TRIANGLE
+  LINE
+}

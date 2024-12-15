@@ -4,8 +4,7 @@ import { FederatedPointerEvent, Graphics, Sprite, Application } from "pixi.js";
 export class TransformerManager {
   private app: Application;
   private viewport: Viewport;
-  private transformer: Graphics;
-  private handles: Graphics[];
+  private transformer: Graphics = new Graphics();
   private target: Graphics | Sprite | null = null;
   private isResizing: boolean = false;
   private initialSize = { width: 0, height: 0 };
@@ -14,6 +13,12 @@ export class TransformerManager {
   private shiftPressed = false;
   private optionPressed = false;
   private initialScale = { x: 1, y: 1 };
+  private handles: Graphics[] = [
+    new Graphics(),
+    new Graphics(),
+    new Graphics(),
+    new Graphics(),
+  ];
   private signs = [
     { x: -1, y: -1 },
     { x: 1, y: -1 },
@@ -24,8 +29,6 @@ export class TransformerManager {
   constructor(app: Application, viewport: Viewport) {
     this.app = app;
     this.viewport = viewport;
-    this.transformer = new Graphics();
-    this.handles = [];
     this.setupEventListeners();
     this.createTransformer();
   }
@@ -152,22 +155,12 @@ export class TransformerManager {
   }
 
   public createTransformer(): void {
-    this.transformer = new Graphics();
-    this.handles = [
-      new Graphics(),
-      new Graphics(),
-      new Graphics(),
-      new Graphics(),
-    ];
-
     this.handles.forEach((handle, index) => {
       this.viewport.addChild(handle);
       handle.zIndex = 1001;
       handle.eventMode = "static";
 
-      handle.on("pointerdown", (e: FederatedPointerEvent) =>
-        this.onResizeStart(e, index),
-      );
+      handle.on("pointerdown", (e) => this.onResizeStart(e, index));
     });
     this.viewport.addChild(this.transformer);
     this.transformer.zIndex = 1000;
@@ -175,7 +168,6 @@ export class TransformerManager {
 
   private onResizeStart(event: FederatedPointerEvent, index: number): void {
     if (!this.target) return;
-    console.log("resize start", index);
     this.isResizing = true;
 
     this.initialSize = {
@@ -194,15 +186,15 @@ export class TransformerManager {
 
     const handleMove = (e: FederatedPointerEvent) =>
       this.onResizeMove(e, index);
+
     const handleEnd = () => {
       this.isResizing = false;
-      this.app.stage.off("pointermove", handleMove);
-      this.app.stage.off("pointerup", handleEnd);
-      console.log("resize done");
+      this.app.stage.off("pointermove", handleMove.bind(this));
+      this.app.stage.off("pointerup", handleEnd.bind(this));
     };
 
-    this.app.stage.on("pointermove", handleMove);
-    this.app.stage.on("pointerup", handleEnd);
+    this.app.stage.on("pointermove", handleMove.bind(this));
+    this.app.stage.on("pointerup", handleEnd.bind(this));
   }
 
   public onSelect(target: Graphics | Sprite): void {

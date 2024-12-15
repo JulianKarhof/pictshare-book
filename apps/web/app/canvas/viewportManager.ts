@@ -43,12 +43,13 @@ export class ViewportManager {
         moveSpeed: 1.5,
       }),
     );
-    this._viewport.pinch().drag({mouseButtons: "middle-right"});
+    this._viewport.pinch().drag({ mouseButtons: "middle-right" });
   }
 
   private setupEventListeners(): void {
     this._viewport.addEventListener("zoomed", () => this.handleZoomPan());
     this._viewport.addEventListener("moved", () => this.handleZoomPan());
+    window.addEventListener("resize", () => this.handleZoomPan());
   }
 
   private handleZoomPan(): void {
