@@ -34,9 +34,10 @@ model Element {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  Project   Project? @relation(fields: [projectId], references: [id])
-  projectId String?
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
 
+  @@unique([id, type])
   @@index([zIndex])
 }
 
@@ -52,6 +53,8 @@ model Image {
 
   element   Element @relation(fields: [elementId], references: [id])
   elementId String  @unique
+
+  @@index([elementId])
 }
 
 model Text {
@@ -63,6 +66,8 @@ model Text {
 
   element   Element @relation(fields: [elementId], references: [id])
   elementId String  @unique
+
+  @@index([elementId])
 }
 
 model Shape {
@@ -71,15 +76,15 @@ model Shape {
   fill        Int?
   stroke      Int?
   strokeWidth Float?
-  points      Json
+  points      Float[]
 
   element   Element @relation(fields: [elementId], references: [id])
   elementId String  @unique
+
+  @@index([elementId])
 }
 
 enum ShapeType {
   RECTANGLE
   CIRCLE
-  TRIANGLE
-  LINE
 }
