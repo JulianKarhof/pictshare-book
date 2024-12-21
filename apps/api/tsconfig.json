@@ -5,12 +5,16 @@
     "target": "ESNext",
     "module": "NodeNext",
     "strict": true,
+    "strictNullChecks": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
+    "paths": {
+      "@api/*": ["./src/*"],
+      "@routes/*": ["./src/routes/*"],
+      "@prisma/*": ["./prisma/*"]
+    }
   }
 }

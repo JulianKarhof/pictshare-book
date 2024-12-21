@@ -19,8 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@api": ["../api/src"]
+      "@web/*": ["./*"],
+      "@api/*": ["../api/src/*"],
+      "@routes/*": ["../api/src/routes/*"],
+      "@prisma/*": ["../api/prisma/*"]
     }
   },
   "include": [

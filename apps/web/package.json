@@ -10,6 +10,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@elysiajs/eden": "^1.1.3",
     "@pixi/devtools": "^2.0.1",
     "@pixi/utils": "^7.4.2",
     "@types/gradient-parser": "^0.1.5",
