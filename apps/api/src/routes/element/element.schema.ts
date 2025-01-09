@@ -5,6 +5,7 @@ export const ElementBaseSchema = t.Object({
   id: t.String({
     examples: ["cljk3d4g50000pb56j8qhm8nz"],
   }),
+  projectId: t.String({ examples: ["cljk3d4g50000pb56j8qhm8nz"] }),
   type: t.Enum(ElementType, { examples: [ElementType.IMAGE] }),
   x: t.Number({ examples: [100] }),
   y: t.Number({ examples: [100] }),
@@ -14,6 +15,14 @@ export const ElementBaseSchema = t.Object({
   scaleY: t.Number({ examples: [1] }),
   angle: t.Number({ examples: [0] }),
   zIndex: t.Number({ examples: [0] }),
+  createdAt: t.Date({
+    examples: ["2025-08-01T00:00:00.000Z"],
+    format: "date-time",
+  }),
+  updatedAt: t.Date({
+    examples: ["2025-08-01T00:00:00.000Z"],
+    format: "date-time",
+  }),
 });
 
 const ImageSchema = t.Object({
@@ -57,7 +66,7 @@ export const ElementSchema = t.Composite([
 ]);
 
 export const ElementCreateSchema = t.Composite([
-  t.Omit(ElementBaseSchema, ["id"]),
+  t.Omit(ElementBaseSchema, ["id", "createdAt", "updatedAt"]),
   t.Object({
     projectId: t.String({ examples: ["cljk3d4g50000pb56j8qhm8nz"] }),
     image: t.Optional(ImageCreateSchema),

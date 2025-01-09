@@ -33,7 +33,7 @@ const projectRoute = new Elysia({ prefix: "/project" })
     "/:id/elements",
     async ({ params: { id } }) => {
       const elements = await prisma.element.findMany({
-        where: { id },
+        where: { projectId: id },
         include: {
           image: true,
           text: true,

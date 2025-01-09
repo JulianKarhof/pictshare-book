@@ -1,4 +1,4 @@
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 import projectRoute from "@routes/project/project.routes.js";
@@ -8,8 +8,6 @@ import env from "@api/env.js";
 const port = 4000;
 
 const app = new Elysia()
-
-  .use(cors({ origin: env.FRONTEND_URL }))
 
   .use(projectRoute)
   .use(elementRoute)
@@ -25,6 +23,8 @@ const app = new Elysia()
       },
     }),
   )
+
+  .use(cors({ origin: env.FRONTEND_URL }))
   .listen(port);
 
 console.log(`Server is running on http://localhost:${port}`);

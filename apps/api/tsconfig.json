@@ -14,7 +14,8 @@
     "paths": {
       "@api/*": ["./src/*"],
       "@routes/*": ["./src/routes/*"],
-      "@prisma/*": ["./prisma/*"]
+      "@prisma/*": ["./prisma/*"],
+      "@mocks/*": ["./mocks/*"]
     }
   }
 }
