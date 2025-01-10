@@ -1,5 +1,5 @@
-import { t } from "elysia";
 import { ElementSchema } from "@routes/element/element.schema.js";
+import { t } from "elysia";
 
 export const ProjectSchema = t.Object({
   id: t.String({

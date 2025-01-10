@@ -1,14 +1,14 @@
 import prisma from "@api/prisma.js";
-import { Elysia, t } from "elysia";
-import {
-  ProjectSchema,
-  ProjectWithoutElementsSchema,
-} from "./project.schemas.js";
 import {
   Common404ErrorSchema,
   CommonSuccessMessageSchema,
 } from "@api/schemas.js";
+import { Elysia, t } from "elysia";
 import { ElementSchema } from "../element/element.schema.js";
+import {
+  ProjectSchema,
+  ProjectWithoutElementsSchema,
+} from "./project.schemas.js";
 
 const projectRoute = new Elysia({ prefix: "/project" })
 
@@ -131,7 +131,7 @@ const projectRoute = new Elysia({ prefix: "/project" })
   .delete(
     "/",
     async ({ body: { id } }) => {
-      const project = await prisma.project.delete({
+      await prisma.project.delete({
         where: { id },
       });
 

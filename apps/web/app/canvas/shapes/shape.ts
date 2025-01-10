@@ -46,8 +46,7 @@ export abstract class BaseShape extends Graphics {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static from(data: SerializedShape): BaseShape {
+  public static from(_data: SerializedShape): BaseShape {
     throw new Error("Method not implemented! Use derived class");
   }
 }

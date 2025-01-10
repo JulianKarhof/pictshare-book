@@ -1,5 +1,5 @@
 import { Viewport } from "pixi-viewport";
-import { FederatedPointerEvent, Graphics, Sprite, Application } from "pixi.js";
+import { Application, FederatedPointerEvent, Graphics, Sprite } from "pixi.js";
 
 export class TransformerManager {
   private app: Application;

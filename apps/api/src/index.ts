@@ -1,9 +1,9 @@
-import { Elysia } from "elysia";
+import env from "@api/env.js";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 import projectRoute from "@routes/project/project.routes.js";
+import { Elysia } from "elysia";
 import elementRoute from "./routes/element/element.routes.js";
-import env from "@api/env.js";
 
 const port = 4000;
 

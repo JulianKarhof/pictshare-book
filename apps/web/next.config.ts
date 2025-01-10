@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  distDir: 'build',
+  distDir: "build",
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   experimental: {
     turbo: {
       resolveExtensions: [

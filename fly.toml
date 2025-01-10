@@ -2,6 +2,7 @@ app = 'pictshare-book'
 primary_region = 'ams'
 
 [build]
+dockerfile = "apps/api/Dockerfile"
 
 [env]
 NODE_ENV = "production"
@@ -20,7 +21,7 @@ processes = ["fly_app_release_command"]
 
 [deploy]
 strategy = "canary"
-release_command = "bunx prisma migrate deploy"
+release_command = "bunx prisma migrate deploy --schema apps/api/prisma/schema.prisma"
 
 [deploy.release_command_vm]
 size = "shared-cpu-1x"

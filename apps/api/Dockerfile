@@ -9,13 +9,16 @@ ENV NODE_ENV="production"
 
 FROM base AS build
 
-COPY package.json bun.lockb ./
+COPY package.json .
+COPY apps/api/package.json .
+COPY bun.lock .
+
 RUN bun install
 
 COPY . .
 
-RUN bunx prisma generate
-RUN bun run build
+RUN bun prisma generate --schema apps/api/prisma/schema.prisma
+RUN bunx turbo build --filter api
 
 
 FROM base
@@ -23,4 +26,4 @@ FROM base
 COPY --from=build /app /app
 
 EXPOSE 4000
-CMD [ "bun", "build/index.js" ]
+CMD [ "bun", "apps/api/build/index.js" ]

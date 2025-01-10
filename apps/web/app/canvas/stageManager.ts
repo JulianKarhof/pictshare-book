@@ -1,12 +1,17 @@
-import { Application, Assets, Container, Sprite } from "pixi.js";
-import { Settings } from "./settings";
-import { ViewportManager } from "./viewportManager";
-import { DragManager } from "./dragManager";
-import { TransformerManager } from "./transformerManager";
 import { initDevtools } from "@pixi/devtools";
-import { BaseShape, SerializedShape } from "./shapes/shape";
-import { RectangleShape } from "./shapes/rectangle";
+import { Application, Assets, Container, Sprite } from "pixi.js";
+import { DragManager } from "./dragManager";
+import { Settings } from "./settings";
 import { CircleShape } from "./shapes/circle";
+import { RectangleShape } from "./shapes/rectangle";
+import { BaseShape, type SerializedShape } from "./shapes/shape";
+import { TransformerManager } from "./transformerManager";
+import { ViewportManager } from "./viewportManager";
+
+import type { App } from "@api/index.js";
+import { treaty } from "@elysiajs/eden";
+
+const _client = treaty<App>("http://localhost:4000/");
 
 interface InteractiveChildOptions {
   location: { x: number; y: number };
@@ -21,6 +26,7 @@ export class StageManager {
   private transformerManager?: TransformerManager;
   private currentScale: number = 0.2;
   private parentContainer: Container;
+  // private socket: WebSocket;
 
   private onScaleChange?: (scale: number) => void;
   private onChange?: (data: SerializedShape[]) => void;
@@ -36,10 +42,23 @@ export class StageManager {
     this.onScaleChange = onScaleChange;
     this.parentContainer = new Container();
     this.onChange = onChange;
+    // this.socket = client.ws.$ws();
   }
 
   public async init(): Promise<void> {
     initDevtools({ app: this._app });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // const { data } = await client
+    // 	.project({ id: "cm4xbkqmp000089ipy7g37epg" })
+    // 	.get();
+
+    // this.socket.onopen = () => {
+    //   console.log("WebSocket connected");
+    // };
+    // this.socket.onmessage = (event) => {
+    //   console.log(`Message from server: ${event.data}`);
+    // };
 
     await this._app.init({
       background: this._settings.backgroundColor,
@@ -61,7 +80,6 @@ export class StageManager {
 
     this._app.stage.eventMode = "static";
     this._app.stage.hitArea = this._app.screen;
-
 
     this.viewportManager?.viewport.addChild(this.parentContainer);
 
@@ -98,7 +116,6 @@ export class StageManager {
     }
   }
 
-
   public addInteractiveChild(
     child: BaseShape | Sprite,
     options: InteractiveChildOptions = {
@@ -121,6 +138,9 @@ export class StageManager {
 
     if (options.selectAfterCreation) this.transformerManager?.onSelect(child);
     this.parentContainer.addChild(child);
+    if (child instanceof BaseShape) {
+      // this.socket.send(JSON.stringify(child.toJson()));
+    }
     this.save();
   }
 
@@ -144,7 +164,6 @@ export class StageManager {
     });
 
     this.onChange?.(stageObjects);
-    localStorage.setItem("canvasData", JSON.stringify(stageObjects));
     return stageObjects;
   }
 

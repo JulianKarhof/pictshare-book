@@ -1,8 +1,8 @@
 "use client";
 import { Sprite, Texture } from "pixi.js";
-import { useRef, useEffect, useState, useCallback } from "react";
-import { RectangleShape } from "./shapes/rectangle";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CircleShape } from "./shapes/circle";
+import { RectangleShape } from "./shapes/rectangle";
 import { StageManager } from "./stageManager";
 
 const Pixi = () => {

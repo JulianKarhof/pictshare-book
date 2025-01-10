@@ -74,8 +74,7 @@ export class PinchToZoomAndMove extends Plugin {
       ? this.options.trackPadZoomSpeed
       : this.options.zoomSpeed;
 
-    const delta =
-      1 - (this.zoomReverse * event.deltaY * zoomSpeed) / 300;
+    const delta = 1 - (this.zoomReverse * event.deltaY * zoomSpeed) / 300;
 
     const point = this.parent.input.getPointerPosition(event);
     const oldPoint = this.parent.toLocal(point);

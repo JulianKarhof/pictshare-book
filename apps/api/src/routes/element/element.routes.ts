@@ -1,8 +1,8 @@
 import prisma from "@api/prisma.js";
-import { Elysia, t } from "elysia";
-import { ElementSchema, ElementCreateSchema } from "./element.schema.js";
 import { Common404ErrorSchema } from "@api/schemas.js";
 import { ElementType } from "@prisma/client";
+import { Elysia, t } from "elysia";
+import { ElementCreateSchema, ElementSchema } from "./element.schema.js";
 
 const elementRoute = new Elysia({ prefix: "/element" })
 
@@ -143,7 +143,7 @@ const elementRoute = new Elysia({ prefix: "/element" })
           where: { id },
         });
         return { message: "Element deleted successfully" };
-      } catch (e) {
+      } catch (_e) {
         return error(404, { message: "Element not found" });
       }
     },
