@@ -2,7 +2,8 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "prettier": "^3.4.2",
-    "turbo": "^2.3.3"
+    "turbo": "^2.3.3",
+    "lefthook": "^1.10.2"
   },
   "packageManager": "bun@1.1.42",
   "scripts": {
@@ -12,9 +13,13 @@
     "generate": "bunx prisma generate --schema ./apps/api/prisma/schema.prisma",
     "setup": "bunx lefthook install && bun db && bun generate"
   },
-  "workspaces": ["apps/*"],
+  "workspaces": [
+    "apps/*"
+  ],
   "dependencies": {
-    "elysia": "^1.2.10",
-    "lefthook": "^1.10.2"
+    "elysia": "^1.2.10"
+  },
+  "patchedDependencies": {
+    "@grotto/logysia@0.1.6": "patches/@grotto%2Flogysia@0.1.6.patch"
   }
 }
