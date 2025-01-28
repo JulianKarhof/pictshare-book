@@ -10,7 +10,7 @@ export class CircleShape extends BaseShape {
     super(context, CircleShape.TYPE, color);
   }
 
-  public static override from(data: SerializedShape): CircleShape {
+  public static from(data: SerializedShape): CircleShape {
     return Object.assign(new CircleShape(data.color), data);
   }
 }

@@ -1,17 +1,15 @@
 import { initDevtools } from "@pixi/devtools";
-import { Application, Assets, Container, Sprite } from "pixi.js";
+import { Application, Assets, Container } from "pixi.js";
 import { DragManager } from "./dragManager";
 import { Settings } from "./settings";
-import { CircleShape } from "./shapes/circle";
-import { RectangleShape } from "./shapes/rectangle";
-import { BaseShape, type SerializedShape } from "./shapes/shape";
+import { BaseObject, type SerializedObject } from "./objects/object";
 import { TransformerManager } from "./transformerManager";
 import { ViewportManager } from "./viewportManager";
-
-import type { App } from "@api/index.js";
-import { treaty } from "@elysiajs/eden";
-
-const _client = treaty<App>("http://localhost:4000/");
+import {
+  ObjectTypes,
+  WebSocketManager,
+  WebSocketMessageType,
+} from "./wsManager";
 
 interface InteractiveChildOptions {
   location: { x: number; y: number };
@@ -26,39 +24,28 @@ export class StageManager {
   private transformerManager?: TransformerManager;
   private currentScale: number = 0.2;
   private parentContainer: Container;
-  // private socket: WebSocket;
+  private socketManager: WebSocketManager;
 
   private onScaleChange?: (scale: number) => void;
-  private onChange?: (data: SerializedShape[]) => void;
+  private onChange?: (data: SerializedObject[]) => void;
 
   constructor({
     onScaleChange,
     onChange,
   }: {
     onScaleChange?: (scale: number) => void;
-    onChange?: (data: SerializedShape[]) => void;
+    onChange?: (data: SerializedObject[]) => void;
   }) {
     this._app = new Application();
     this.onScaleChange = onScaleChange;
     this.parentContainer = new Container();
     this.onChange = onChange;
-    // this.socket = client.ws.$ws();
+    this.socketManager = WebSocketManager.getInstance();
+    this.socketManager.connect();
   }
 
   public async init(): Promise<void> {
     initDevtools({ app: this._app });
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // const { data } = await client
-    // 	.project({ id: "cm4xbkqmp000089ipy7g37epg" })
-    // 	.get();
-
-    // this.socket.onopen = () => {
-    //   console.log("WebSocket connected");
-    // };
-    // this.socket.onmessage = (event) => {
-    //   console.log(`Message from server: ${event.data}`);
-    // };
 
     await this._app.init({
       background: this._settings.backgroundColor,
@@ -83,8 +70,25 @@ export class StageManager {
 
     this.viewportManager?.viewport.addChild(this.parentContainer);
 
+    this.socketManager.subscribe(WebSocketMessageType.SHAPE_UPDATE, (data) => {
+      this.updateShape(data.payload);
+    });
+    this.socketManager.subscribe(WebSocketMessageType.FRAME_UPDATE, (data) => {
+      this.updateShape(data.payload);
+    });
+
     this.setupEventListeners();
     this.loadAssets();
+  }
+
+  private updateShape(data: ObjectTypes): void {
+    this.parentContainer.children.forEach((child) => {
+      if (child instanceof BaseObject) {
+      }
+      if (BaseObject.typeguard(child)) {
+        child.update(data);
+      }
+    });
   }
 
   private setupEventListeners(): void {
@@ -117,7 +121,7 @@ export class StageManager {
   }
 
   public addInteractiveChild(
-    child: BaseShape | Sprite,
+    child: BaseObject,
     options: InteractiveChildOptions = {
       location: {
         x: this.viewportManager?.viewport.center.x ?? 0,
@@ -138,19 +142,20 @@ export class StageManager {
 
     if (options.selectAfterCreation) this.transformerManager?.onSelect(child);
     this.parentContainer.addChild(child);
-    if (child instanceof BaseShape) {
-      // this.socket.send(JSON.stringify(child.toJson()));
+    if (child instanceof BaseObject) {
+      this.socketManager.sendObjectUpdate(child.toJson());
     }
     this.save();
   }
 
-  public async save(): Promise<SerializedShape[]> {
+  public async save(): Promise<SerializedObject[]> {
     const stageObjects = this.parentContainer.children.map((child) => {
-      if (child instanceof BaseShape) {
+      if (BaseObject.typeguard(child)) {
         return child.toJson();
       }
 
       return {
+        id: "error",
         x: child.x,
         y: child.y,
         width: child.width,
@@ -182,29 +187,9 @@ export class StageManager {
     URL.revokeObjectURL(url);
   }
 
-  public async load(data: SerializedShape[]): Promise<void> {
+  public async load(data: SerializedObject[]): Promise<void> {
     for (const item of data) {
-      let shape: BaseShape | Sprite;
-      if (item.type === "circle") {
-        shape = CircleShape.from(item);
-      } else if (item.type === "rectangle") {
-        shape = RectangleShape.from(item);
-      } else {
-        shape = new Sprite({
-          texture: Assets.get(
-            "https://fastly.picsum.photos/id/404/2000/2000.jpg?hmac=pCwJvO67FP1G3bObWhz5HjADxB2tS8v8s7TqrfqYEd0",
-          ),
-        });
-
-        shape.anchor.set(0.5);
-      }
-
-      shape.x = item.x;
-      shape.y = item.y;
-      shape.rotation = item.rotation;
-      shape.width = item.width;
-      shape.height = item.height;
-      shape.scale.set(item.scaleX ?? 1, item.scaleY ?? 1);
+      const shape = BaseObject.from(item);
 
       this.addInteractiveChild(shape, {
         location: { x: shape.x, y: shape.y },
@@ -237,6 +222,7 @@ export class StageManager {
     this.dragManager?.cleanup();
     this.transformerManager?.cleanup();
     this._app.destroy(true);
+    this.socketManager.disconnect();
   }
 
   public get app(): Application {

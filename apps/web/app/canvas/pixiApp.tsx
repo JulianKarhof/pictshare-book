@@ -1,8 +1,6 @@
 "use client";
-import { Sprite, Texture } from "pixi.js";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CircleShape } from "./shapes/circle";
-import { RectangleShape } from "./shapes/rectangle";
+import { CircleShape, ImageObject, RectangleShape } from "./objects";
 import { StageManager } from "./stageManager";
 
 const Pixi = () => {
@@ -39,15 +37,9 @@ const Pixi = () => {
           element = new CircleShape();
           break;
         case "picture":
-          const texture = Texture.from(
+          element = new ImageObject(
             "https://fastly.picsum.photos/id/404/2000/2000.jpg?hmac=pCwJvO67FP1G3bObWhz5HjADxB2tS8v8s7TqrfqYEd0",
           );
-          element = new Sprite({
-            texture,
-            width: 400,
-            height: 400,
-          });
-          element.anchor.set(0.5);
           break;
       }
 

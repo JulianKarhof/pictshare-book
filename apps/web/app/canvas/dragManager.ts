@@ -1,13 +1,19 @@
-import { Application, FederatedPointerEvent, Graphics, Sprite } from "pixi.js";
+import { Application, FederatedPointerEvent } from "pixi.js";
+import { WebSocketManager } from "./wsManager";
+import { BaseObject } from "./objects/object";
 
 export class DragManager {
-  private dragTarget: Graphics | Sprite | null = null;
+  private dragTarget: BaseObject | null = null;
   private dragOffset: { x: number; y: number } = { x: 0, y: 0 };
   private app: Application;
+  private socketManager: WebSocketManager;
+  private lastUpdateTime: number = 0;
+  private updateInterval: number = 50;
 
   constructor(app: Application) {
     this.app = app;
     this.setupEventListeners();
+    this.socketManager = WebSocketManager.getInstance();
   }
 
   private setupEventListeners(): void {
@@ -15,10 +21,7 @@ export class DragManager {
     this.app.stage.on("pointerupoutside", this.onDragEnd.bind(this));
   }
 
-  public onDragStart(
-    event: FederatedPointerEvent,
-    target: Graphics | Sprite,
-  ): void {
+  public onDragStart(event: FederatedPointerEvent, target: BaseObject): void {
     target.alpha = 0.8;
     this.dragTarget = target;
 
@@ -47,6 +50,12 @@ export class DragManager {
         newPosition.x - this.dragOffset.x,
         newPosition.y - this.dragOffset.y,
       );
+
+      const currentTime = Date.now();
+      if (currentTime - this.lastUpdateTime >= this.updateInterval) {
+        this.socketManager.sendInBetweenUpdate(this.dragTarget.toJson());
+        this.lastUpdateTime = currentTime;
+      }
     }
   }
 
@@ -54,6 +63,8 @@ export class DragManager {
     if (this.dragTarget) {
       window.removeEventListener("pointermove", this.onDragMove.bind(this));
       window.removeEventListener("pointerup", this.onDragEnd.bind(this));
+
+      this.socketManager.sendObjectUpdate(this.dragTarget.toJson());
 
       this.dragTarget.alpha = 1;
       this.dragTarget = null;

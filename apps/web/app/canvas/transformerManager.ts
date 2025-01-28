@@ -1,11 +1,14 @@
 import { Viewport } from "pixi-viewport";
-import { Application, FederatedPointerEvent, Graphics, Sprite } from "pixi.js";
+import { Application, FederatedPointerEvent, Graphics } from "pixi.js";
+import { WebSocketManager, WebSocketMessageType } from "./wsManager";
+import { BaseObject } from "./objects/object";
 
 export class TransformerManager {
   private app: Application;
   private viewport: Viewport;
+  private socketManager: WebSocketManager;
   private transformer: Graphics = new Graphics();
-  private target: Graphics | Sprite | null = null;
+  private target: BaseObject | null = null;
   private isResizing: boolean = false;
   private initialSize = { width: 0, height: 0 };
   private initialPosition = { x: 0, y: 0 };
@@ -31,6 +34,11 @@ export class TransformerManager {
     this.viewport = viewport;
     this.setupEventListeners();
     this.createTransformer();
+    this.socketManager = WebSocketManager.getInstance();
+
+    this.socketManager.subscribe(WebSocketMessageType.FRAME_UPDATE, () => {
+      this.reset();
+    });
   }
 
   private setupEventListeners(): void {
@@ -151,6 +159,7 @@ export class TransformerManager {
     this.target.scale.set(scaleX, scaleY);
     this.target.position.set(newX, newY);
 
+    this.socketManager.sendInBetweenUpdate(this.target.toJson());
     this.moveTransformer();
   }
 
@@ -188,16 +197,18 @@ export class TransformerManager {
       this.onResizeMove(e, index);
 
     const handleEnd = () => {
+      if (this.target)
+        this.socketManager.sendObjectUpdate(this.target.toJson());
       this.isResizing = false;
-      this.app.stage.off("pointermove", handleMove.bind(this));
-      this.app.stage.off("pointerup", handleEnd.bind(this));
+      this.app.stage.off("pointermove", handleMove);
+      this.app.stage.off("pointerup", handleEnd);
     };
 
-    this.app.stage.on("pointermove", handleMove.bind(this));
-    this.app.stage.on("pointerup", handleEnd.bind(this));
+    this.app.stage.on("pointermove", handleMove);
+    this.app.stage.on("pointerup", handleEnd);
   }
 
-  public onSelect(target: Graphics | Sprite): void {
+  public onSelect(target: BaseObject): void {
     if (this.target !== target) this.target = target;
     this.moveTransformer();
   }
