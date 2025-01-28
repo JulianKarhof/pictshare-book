@@ -8,10 +8,11 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@bogeychan/elysia-logger": "^0.1.8",
     "@elysiajs/cors": "^1.1.1",
     "@elysiajs/swagger": "^1.1.6",
-    "@grotto/logysia": "^0.1.6",
     "@prisma/client": "^6.0.1",
+    "pino-pretty": "^13.0.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {

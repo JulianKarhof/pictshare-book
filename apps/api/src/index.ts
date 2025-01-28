@@ -4,7 +4,7 @@ import { swagger } from "@elysiajs/swagger";
 import projectRoute from "@routes/project/project.routes.js";
 import { Elysia, t } from "elysia";
 import elementRoute from "./routes/element/element.routes.js";
-import { logger } from "@grotto/logysia";
+import { logger } from "@bogeychan/elysia-logger";
 
 const port = 4000;
 
@@ -14,6 +14,17 @@ const app = new Elysia({
   },
 })
 
+  .use(
+    logger({
+      level: "info",
+      transport: {
+        target: "pino-pretty",
+        options: {
+          colorize: true,
+        },
+      },
+    }),
+  )
   .use(projectRoute)
   .use(elementRoute)
 
@@ -58,7 +69,6 @@ const app = new Elysia({
     }),
   )
 
-  .use(logger())
   .use(cors({ origin: env.FRONTEND_URL }))
   .listen(port);
 

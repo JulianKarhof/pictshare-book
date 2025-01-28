@@ -13,11 +13,10 @@
     "generate": "bunx prisma generate --schema ./apps/api/prisma/schema.prisma",
     "setup": "bunx lefthook install && bun db && bun generate"
   },
-  "workspaces": ["apps/*"],
+  "workspaces": [
+    "apps/*"
+  ],
   "dependencies": {
     "elysia": "^1.2.10"
-  },
-  "patchedDependencies": {
-    "@grotto/logysia@0.1.6": "patches/@grotto%2Flogysia@0.1.6.patch"
   }
 }
