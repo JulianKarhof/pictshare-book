@@ -4,6 +4,7 @@ import { EdenWS } from "@elysiajs/eden/treaty";
 import type { SerializedObject } from "./objects/object";
 import { SerializedShape } from "./objects/shape";
 import { SerializedImage } from "./objects/image";
+import env from "@web/app/env";
 
 export enum WebSocketMessageType {
   SHAPE_UPDATE = "SHAPE_UPDATE",
@@ -71,7 +72,7 @@ export class WebSocketManager {
     response: unknown;
   }> | null = null;
 
-  private client = treaty<App>("http://localhost:4000/");
+  private client = treaty<App>(env.DATABASE_URL);
   private listeners: Map<
     WebSocketMessageType,
     Set<(data: WebSocketEvent) => void>

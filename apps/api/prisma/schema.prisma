@@ -38,6 +38,8 @@ model Element {
   projectId String
 
   @@unique([id, type])
+  @@unique([id, projectId])
+  @@index([id, projectId])
   @@index([zIndex])
 }
 
