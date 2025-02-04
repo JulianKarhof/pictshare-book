@@ -9,11 +9,12 @@ import {
   ProjectSchema,
   ProjectWithoutElementsSchema,
 } from "./project.schemas.js";
+import { flattenElement } from "../element/element.utils.js";
 
-const projectRoute = new Elysia({ prefix: "/project" })
+const projectRoute = new Elysia()
 
   .get(
-    "/",
+    "/projects",
     async () => {
       const projects = await prisma.project.findMany();
       return projects;
@@ -30,7 +31,7 @@ const projectRoute = new Elysia({ prefix: "/project" })
   )
 
   .get(
-    "/:id/elements",
+    "/projects/:id/elements",
     async ({ params: { id } }) => {
       const elements = await prisma.element.findMany({
         where: { projectId: id },
@@ -43,7 +44,8 @@ const projectRoute = new Elysia({ prefix: "/project" })
           zIndex: "asc",
         },
       });
-      return elements;
+
+      return elements.map(flattenElement);
     },
     {
       params: t.Object({
@@ -60,7 +62,7 @@ const projectRoute = new Elysia({ prefix: "/project" })
   )
 
   .get(
-    "/:id",
+    "/projects/:id",
     async ({ params: { id }, error }) => {
       const project = await prisma.project.findUnique({
         where: { id },
@@ -79,7 +81,10 @@ const projectRoute = new Elysia({ prefix: "/project" })
         return error(404, { message: "Project not found" });
       }
 
-      return project;
+      return {
+        ...project,
+        elements: project.elements.map(flattenElement),
+      };
     },
     {
       params: t.Object({
@@ -97,19 +102,10 @@ const projectRoute = new Elysia({ prefix: "/project" })
   )
 
   .post(
-    "/",
+    "/projects",
     async ({ body: { name } }) => {
       const project = await prisma.project.create({
         data: { name },
-        include: {
-          elements: {
-            include: {
-              image: true,
-              text: true,
-              shape: true,
-            },
-          },
-        },
       });
 
       return project;
@@ -119,7 +115,7 @@ const projectRoute = new Elysia({ prefix: "/project" })
         name: t.String({ examples: ["My Project"] }),
       }),
       response: {
-        200: ProjectSchema,
+        200: ProjectWithoutElementsSchema,
       },
       detail: {
         description: "Create a new project",
@@ -129,8 +125,8 @@ const projectRoute = new Elysia({ prefix: "/project" })
   )
 
   .delete(
-    "/",
-    async ({ body: { id } }) => {
+    "/projects/:id",
+    async ({ params: { id } }) => {
       await prisma.project.delete({
         where: { id },
       });
@@ -138,7 +134,7 @@ const projectRoute = new Elysia({ prefix: "/project" })
       return { message: "success" };
     },
     {
-      body: t.Object({
+      params: t.Object({
         id: t.String(),
       }),
       response: {

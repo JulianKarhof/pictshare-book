@@ -1,28 +1,36 @@
 import prisma from "@api/prisma.js";
-import { Common404ErrorSchema } from "@api/schemas.js";
-import { ElementType } from "@prisma/client";
+import {
+  Common400ErrorSchema,
+  Common404ErrorSchema,
+  CommonSuccessMessageSchema,
+} from "@api/schemas.js";
 import { Elysia, t } from "elysia";
-import { ElementCreateSchema, ElementSchema } from "./element.schema.js";
+import {
+  ElementCreateSchema,
+  ElementSchema,
+  ElementUpdateSchema,
+  ElementUpsertSchema,
+} from "./element.schema.js";
+import {
+  createPrismaData,
+  createUpdateData,
+  flattenElement,
+} from "./element.utils.js";
 
-const elementRoute = new Elysia({ prefix: "/element" })
-
+const elementRoute = new Elysia()
   .get(
-    "/:id",
+    "/elements/:id",
     async ({ params: { id }, error }) => {
       const element = await prisma.element.findUnique({
         where: { id },
-        include: {
-          image: true,
-          text: true,
-          shape: true,
-        },
+        include: { image: true, text: true, shape: true },
       });
 
       if (!element) {
         return error(404, { message: "Element not found" });
       }
 
-      return element;
+      return flattenElement(element);
     },
     {
       params: t.Object({
@@ -40,49 +48,22 @@ const elementRoute = new Elysia({ prefix: "/element" })
   )
 
   .post(
-    "/",
-    async ({ body, error }) => {
-      if (
-        (body.type === ElementType.IMAGE && !body.image) ||
-        (body.type === ElementType.TEXT && !body.text) ||
-        (body.type === ElementType.SHAPE && !body.shape)
-      ) {
-        return error(400, {
-          message: `Missing ${body.type.toLowerCase()} data`,
-        });
-      }
-
+    "/projects/:id/elements",
+    async ({ params: { id }, body }) => {
       const element = await prisma.element.create({
-        data: {
-          ...body,
-          image:
-            body.type === ElementType.IMAGE && body.image
-              ? { create: body.image }
-              : undefined,
-          text:
-            body.type === ElementType.TEXT && body.text
-              ? { create: body.text }
-              : undefined,
-          shape:
-            body.type === ElementType.SHAPE && body.shape
-              ? { create: body.shape }
-              : undefined,
-          projectId: body.projectId,
-        },
-        include: {
-          image: true,
-          text: true,
-          shape: true,
-        },
+        data: createPrismaData(id, body),
+        include: { image: true, text: true, shape: true },
       });
 
-      return element;
+      return flattenElement(element);
     },
     {
+      params: t.Object({
+        id: t.String(),
+      }),
       body: ElementCreateSchema,
       response: {
         200: ElementSchema,
-        400: Common404ErrorSchema,
       },
       detail: {
         description: "Create a new element",
@@ -91,41 +72,96 @@ const elementRoute = new Elysia({ prefix: "/element" })
     },
   )
 
-  .put(
-    "/:id",
-    async ({ params: { id }, body, error }) => {
-      const existingElement = await prisma.element.findUnique({
-        where: { id },
+  .post(
+    "/projects/:id/elements/bulk",
+    async ({ params: { id }, body }) => {
+      await prisma.$transaction(async (tx) => {
+        await Promise.all(
+          body.map((b) =>
+            tx.element.create({
+              data: createPrismaData(id, b),
+            }),
+          ),
+        );
       });
 
-      if (!existingElement) {
-        return error(404, { message: "Element not found" });
-      }
-
-      const element = await prisma.element.update({
-        where: { id },
-        data: {
-          ...body,
-          image: body.image ? { update: body.image } : undefined,
-          text: body.text ? { update: body.text } : undefined,
-          shape: body.shape ? { update: body.shape } : undefined,
-        },
-        include: {
-          image: true,
-          text: true,
-          shape: true,
-        },
-      });
-
-      return element;
+      return { message: "success" };
     },
     {
       params: t.Object({
         id: t.String(),
       }),
-      body: t.Partial(ElementCreateSchema),
+      body: t.Array(ElementCreateSchema),
+      response: {
+        200: CommonSuccessMessageSchema,
+      },
+      detail: {
+        description: "Create multiple elements",
+        tags: ["Element"],
+      },
+    },
+  )
+
+  .put(
+    "/projects/:id/elements/bulk",
+    async ({ params: { id }, body }) => {
+      await prisma.$transaction(async (tx) => {
+        await Promise.all(
+          body.map((b) =>
+            tx.element.upsert({
+              where: { id: b.id },
+              create: createPrismaData(id, b),
+              update: createUpdateData(b),
+            }),
+          ),
+        );
+      });
+
+      return { message: "success" };
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      body: t.Array(ElementUpsertSchema),
+      response: {
+        200: CommonSuccessMessageSchema,
+      },
+      detail: {
+        description: "Update multiple elements",
+        tags: ["Element"],
+      },
+    },
+  )
+
+  .put(
+    "/elements/:id",
+    async ({ params: { id }, body, error }) => {
+      const existing = await prisma.element.findUnique({
+        where: { id },
+        include: { image: true, text: true, shape: true },
+      });
+
+      if (!existing) {
+        return error(404, { message: "Element not found" });
+      }
+
+      const updated = await prisma.element.update({
+        where: { id },
+        data: createUpdateData(body),
+        include: { image: true, text: true, shape: true },
+      });
+
+      return flattenElement(updated);
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      body: ElementUpdateSchema,
       response: {
         200: ElementSchema,
+        400: Common400ErrorSchema,
         404: Common404ErrorSchema,
       },
       detail: {
@@ -136,7 +172,7 @@ const elementRoute = new Elysia({ prefix: "/element" })
   )
 
   .delete(
-    "/:id",
+    "/elements/:id",
     async ({ params: { id }, error }) => {
       try {
         await prisma.element.delete({
@@ -152,9 +188,7 @@ const elementRoute = new Elysia({ prefix: "/element" })
         id: t.String(),
       }),
       response: {
-        200: t.Object({
-          message: t.String({ examples: ["Element deleted successfully"] }),
-        }),
+        200: CommonSuccessMessageSchema,
         404: Common404ErrorSchema,
       },
       detail: {

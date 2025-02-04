@@ -22,7 +22,7 @@ describe("Project Routes", () => {
 
   it("should list all projects", async () => {
     const response = await app
-      .handle(new Request("http://localhost/project"))
+      .handle(new Request("http://localhost/projects"))
       .then((res) => res.json());
 
     expect(Array.isArray(response)).toBe(true);
@@ -33,7 +33,7 @@ describe("Project Routes", () => {
 
   it("should get a project by ID", async () => {
     const response = await app
-      .handle(new Request("http://localhost/project/project-1"))
+      .handle(new Request("http://localhost/projects/project-1"))
       .then((res) => res.json());
 
     expect(response).toHaveProperty("id", "project-1");
@@ -54,7 +54,7 @@ describe("Project Routes", () => {
 
   it("should return 404 for non-existent project", async () => {
     const response = await app
-      .handle(new Request("http://localhost/project/nonexistent-id"))
+      .handle(new Request("http://localhost/projects/nonexistent-id"))
       .then((res) => res.json());
 
     expect(response).toHaveProperty("message", "Project not found");
@@ -63,7 +63,7 @@ describe("Project Routes", () => {
 
   it("should get project elements", async () => {
     const res = await app
-      .handle(new Request("http://localhost/project/project-1/elements"))
+      .handle(new Request("http://localhost/projects/project-1/elements"))
       .then((res) => res.json());
 
     expect(Array.isArray(res)).toBe(true);
@@ -83,7 +83,7 @@ describe("Project Routes", () => {
   it("should create a new project", async () => {
     const response = await app
       .handle(
-        new Request("http://localhost/project", {
+        new Request("http://localhost/projects", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -97,27 +97,17 @@ describe("Project Routes", () => {
     expect(response).toHaveProperty("name", "New Project");
     expect(mockPrisma.project.create).toHaveBeenCalledWith({
       data: { name: "New Project" },
-      include: {
-        elements: {
-          include: {
-            image: true,
-            text: true,
-            shape: true,
-          },
-        },
-      },
     });
   });
 
   it("should delete a project", async () => {
     const response = await app
       .handle(
-        new Request("http://localhost/project", {
+        new Request("http://localhost/projects/project-1", {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: "project-1" }),
         }),
       )
       .then((res) => res.json());
