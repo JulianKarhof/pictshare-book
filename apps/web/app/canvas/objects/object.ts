@@ -1,68 +1,51 @@
 import { Container } from "pixi.js";
 import { v4 } from "uuid";
 import { RectangleShape } from "./rectangle";
-import { SerializedShape } from "./shape";
-import { ImageObject, SerializedImage } from "./image";
+import { ImageObject } from "./image";
 import { CircleShape } from "./circle";
-
-export interface SerializedObject {
-  id: string;
-  type: string;
-  x: number;
-  y: number;
-  rotation: number;
-  scaleX: number;
-  scaleY: number;
-  width: number;
-  height: number;
-}
+import { ElementSchema } from "@api/routes/element/element.schema";
 
 export abstract class BaseObject extends Container {
   id: string;
   readonly type: string;
   readonly isObject = true;
 
-  constructor(type: string) {
+  constructor({ type }: { type: string }) {
     super();
     this.id = v4();
     this.type = type;
   }
 
-  public toJson(): SerializedObject {
-    return {
-      id: this.id,
-      type: this.type,
-      x: this.x,
-      y: this.y,
-      rotation: this.rotation,
-      scaleX: this.scale.x,
-      scaleY: this.scale.y,
-      width: this.width,
-      height: this.height,
-    };
-  }
+  public abstract toJson(): typeof ElementSchema.static;
 
-  public static from(data: unknown): BaseObject {
-    if (!data || typeof data !== "object" || !("type" in data)) {
+  public static async from(
+    data: typeof ElementSchema.static,
+  ): Promise<BaseObject> {
+    if (!data || typeof data !== "object") {
       throw new Error("Invalid object data");
     }
 
     switch (data.type) {
-      case "rectangle":
-        return RectangleShape.from(data as SerializedShape);
-      case "circle":
-        return CircleShape.from(data as SerializedShape);
-      case "image":
-        return ImageObject.from(data as SerializedImage);
-      default:
-        throw new Error(`Unknown object type: ${data.type}`);
+      case "IMAGE":
+        return ImageObject.from(data);
+      case "SHAPE":
+        switch (data.shapeType) {
+          case "RECTANGLE":
+            return RectangleShape.from(data);
+          case "CIRCLE":
+            return CircleShape.from(data);
+          default:
+            throw new Error(`Unknown shape type: ${data.shapeType}`);
+        }
+      case "TEXT":
+        throw new Error("Text objects are not yet supported");
     }
   }
 
-  public update(data: SerializedObject): void {
+  public update(data: typeof ElementSchema.static): void {
     this.x = data.x;
     this.y = data.y;
-    this.rotation = data.rotation;
+    this.rotation = data.angle;
     this.scale.set(data.scaleX, data.scaleY);
     this.width = data.width;
     this.height = data.height;

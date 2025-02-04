@@ -74,7 +74,7 @@ export class DragManager {
   public cleanup(): void {
     window.removeEventListener("pointermove", this.onDragMove.bind(this));
     window.removeEventListener("pointerup", this.onDragEnd.bind(this));
-    this.app.stage.off("pointerup", this.onDragEnd.bind(this));
-    this.app.stage.off("pointerupoutside", this.onDragEnd.bind(this));
+    this.app.stage?.off("pointerup", this.onDragEnd.bind(this));
+    this.app.stage?.off("pointerupoutside", this.onDragEnd.bind(this));
   }
 }

@@ -1,26 +1,29 @@
 import { Graphics, GraphicsContext } from "pixi.js";
 import { v4 } from "uuid";
-import { BaseObject, SerializedObject } from "./object";
+import { BaseObject } from "./object";
+import {
+  ElementSchema,
+  ShapeElementSchema,
+} from "@api/routes/element/element.schema";
 
-export interface SerializedShape extends SerializedObject {
-  color: number;
-}
+type ShapeType = "RECTANGLE" | "CIRCLE";
 
 export class BaseShape extends Graphics implements BaseObject {
   id: string;
-  readonly type: string;
+  readonly type = "SHAPE";
   readonly isObject = true;
-  color: number;
+  shapeType: ShapeType;
 
-  constructor(
-    context: GraphicsContext,
-    type: string,
-    color: number = 0xcb9df0,
-  ) {
+  constructor({
+    context,
+    shapeType,
+  }: {
+    context: GraphicsContext;
+    shapeType: ShapeType;
+  }) {
     super(context);
     this.id = v4();
-    this.type = type;
-    this.color = color;
+    this.shapeType = shapeType;
     this._setupInteractivity();
   }
 
@@ -29,32 +32,36 @@ export class BaseShape extends Graphics implements BaseObject {
     this.cursor = "pointer";
   }
 
-  public toJson(): SerializedShape {
+  public toJson(): typeof ElementSchema.static {
     return {
       id: this.id,
-      type: this.type,
+      type: "SHAPE",
+      shapeType: this.shapeType,
       x: this.x,
       y: this.y,
-      rotation: this.rotation,
+      angle: this.rotation,
       scaleX: this.scale.x,
       scaleY: this.scale.y,
       width: this.width,
       height: this.height,
-      color: this.color,
+      fill: this.fillStyle.color,
+      stroke: this.strokeStyle.color,
+      strokeWidth: this.strokeStyle.width,
+      zIndex: this.zIndex,
     };
   }
 
-  public update(data: SerializedShape): void {
+  public update(data: typeof ShapeElementSchema.static): void {
     this.x = data.x;
     this.y = data.y;
-    this.rotation = data.rotation;
+    this.rotation = data.angle;
     this.scale.set(data.scaleX, data.scaleY);
     this.width = data.width;
     this.height = data.height;
-    this.color = data.color;
+    this.fillStyle.color = data.fill ?? 0xcb9df0;
   }
 
-  public static from(_data: SerializedObject): BaseShape {
+  public static from(_data: typeof ShapeElementSchema.static): BaseShape {
     throw new Error("Method not implemented! Use derived class");
   }
 }

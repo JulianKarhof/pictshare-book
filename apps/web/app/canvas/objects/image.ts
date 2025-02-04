@@ -1,10 +1,10 @@
 import { Sprite, Texture } from "pixi.js";
 import { v4 } from "uuid";
-import { BaseObject, SerializedObject } from "./object";
-
-export interface SerializedImage extends SerializedObject {
-  url: string;
-}
+import { BaseObject } from "./object";
+import {
+  ElementSchema,
+  ImageElementSchema,
+} from "@api/routes/element/element.schema";
 
 export class ImageObject extends Sprite implements BaseObject {
   id: string;
@@ -12,10 +12,10 @@ export class ImageObject extends Sprite implements BaseObject {
   readonly isObject = true;
   url: string;
 
-  constructor(url: string) {
+  constructor({ url }: { url: string }) {
     super(Texture.from(url));
     this.id = v4();
-    this.type = "image";
+    this.type = "IMAGE";
     this.anchor.set(0.5);
     this.height = 400;
     this.width = 400;
@@ -28,39 +28,39 @@ export class ImageObject extends Sprite implements BaseObject {
     this.cursor = "pointer";
   }
 
-  public toJson(): SerializedImage {
+  public toJson(): typeof ImageElementSchema.static {
     return {
       id: this.id,
-      type: this.type,
+      type: "IMAGE",
       x: this.x,
       y: this.y,
-      rotation: this.rotation,
+      angle: this.rotation,
       scaleX: this.scale.x,
       scaleY: this.scale.y,
       width: this.width,
       height: this.height,
+      zIndex: this.zIndex,
       url: this.url,
     };
   }
 
-  public update = (data: SerializedImage): void => {
+  public update(data: typeof ElementSchema.static): void {
     this.x = data.x;
     this.y = data.y;
-    this.rotation = data.rotation;
+    this.rotation = data.angle;
     this.scale.set(data.scaleX, data.scaleY);
     this.width = data.width;
     this.height = data.height;
-  };
+  }
 
-  public static from(data: SerializedImage): ImageObject {
-    const image = new ImageObject(data.url);
-    image.id = data.id;
-    image.x = data.x;
-    image.y = data.y;
-    image.rotation = data.rotation;
-    image.scale.set(data.scaleX, data.scaleY);
-    image.width = data.width;
-    image.height = data.height;
+  public static from(data: typeof ImageElementSchema.static): ImageObject {
+    const image = new ImageObject({
+      url: data.url,
+    });
+    Object.assign(image, {
+      ...data,
+      scale: { x: data.scaleX, y: data.scaleY },
+    });
     return image;
   }
 }

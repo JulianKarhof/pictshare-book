@@ -2,27 +2,66 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CircleShape, ImageObject, RectangleShape } from "./objects";
 import { StageManager } from "./stageManager";
+import { WebSocketManager } from "./wsManager";
 
-const Pixi = () => {
+const Pixi = ({ id }: { id: string }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [currentScale, setCurrentScale] = useState(0.2);
   const stageManagerRef = useRef<StageManager>();
 
   useEffect(() => {
-    setup();
+    const connect = async () => {
+      const wsManager = WebSocketManager.getInstance();
+      try {
+        await wsManager.connect();
+        wsManager.initCanvas(id);
+      } catch (error) {
+        console.error("WebSocket connection error: ", error);
+      }
+
+      return wsManager;
+    };
+
+    const connectionPromise = connect();
 
     return () => {
-      stageManagerRef.current?.cleanup();
+      const destroy = async () => {
+        const wsManager = await connectionPromise;
+        wsManager.destroy();
+      };
+
+      destroy();
     };
   }, []);
 
-  const setup = async () => {
-    stageManagerRef.current = new StageManager({
-      onScaleChange: setCurrentScale,
-    });
-    await stageManagerRef.current.init();
-    ref.current?.appendChild(stageManagerRef?.current.canvas);
-  };
+  useEffect(() => {
+    const setup = async () => {
+      const newStageManager = new StageManager({
+        id,
+        onScaleChange: setCurrentScale,
+      });
+      stageManagerRef.current = newStageManager;
+
+      await newStageManager.init();
+      ref.current?.appendChild(newStageManager.canvas);
+
+      return newStageManager;
+    };
+
+    const initPromise = setup();
+
+    return () => {
+      const destroyApp = async () => {
+        try {
+          const stageManager = await initPromise;
+          stageManager.cleanup();
+        } catch (error) {
+          console.error("PixiJS application cleanup: ", error);
+        }
+      };
+      destroyApp();
+    };
+  }, []);
 
   const handleAddShape = useCallback(
     (type: "square" | "circle" | "picture") => {
@@ -37,13 +76,13 @@ const Pixi = () => {
           element = new CircleShape();
           break;
         case "picture":
-          element = new ImageObject(
-            "https://fastly.picsum.photos/id/404/2000/2000.jpg?hmac=pCwJvO67FP1G3bObWhz5HjADxB2tS8v8s7TqrfqYEd0",
-          );
+          element = new ImageObject({
+            url: "https://fastly.picsum.photos/id/404/2000/2000.jpg?hmac=pCwJvO67FP1G3bObWhz5HjADxB2tS8v8s7TqrfqYEd0",
+          });
           break;
       }
 
-      stageManagerRef.current?.addInteractiveChild(element);
+      stageManagerRef.current?.addShape(element);
     },
     [],
   );
@@ -77,15 +116,9 @@ const Pixi = () => {
           </button>
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
-            onClick={() => stageManagerRef.current?.saveToFile()}
+            onClick={() => stageManagerRef.current?.saveCanvas()}
           >
             Save
-          </button>
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
-            onClick={() => stageManagerRef.current?.loadFromFile()}
-          >
-            Load
           </button>
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"

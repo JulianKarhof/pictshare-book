@@ -1,22 +1,22 @@
 import { initDevtools } from "@pixi/devtools";
+import type { App } from "@api/index.js";
 import { Application, Assets, Container } from "pixi.js";
 import { DragManager } from "./dragManager";
 import { Settings } from "./settings";
-import { BaseObject, type SerializedObject } from "./objects/object";
+import { BaseObject } from "./objects/object";
 import { TransformerManager } from "./transformerManager";
 import { ViewportManager } from "./viewportManager";
-import {
-  ObjectTypes,
-  WebSocketManager,
-  WebSocketMessageType,
-} from "./wsManager";
+import env from "@web/app/env";
+import { WebSocketManager, WebSocketMessageType } from "./wsManager";
+import { treaty } from "@elysiajs/eden";
+import { ElementSchema } from "@api/routes/element/element.schema";
 
 interface InteractiveChildOptions {
-  location: { x: number; y: number };
   selectAfterCreation?: boolean;
 }
 
 export class StageManager {
+  private _id: string;
   private _app: Application;
   private _settings = Settings.getInstance();
   private viewportManager?: ViewportManager;
@@ -25,23 +25,22 @@ export class StageManager {
   private currentScale: number = 0.2;
   private parentContainer: Container;
   private socketManager: WebSocketManager;
+  private client = treaty<App>(env.DATABASE_URL);
 
   private onScaleChange?: (scale: number) => void;
-  private onChange?: (data: SerializedObject[]) => void;
 
   constructor({
+    id,
     onScaleChange,
-    onChange,
   }: {
+    id: string;
     onScaleChange?: (scale: number) => void;
-    onChange?: (data: SerializedObject[]) => void;
   }) {
+    this._id = id;
     this._app = new Application();
     this.onScaleChange = onScaleChange;
     this.parentContainer = new Container();
-    this.onChange = onChange;
     this.socketManager = WebSocketManager.getInstance();
-    this.socketManager.connect();
   }
 
   public async init(): Promise<void> {
@@ -58,6 +57,10 @@ export class StageManager {
       preferWebGLVersion: 2,
     });
 
+    if (!this.socketManager.isConnected()) {
+      this.socketManager.connect();
+    }
+
     this.viewportManager = new ViewportManager(this._app);
     this.dragManager = new DragManager(this._app);
     this.transformerManager = new TransformerManager(
@@ -70,6 +73,14 @@ export class StageManager {
 
     this.viewportManager?.viewport.addChild(this.parentContainer);
 
+    this.loadCanvas();
+
+    this.socketManager.subscribe(
+      WebSocketMessageType.SHAPE_CREATE,
+      async (data) => {
+        this.addInteractiveChild(await BaseObject.from(data.payload));
+      },
+    );
     this.socketManager.subscribe(WebSocketMessageType.SHAPE_UPDATE, (data) => {
       this.updateShape(data.payload);
     });
@@ -78,15 +89,52 @@ export class StageManager {
     });
 
     this.setupEventListeners();
-    this.loadAssets();
   }
 
-  private updateShape(data: ObjectTypes): void {
-    this.parentContainer.children.forEach((child) => {
-      if (child instanceof BaseObject) {
+  private async loadCanvas(): Promise<void> {
+    const response = await this.client
+      .projects({ id: this._id })
+      .elements.get();
+
+    if (response.status !== 200) {
+      return console.error(response.error);
+    }
+
+    const sortedResponse = response.data?.sort((a) =>
+      a.type === "IMAGE" ? -1 : 1,
+    );
+
+    sortedResponse?.forEach(async (item) => {
+      if (item.type === "IMAGE") {
+        await Assets.load(item.url);
       }
+
+      const shape = await BaseObject.from(item);
+
+      this.addInteractiveChild(shape, {
+        selectAfterCreation: false,
+      });
+    });
+  }
+
+  public async saveCanvas(): Promise<void> {
+    const stageObjects = this.parentContainer.children
+      .map((child) => {
+        if (BaseObject.typeguard(child)) {
+          return child.toJson();
+        }
+      })
+      .filter((item) => item !== undefined);
+
+    await this.client
+      .projects({ id: this._id })
+      .elements.bulk.put(stageObjects);
+  }
+
+  private updateShape(data: typeof ElementSchema.static): void {
+    this.parentContainer.children.forEach((child) => {
       if (BaseObject.typeguard(child)) {
-        child.update(data);
+        if (child.id === data.id) child.update(data);
       }
     });
   }
@@ -104,36 +152,31 @@ export class StageManager {
     viewport?.on("clicked", () => {
       this.transformerManager?.reset();
     });
-    this.app.stage.on("dragging", this.save.bind(this));
-    this.app.stage.on("click", this.save.bind(this));
-    this.app.stage.on("drag-end", this.save.bind(this));
+    this._app?.stage.on("dragging", this.save.bind(this));
+    this._app?.stage.on("click", this.save.bind(this));
+    this._app?.stage.on("drag-end", this.save.bind(this));
   }
 
   private async loadAssets(): Promise<void> {
-    await Assets.load(
-      "https://fastly.picsum.photos/id/404/2000/2000.jpg?hmac=pCwJvO67FP1G3bObWhz5HjADxB2tS8v8s7TqrfqYEd0",
-    );
-
     const canvasData = localStorage.getItem("canvasData");
     if (canvasData) {
       await this.load(JSON.parse(canvasData));
     }
   }
 
-  public addInteractiveChild(
+  public addShape(shape: BaseObject): void {
+    this.addInteractiveChild(shape);
+    this.socketManager.sendObjectCreate(shape, this._id);
+  }
+
+  private addInteractiveChild(
     child: BaseObject,
     options: InteractiveChildOptions = {
-      location: {
-        x: this.viewportManager?.viewport.center.x ?? 0,
-        y: this.viewportManager?.viewport.center.y ?? 0,
-      },
       selectAfterCreation: true,
     },
-  ): void {
+  ): BaseObject {
     child.eventMode = "static";
     child.cursor = "pointer";
-    child.x = options.location.x;
-    child.y = options.location.y;
 
     child.on("pointerdown", (event) =>
       this.dragManager?.onDragStart(event, child),
@@ -142,87 +185,39 @@ export class StageManager {
 
     if (options.selectAfterCreation) this.transformerManager?.onSelect(child);
     this.parentContainer.addChild(child);
-    if (child instanceof BaseObject) {
-      this.socketManager.sendObjectUpdate(child.toJson());
-    }
     this.save();
+
+    return child;
   }
 
-  public async save(): Promise<SerializedObject[]> {
-    const stageObjects = this.parentContainer.children.map((child) => {
-      if (BaseObject.typeguard(child)) {
-        return child.toJson();
-      }
+  public async save(): Promise<(typeof ElementSchema.static)[]> {
+    const stageObjects = this.parentContainer.children
+      .map((child) => {
+        if (BaseObject.typeguard(child)) {
+          return child.toJson();
+        }
+      })
+      .filter((item) => item !== undefined);
 
-      return {
-        id: "error",
-        x: child.x,
-        y: child.y,
-        width: child.width,
-        height: child.height,
-        scaleX: child.scale.x,
-        scaleY: child.scale.y,
-        color: child.tint,
-        rotation: child.rotation,
-        type: child.constructor.name,
-      };
-    });
-
-    this.onChange?.(stageObjects);
     return stageObjects;
   }
 
-  public async saveToFile(): Promise<void> {
-    const jsonString = await this.save();
-    const json = JSON.stringify(jsonString, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "canvas.json";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }
-
-  public async load(data: SerializedObject[]): Promise<void> {
+  public async load(data: (typeof ElementSchema.static)[]): Promise<void> {
     for (const item of data) {
-      const shape = BaseObject.from(item);
+      const shape = await BaseObject.from(item);
 
       this.addInteractiveChild(shape, {
-        location: { x: shape.x, y: shape.y },
         selectAfterCreation: false,
       });
     }
   }
 
-  public async loadFromFile(): Promise<void> {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json";
-
-    return new Promise((resolve, reject) => {
-      input.onchange = async (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (!file) {
-          reject(new Error("No file selected"));
-          return;
-        }
-        const data = await file.text();
-        await this.load(JSON.parse(data));
-        resolve();
-      };
-      input.click();
-    });
-  }
-
   public cleanup(): void {
+    this._app.destroy(true, {
+      children: true,
+    });
     this.dragManager?.cleanup();
     this.transformerManager?.cleanup();
-    this._app.destroy(true);
-    this.socketManager.disconnect();
   }
 
   public get app(): Application {
@@ -238,6 +233,6 @@ export class StageManager {
   }
 
   public async download(): Promise<void> {
-    this._app.renderer.extract.download(this.parentContainer);
+    this._app?.renderer.extract.download(this.parentContainer);
   }
 }
