@@ -4,7 +4,7 @@ import { CircleShape, ImageObject, RectangleShape } from "./objects";
 import { StageManager } from "./stageManager";
 import { WebSocketManager } from "./wsManager";
 
-const Pixi = ({ id }: { id: string }) => {
+const BookCanvas = ({ id }: { id: string }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [currentScale, setCurrentScale] = useState(0.2);
   const stageManagerRef = useRef<StageManager>();
@@ -144,4 +144,4 @@ const Pixi = ({ id }: { id: string }) => {
   );
 };
 
-export default Pixi;
+export default BookCanvas;

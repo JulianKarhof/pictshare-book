@@ -1,5 +1,4 @@
-"use client";
-import Pixi from "../canvas/pixiApp";
+import BookCanvas from "../canvas";
 import { use } from "react";
 
 export default function Canvas({
@@ -9,5 +8,5 @@ export default function Canvas({
 }) {
   const { id } = use(params);
 
-  return <Pixi id={id} />;
+  return <BookCanvas id={id} />;
 }

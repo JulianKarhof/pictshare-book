@@ -1,4 +1,4 @@
-import { CookieHelper } from "./helpers/cookieHelper";
+import { CookieHelper } from "@web/app/util/cookieHelper";
 
 type Theme = "light" | "dark";
 
