@@ -4,7 +4,17 @@ import { swagger } from "@elysiajs/swagger";
 import projectRoute from "@routes/project/project.routes.js";
 import { Elysia, t } from "elysia";
 import elementRoute from "./routes/element/element.routes.js";
-import { logger } from "@bogeychan/elysia-logger";
+import { createPinoLogger } from "@bogeychan/elysia-logger";
+
+const log = createPinoLogger({
+  level: "debug",
+  transport: {
+    target: "pino-pretty",
+    options: {
+      colorize: true,
+    },
+  },
+});
 
 const port = 4000;
 
@@ -14,20 +24,11 @@ const app = new Elysia({
   },
 })
 
-  .use(
-    logger({
-      level: "info",
-      transport: {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-        },
-      },
-    }),
-  )
+  .use(log.into())
   .use(projectRoute)
   .use(elementRoute)
 
+  .state("canvasId", undefined as string | undefined)
   .ws("/ws", {
     body: t.Object({
       type: t.String(),
@@ -35,12 +36,28 @@ const app = new Elysia({
       payload: t.Any(),
     }),
     open(ws) {
-      console.log("A WebSocket connected!");
-      ws.subscribe("id");
+      log.debug(`A websocket opened! ID: ${ws.id}`);
+    },
+    error(error) {
+      log.error(error);
     },
     message(ws, message) {
-      console.log("message:", message);
-      console.log("message from:", ws.id);
+      const logData = {
+        type: message.type,
+        userId: ws.id,
+        payload: message.payload,
+      };
+
+      if (message.type !== "FRAME_UPDATE") log.info(logData);
+      else log.debug(logData);
+
+      if (message.type === "INIT") {
+        const canvasId = message.payload.id as string;
+        ws.data.store.canvasId = canvasId;
+        ws.subscribe(canvasId);
+        console.log(`Subscribed user ${ws.id} to ${canvasId}`);
+        return;
+      }
 
       if (message.type === "FRAME_UPDATE") {
         const now = Date.now();
@@ -49,11 +66,10 @@ const app = new Elysia({
         }
       }
 
-      const success = ws.publish("id", message);
-      console.log("success:", success);
+      if (ws.data.store.canvasId) ws.publish(ws.data.store.canvasId, message);
     },
-    close() {
-      console.log("A websocket closed!");
+    close(ws) {
+      log.debug(`A websocket closed! ID: ${ws.id}`);
     },
   })
 

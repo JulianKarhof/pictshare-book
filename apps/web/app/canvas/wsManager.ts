@@ -1,12 +1,13 @@
 import type { App } from "@api/index.js";
+import { ElementSchema } from "@api/routes/element/element.schema";
 import { treaty } from "@elysiajs/eden";
 import { EdenWS } from "@elysiajs/eden/treaty";
-import type { SerializedObject } from "./objects/object";
-import { SerializedShape } from "./objects/shape";
-import { SerializedImage } from "./objects/image";
 import env from "@web/app/env";
+import { BaseObject } from "./objects";
 
 export enum WebSocketMessageType {
+  INIT = "INIT",
+  SHAPE_CREATE = "SHAPE_CREATE",
   SHAPE_UPDATE = "SHAPE_UPDATE",
   FRAME_UPDATE = "FRAME_UPDATE",
   DEFAULT = "DEFAULT",
@@ -27,16 +28,26 @@ export type WebSocketEvent =
   | ConnectionEvent
   | ErrorEvent;
 
-export type ObjectTypes = SerializedShape | SerializedImage;
+export interface InitEvent extends BaseWebSocketEvent {
+  type: WebSocketMessageType.INIT;
+  payload: {
+    id: string;
+  };
+}
+
+export interface ShapeCreateEvent extends BaseWebSocketEvent {
+  type: WebSocketMessageType.SHAPE_CREATE;
+  payload: typeof ElementSchema.static;
+}
 
 export interface ShapeUpdateEvent extends BaseWebSocketEvent {
   type: WebSocketMessageType.SHAPE_UPDATE;
-  payload: ObjectTypes;
+  payload: typeof ElementSchema.static;
 }
 
 export interface FrameUpdateEvent extends BaseWebSocketEvent {
   type: WebSocketMessageType.FRAME_UPDATE;
-  payload: ObjectTypes;
+  payload: typeof ElementSchema.static;
 }
 
 export interface DefaultEvent extends BaseWebSocketEvent {
@@ -55,6 +66,8 @@ export interface ErrorEvent extends BaseWebSocketEvent {
 }
 
 type WebSocketEventMap = {
+  [WebSocketMessageType.INIT]: InitEvent;
+  [WebSocketMessageType.SHAPE_CREATE]: ShapeCreateEvent;
   [WebSocketMessageType.SHAPE_UPDATE]: ShapeUpdateEvent;
   [WebSocketMessageType.FRAME_UPDATE]: FrameUpdateEvent;
   [WebSocketMessageType.DEFAULT]: DefaultEvent;
@@ -77,10 +90,14 @@ export class WebSocketManager {
     WebSocketMessageType,
     Set<(data: WebSocketEvent) => void>
   > = new Map();
+
+  private canvasId?: string;
   private reconnectAttempts = 0;
+  private lastInBetweenUpdate = 0;
+  private reconnecting = false;
+  private destroyed = false;
   private readonly maxReconnectAttempts = 100;
   private readonly reconnectDelay = 3000;
-  private lastInBetweenUpdate = 0;
   private readonly inBetweenUpdateThrottle = 50;
 
   private constructor() {}
@@ -92,42 +109,140 @@ export class WebSocketManager {
     return WebSocketManager.instance;
   }
 
-  public connect(): void {
-    if (this.socket) {
-      if (this.socket.ws.readyState === WebSocket.OPEN) {
-        console.warn("WebSocket connection already exists");
-        return;
-      } else {
-        this.disconnect();
+  public connect(timeoutMs: number = 5000): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      if (this.destroyed) return reject();
+      if (this.socket) {
+        if (this.socket.ws.readyState === WebSocket.OPEN) {
+          return reject(new Error("WebSocket is already connected"));
+        } else {
+          try {
+            await this.disconnect();
+          } catch (error) {
+            return reject(new Error("Failed to disconnect WebSocket:" + error));
+          }
+        }
       }
+
+      const timeoutId = setTimeout(() => {
+        if (this.socket) {
+          this.socket.close();
+          this.socket = null;
+        }
+        reject(new Error("Connection timeout"));
+      }, timeoutMs);
+
+      try {
+        this.socket = this.client.ws.subscribe();
+
+        this.socket.on("open", () => {
+          clearTimeout(timeoutId);
+          this.setupEventHandlers();
+          console.log("WebSocket connected");
+
+          if (this.reconnecting && this.canvasId) {
+            this.initCanvas(this.canvasId);
+          }
+          this.reconnectAttempts = 0;
+          resolve();
+        });
+
+        this.socket.on("close", () => {
+          clearTimeout(timeoutId);
+          reject(new Error("WebSocket closed during connection"));
+        });
+
+        this.socket.on("error", () => {
+          clearTimeout(timeoutId);
+          reject(new Error("WebSocket connection error"));
+        });
+      } catch (error) {
+        clearTimeout(timeoutId);
+        console.error("Failed to establish WebSocket connection:", error);
+        reject(new Error("Failed to establish WebSocket connection"));
+      }
+    });
+  }
+
+  public disconnect(timeoutMs: number = 5000): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        cleanup();
+        reject(new Error("Disconnect timeout"));
+      }, timeoutMs);
+
+      const cleanup = () => {
+        this.socket = null;
+        clearTimeout(timeoutId);
+      };
+
+      if (
+        this.socket &&
+        this.socket.ws.readyState !== WebSocket.CLOSED &&
+        this.socket.ws.readyState !== WebSocket.CLOSING
+      ) {
+        this.socket.close();
+        this.socket.on("close", () => {
+          cleanup();
+          resolve();
+        });
+      } else {
+        cleanup();
+        resolve();
+      }
+    });
+  }
+
+  public destroy(): void {
+    this.disconnect();
+    this.destroyed = true;
+    // this.listeners.clear();
+    WebSocketManager.instance = null;
+  }
+
+  public initCanvas(id: string): void {
+    if (!this.socket) {
+      return console.error("WebSocket is not connected");
     }
 
     try {
-      this.socket = this.client.ws.subscribe();
-      console.log("WebSocket connected");
-      this.setupEventHandlers();
+      this.socket.send({
+        type: WebSocketMessageType.INIT,
+        timestamp: Date.now(),
+        payload: { id },
+      });
+
+      this.canvasId = id;
     } catch (error) {
-      console.error("Failed to establish WebSocket connection:", error);
-      this.handleReconnection();
+      console.error("Failed to send canvas init:", error);
     }
   }
 
-  public disconnect(): void {
-    if (
-      this.socket &&
-      this.socket.ws.readyState !== WebSocket.CLOSED &&
-      this.socket.ws.readyState !== WebSocket.CLOSING
-    ) {
-      this.socket.close();
-    }
-    this.socket = null;
-    this.reconnectAttempts = 0;
-  }
-
-  public sendObjectUpdate(shape: SerializedObject): void {
+  public sendObjectCreate(shape: BaseObject, projectId: string): void {
     if (!this.socket) {
-      console.error("WebSocket is not connected");
-      return;
+      return console.error("WebSocket is not connected");
+    }
+
+    try {
+      this.client
+        .projects({ id: projectId })
+        .elements.post(shape.toJson())
+        .then((result) => {
+          if (result.data) shape.id = result.data.id;
+          this.socket?.send({
+            type: WebSocketMessageType.SHAPE_CREATE,
+            timestamp: Date.now(),
+            payload: shape.toJson(),
+          });
+        });
+    } catch (error) {
+      console.error("Failed to send shape create:", error);
+    }
+  }
+
+  public sendObjectUpdate(shape: typeof ElementSchema.static): void {
+    if (!this.socket) {
+      return console.error("WebSocket is not connected");
     }
 
     try {
@@ -136,15 +251,16 @@ export class WebSocketManager {
         timestamp: Date.now(),
         payload: shape,
       });
+
+      this.client.elements({ id: shape.id }).put(shape);
     } catch (error) {
       console.error("Failed to send shape update:", error);
     }
   }
 
-  public sendInBetweenUpdate(shape: SerializedObject): void {
+  public sendInBetweenUpdate(shape: typeof ElementSchema.static): void {
     if (!this.socket) {
-      console.error("WebSocket is not connected");
-      return;
+      return console.error("WebSocket is not connected");
     }
 
     const now = Date.now();
@@ -160,7 +276,6 @@ export class WebSocketManager {
       });
       this.lastInBetweenUpdate = now;
     } catch (error) {
-      this.handleReconnection();
       console.error("Failed to send frame update:", error);
     }
   }
@@ -198,24 +313,24 @@ export class WebSocketManager {
 
     this.socket.on("close", () => {
       console.log("WebSocket disconnected");
+      this.handleReconnection();
       this.notifyListeners({
         type: WebSocketMessageType.CONNECTION,
         timestamp: Date.now(),
         payload: { status: "disconnected" },
       });
-      this.handleReconnection();
     });
 
     this.socket.on("message", (data) => {
       try {
         this.handleMessage(data.data);
       } catch (error) {
-        console.error("Failed to handle message:", error);
+        console.warn("Failed to handle message:", error);
       }
     });
 
     this.socket.on("error", (error) => {
-      console.error("WebSocket error:", error);
+      console.warn("WebSocket error:", error);
       this.notifyListeners({
         type: WebSocketMessageType.ERROR,
         timestamp: Date.now(),
@@ -257,6 +372,9 @@ export class WebSocketManager {
   }
 
   private handleReconnection(): void {
+    if (this.reconnecting || this.destroyed) return;
+    this.reconnecting = true;
+
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error("Max reconnection attempts reached");
       this.notifyListeners({
@@ -272,8 +390,15 @@ export class WebSocketManager {
       `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
     );
 
-    setTimeout(() => {
-      this.connect();
+    setTimeout(async () => {
+      try {
+        await this.connect();
+        this.reconnecting = false;
+      } catch (error) {
+        console.error("Failed to reconnect:", error);
+        this.reconnecting = false;
+        this.handleReconnection();
+      }
     }, this.reconnectDelay);
   }
 
