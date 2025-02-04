@@ -1,12 +1,5 @@
-import { CircleShape } from "./circle";
-import { ImageObject } from "./image";
-import { RectangleShape } from "./rectangle";
-import { BaseObject, SerializedObject } from "./object";
-
-export {
-  CircleShape,
-  ImageObject,
-  RectangleShape,
-  BaseObject,
-  type SerializedObject,
-};
+export * from "./circle";
+export * from "./image";
+export * from "./rectangle";
+export * from "./object";
+export * from "./shape";

@@ -16,6 +16,7 @@ import {
   createUpdateData,
   flattenElement,
 } from "./element.utils.js";
+import { Prisma } from "@prisma/client";
 
 const elementRoute = new Elysia()
   .get(
@@ -75,7 +76,7 @@ const elementRoute = new Elysia()
   .post(
     "/projects/:id/elements/bulk",
     async ({ params: { id }, body }) => {
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         await Promise.all(
           body.map((b) =>
             tx.element.create({
@@ -105,7 +106,7 @@ const elementRoute = new Elysia()
   .put(
     "/projects/:id/elements/bulk",
     async ({ params: { id }, body }) => {
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         await Promise.all(
           body.map((b) =>
             tx.element.upsert({
