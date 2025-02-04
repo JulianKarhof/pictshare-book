@@ -1,15 +1,18 @@
+import { Application, Assets, Container } from "pixi.js";
 import { initDevtools } from "@pixi/devtools";
 import type { App } from "@api/index.js";
-import { Application, Assets, Container } from "pixi.js";
-import { DragManager } from "./dragManager";
-import { Settings } from "./settings";
-import { BaseObject } from "./objects/object";
-import { TransformerManager } from "./transformerManager";
-import { ViewportManager } from "./viewportManager";
+import { Settings } from "@web/app/canvas/settings";
+import { BaseObject } from "@web/app/canvas/objects";
 import env from "@web/app/env";
-import { WebSocketManager, WebSocketMessageType } from "./wsManager";
 import { treaty } from "@elysiajs/eden";
 import { ElementSchema } from "@api/routes/element/element.schema";
+import {
+  TransformerManager,
+  ViewportManager,
+  WebSocketManager,
+  WebSocketMessageType,
+  DragManager,
+} from "@web/app/canvas/managers";
 
 interface InteractiveChildOptions {
   selectAfterCreation?: boolean;

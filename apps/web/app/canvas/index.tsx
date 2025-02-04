@@ -1,8 +1,11 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CircleShape, ImageObject, RectangleShape } from "./objects";
-import { StageManager } from "./stageManager";
-import { WebSocketManager } from "./wsManager";
+import {
+  CircleShape,
+  ImageObject,
+  RectangleShape,
+} from "@web/app/canvas/objects";
+import { StageManager, WebSocketManager } from "@web/app/canvas/managers";
 
 const BookCanvas = ({ id }: { id: string }) => {
   const ref = useRef<HTMLDivElement>(null);

@@ -1,7 +1,10 @@
 import { Viewport } from "pixi-viewport";
 import { Application, FederatedPointerEvent, Graphics } from "pixi.js";
-import { WebSocketManager, WebSocketMessageType } from "./wsManager";
-import { BaseObject } from "./objects/object";
+import {
+  WebSocketManager,
+  WebSocketMessageType,
+} from "@web/app/canvas/managers";
+import { BaseObject } from "@web/app/canvas/objects";
 
 export class TransformerManager {
   private app: Application;

@@ -3,7 +3,7 @@ import { ElementSchema } from "@api/routes/element/element.schema";
 import { treaty } from "@elysiajs/eden";
 import { EdenWS } from "@elysiajs/eden/treaty";
 import env from "@web/app/env";
-import { BaseObject } from "./objects";
+import { BaseObject } from "@web/app/canvas/objects";
 
 export enum WebSocketMessageType {
   INIT = "INIT",
