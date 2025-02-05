@@ -1,18 +1,18 @@
-import { Application, Assets, Container } from "pixi.js";
-import { initDevtools } from "@pixi/devtools";
 import type { App } from "@api/index.js";
-import { Settings } from "@web/app/canvas/settings";
-import { BaseObject } from "@web/app/canvas/objects";
-import env from "@web/app/env";
-import { treaty } from "@elysiajs/eden";
 import { ElementSchema } from "@api/routes/element/element.schema";
+import { treaty } from "@elysiajs/eden";
+import { initDevtools } from "@pixi/devtools";
 import {
+  DragManager,
   TransformerManager,
   ViewportManager,
   WebSocketManager,
   WebSocketMessageType,
-  DragManager,
 } from "@web/app/canvas/managers";
+import { BaseObject } from "@web/app/canvas/objects";
+import { Settings } from "@web/app/canvas/settings";
+import env from "@web/app/env";
+import { Application, Assets, Container, Rectangle } from "pixi.js";
 
 interface InteractiveChildOptions {
   selectAfterCreation?: boolean;
@@ -28,7 +28,7 @@ export class StageManager {
   private currentScale: number = 0.2;
   private parentContainer: Container;
   private socketManager: WebSocketManager;
-  private client = treaty<App>(env.DATABASE_URL);
+  private client = treaty<App>(env.BACKEND_URL);
 
   private onScaleChange?: (scale: number) => void;
 
@@ -235,7 +235,15 @@ export class StageManager {
     return this._app.canvas;
   }
 
+
   public async download(): Promise<void> {
-    this._app?.renderer.extract.download(this.parentContainer);
+
+
+    this._app?.renderer.extract.download({
+      target: this.parentContainer,
+      filename: "book.png",
+      resolution: 0.4,
+      frame: new Rectangle(-5000, -5000, 10000, 10000),
+    });
   }
 }

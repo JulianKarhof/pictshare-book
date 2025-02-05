@@ -1,17 +1,18 @@
 {
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "prettier": "^3.4.2",
-    "turbo": "^2.3.3",
-    "lefthook": "^1.10.2"
+    "concurrently": "^9.1.2",
+    "lefthook": "^1.10.2",
+    "turbo": "^2.3.3"
   },
   "packageManager": "bun@1.1.42",
   "scripts": {
     "dev": "turbo dev",
     "db": "docker compose up -d",
     "lint": "biome check . --fix",
+    "types": "concurrently -n \"api,web\" \"cd apps/api && bun run types\" \"cd apps/web && bun run types\"",
     "generate": "bunx prisma generate --schema ./apps/api/prisma/schema.prisma",
-    "setup": "bunx lefthook install && bun db && bun generate"
+    "setup": "bunx lefthook install && bun db && bun generate && (cd apps/api && cp example.env .env) && (cd apps/web && cp example.env.local .env.local) "
   },
   "workspaces": [
     "apps/*"

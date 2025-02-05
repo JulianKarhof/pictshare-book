@@ -1,0 +1,150 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Generate prisma types
+        working-directory: apps/api
+        run: bunx prisma generate
+
+      - name: Check types
+        run: bun run types
+
+      - name: Run backend tests
+        working-directory: apps/api
+        run: bun test
+
+  build-backend:
+    needs: backend-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Generate prisma types
+        working-directory: apps/api
+        run: bunx prisma generate
+
+      - name: Build backend
+        working-directory: apps/api
+        run: bun run build
+
+      - name: Upload backend build
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: apps/api/build
+
+  build-frontend:
+    needs: backend-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: apps/web/build/cache
+          key: ${{ runner.os }}-next-${{ hashFiles('bun.lock', 'apps/**/*.{ts,tsx,js,jsx}') }}
+
+      - name: Set up bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Copy env file
+        working-directory: apps/web
+        run: cp example.env.local .env.local
+
+      - name: Generate prisma types
+        working-directory: apps/api
+        run: bunx prisma generate
+
+      - name: Build frontend
+        working-directory: apps/web
+        run: bun run build
+
+      - name: Upload frontend build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: apps/web/build
+
+  run:
+    needs: [build-backend, build-frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: apps/web/build/cache
+          key: ${{ runner.os }}-next-${{ hashFiles('bun.lock', 'apps/**/*.{ts,tsx,js,jsx}') }}
+
+      - name: Download backend build
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-build
+          path: apps/api/build
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: apps/web/build
+
+      - name: Set up bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --production
+
+      - name: Copy env files
+        run: |
+          cp apps/web/example.env.local apps/web/.env.local
+          cp apps/api/example.env apps/api/.env
+
+      - name: Generate prisma types
+        working-directory: apps/api
+        run: bunx prisma generate
+
+      - name: Start backend
+        working-directory: apps/api
+        run: bun run start &
+
+      - name: Start frontend
+        working-directory: apps/web
+        run: bun run start &
+
+      - name: Wait for services to be up
+        run: |
+          timeout 30s sh -c 'until curl -s http://localhost:3000 >/dev/null; do sleep 1; done'
+          timeout 30s sh -c 'until curl -s http://localhost:4000 >/dev/null; do sleep 1; done'

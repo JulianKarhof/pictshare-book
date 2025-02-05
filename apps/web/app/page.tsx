@@ -4,7 +4,7 @@ import env from "@web/app/env";
 import { ProjectList } from "@web/app/projectList";
 
 export default async function Home() {
-  const client = treaty<App>(env.DATABASE_URL, {
+  const client = treaty<App>(env.BACKEND_URL, {
     fetch: { cache: "no-store" },
   });
   const { data, error } = await client.projects.get();

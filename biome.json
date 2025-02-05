@@ -20,13 +20,18 @@
     "enabled": true,
     "rules": {
       "recommended": false,
-      "complexity": { "noUselessTypeConstraint": "error" },
+      "complexity": {
+        "noUselessTypeConstraint": "error"
+      },
       "correctness": {
         "noUnusedVariables": "error",
         "useArrayLiterals": "off",
         "noUnusedImports": "error"
       },
-      "style": { "noNamespace": "error", "useAsConstAssertion": "error" },
+      "style": {
+        "noNamespace": "error",
+        "useAsConstAssertion": "error"
+      },
       "suspicious": {
         "noExplicitAny": "error",
         "noExtraNonNullAssertion": "error",

@@ -6,8 +6,8 @@ const getRequiredEnvVar = (key: string, value?: string): string => {
 };
 
 export default {
-  DATABASE_URL: getRequiredEnvVar(
-    "DATABASE_URL",
+  BACKEND_URL: getRequiredEnvVar(
+    "NEXT_PUBLIC_BACKEND_URL",
     process.env.NEXT_PUBLIC_BACKEND_URL,
   ),
 } as const;

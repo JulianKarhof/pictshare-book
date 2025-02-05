@@ -85,7 +85,7 @@ export class WebSocketManager {
     response: unknown;
   }> | null = null;
 
-  private client = treaty<App>(env.DATABASE_URL);
+  private client = treaty<App>(env.BACKEND_URL);
   private listeners: Map<
     WebSocketMessageType,
     Set<(data: WebSocketEvent) => void>
