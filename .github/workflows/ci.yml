@@ -1,8 +1,15 @@
 name: CI Pipeline
 
 on:
+  workflow_dispatch:
+    inputs:
+      production-deploy:
+        type: boolean
+        description: Trigger production deploy
   push:
     branches: [master]
+    tags:
+      - "v*"
   pull_request:
     branches: [master]
 
@@ -148,3 +155,18 @@ jobs:
         run: |
           timeout 30s sh -c 'until curl -s http://localhost:3000 >/dev/null; do sleep 1; done'
           timeout 30s sh -c 'until curl -s http://localhost:4000 >/dev/null; do sleep 1; done'
+
+  deploy-frontend:
+    needs: [run]
+    if: inputs.production-deploy == true || startswith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.PRODUCTION_VERCEL_PROJECT_ID }}
+          vercel-args: "--prod"
