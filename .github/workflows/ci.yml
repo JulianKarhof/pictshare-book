@@ -65,6 +65,7 @@ jobs:
         with:
           name: backend-build
           path: apps/api/build
+          retention-days: ${{ inputs.production-deploy == true && 90 || 2 }}
 
   build-frontend:
     needs: backend-test
@@ -102,6 +103,7 @@ jobs:
         with:
           name: frontend-build
           path: apps/web/build
+          retention-days: ${{ inputs.production-deploy == true && 90 || 2 }}
 
   run:
     needs: [build-backend, build-frontend]
