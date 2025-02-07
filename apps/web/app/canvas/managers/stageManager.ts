@@ -22,7 +22,7 @@ export class StageManager {
   private _id: string;
   private _app: Application;
   private _settings = Settings.getInstance();
-  private viewportManager?: ViewportManager;
+  private _viewportManager?: ViewportManager;
   private dragManager?: DragManager;
   private transformerManager?: TransformerManager;
   private currentScale: number = 0.2;
@@ -64,17 +64,17 @@ export class StageManager {
       this.socketManager.connect();
     }
 
-    this.viewportManager = new ViewportManager(this._app);
+    this._viewportManager = new ViewportManager(this._app);
     this.dragManager = new DragManager(this._app);
     this.transformerManager = new TransformerManager(
       this._app,
-      this.viewportManager.viewport,
+      this._viewportManager.viewport,
     );
 
     this._app.stage.eventMode = "static";
     this._app.stage.hitArea = this._app.screen;
 
-    this.viewportManager?.viewport.addChild(this.parentContainer);
+    this._viewportManager?.viewport.addChild(this.parentContainer);
 
     this.loadCanvas();
 
@@ -143,13 +143,13 @@ export class StageManager {
   }
 
   private setupEventListeners(): void {
-    const viewport = this.viewportManager?.viewport;
+    const viewport = this._viewportManager?.viewport;
     viewport?.addEventListener("wheel", () => {
-      this.currentScale = this.viewportManager?.scale ?? 0.2;
+      this.currentScale = this._viewportManager?.scale ?? 0.2;
       this.onScaleChange?.(this.currentScale);
     });
     viewport?.addEventListener("pinch", () => {
-      this.currentScale = this.viewportManager?.scale ?? 0.2;
+      this.currentScale = this._viewportManager?.scale ?? 0.2;
       this.onScaleChange?.(this.currentScale);
     });
     viewport?.on("clicked", () => {
@@ -168,6 +168,11 @@ export class StageManager {
   }
 
   public addShape(shape: BaseObject): void {
+    if (this._viewportManager) {
+      const center = this._viewportManager.viewport.center;
+      shape.position.set(center.x, center.y);
+    }
+
     this.addInteractiveChild(shape);
     this.socketManager.sendObjectCreate(shape, this._id);
   }
@@ -235,10 +240,7 @@ export class StageManager {
     return this._app.canvas;
   }
 
-
   public async download(): Promise<void> {
-
-
     this._app?.renderer.extract.download({
       target: this.parentContainer,
       filename: "book.png",
