@@ -6,4 +6,4 @@ pre-commit:
     format:
       run: bunx biome format {staged_files} --fix --no-errors-on-unmatched
     tests:
-      run: bun test {all_files}
+      run: cd apps/api && bun test {all_files}

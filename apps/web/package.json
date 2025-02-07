@@ -23,6 +23,7 @@
     "uuid": "^11.0.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.50.1",
     "@types/lodash": "^4.17.13",
     "@types/node": "^20",
     "@types/react": "^18",

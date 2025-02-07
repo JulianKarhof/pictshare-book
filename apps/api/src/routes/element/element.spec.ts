@@ -67,8 +67,6 @@ describe("Element Routes", () => {
         )
         .then((res) => res.json());
 
-      console.log(response);
-
       expect(response).toHaveProperty("id", "new-element-id");
       expect(response).toHaveProperty(
         "url",
