@@ -14,12 +14,12 @@ export default function Loading() {
             .map((_, i) => (
               <div
                 key={i}
-                className="inline-block bg-gray-600 w-24 h-10 rounded mx-1 animate-pulse"
+                className="inline-block bg-gray-600 w-24 h-10 rounded-sm mx-1 animate-pulse"
               />
             ))}
         </div>
         <div>
-          <div className="text-white m-5 w-16 h-6 bg-gray-600 rounded animate-pulse" />
+          <div className="text-white m-5 w-16 h-6 bg-gray-600 rounded-sm animate-pulse" />
         </div>
       </div>
     </div>

@@ -93,37 +93,37 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
       <div className="absolute bottom-4 flex flex-row justify-between items-center bg-gray-800 rounded-md">
         <div className="pl-3">
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm"
             onClick={() => handleAddShape("square")}
           >
             Square
           </button>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm ml-2"
             onClick={() => handleAddShape("circle")}
           >
             Circle
           </button>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm ml-2"
             onClick={() => handleAddShape("picture")}
           >
             Picture
           </button>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm ml-2"
             onClick={() => stageManagerRef.current?.download()}
           >
             Download
           </button>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm ml-2"
             onClick={() => stageManagerRef.current?.saveCanvas()}
           >
             Save
           </button>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm ml-2"
             onClick={() => {
               stageManagerRef.current?.settings.setTheme(
                 stageManagerRef.current?.settings.getTheme() === "light"
