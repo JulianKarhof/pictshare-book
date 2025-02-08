@@ -1,10 +1,10 @@
 import env from "@api/env.js";
+import { createPinoLogger } from "@bogeychan/elysia-logger";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 import projectRoute from "@routes/project/project.routes.js";
 import { Elysia, t } from "elysia";
 import elementRoute from "./routes/element/element.routes.js";
-import { createPinoLogger } from "@bogeychan/elysia-logger";
 
 const log = createPinoLogger({
   level: "debug",
@@ -29,7 +29,10 @@ const app = new Elysia({
   .use(elementRoute)
 
   .state("canvasId", undefined as string | undefined)
-  .ws("/ws", {
+  .ws("/canvas/:id", {
+    params: t.Object({
+      id: t.String(),
+    }),
     body: t.Object({
       type: t.String(),
       timestamp: t.Number(),
@@ -37,6 +40,7 @@ const app = new Elysia({
     }),
     open(ws) {
       log.debug(`A websocket opened! ID: ${ws.id}`);
+      ws.subscribe(ws.data.params.id);
     },
     error(error) {
       log.error(error);
@@ -51,14 +55,6 @@ const app = new Elysia({
       if (message.type !== "FRAME_UPDATE") log.info(logData);
       else log.debug(logData);
 
-      if (message.type === "INIT") {
-        const canvasId = message.payload.id as string;
-        ws.data.store.canvasId = canvasId;
-        ws.subscribe(canvasId);
-        console.log(`Subscribed user ${ws.id} to ${canvasId}`);
-        return;
-      }
-
       if (message.type === "FRAME_UPDATE") {
         const now = Date.now();
         if (now - message.timestamp > 1000) {
@@ -66,7 +62,7 @@ const app = new Elysia({
         }
       }
 
-      if (ws.data.store.canvasId) ws.publish(ws.data.store.canvasId, message);
+      ws.publish(ws.data.params.id, message);
     },
     close(ws) {
       log.debug(`A websocket closed! ID: ${ws.id}`);

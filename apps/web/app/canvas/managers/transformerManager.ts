@@ -1,10 +1,10 @@
-import { Viewport } from "pixi-viewport";
-import { Application, FederatedPointerEvent, Graphics } from "pixi.js";
 import {
   WebSocketManager,
   WebSocketMessageType,
 } from "@web/app/canvas/managers";
 import { BaseObject } from "@web/app/canvas/objects";
+import { Viewport } from "pixi-viewport";
+import { Application, FederatedPointerEvent, Graphics } from "pixi.js";
 
 export class TransformerManager {
   private app: Application;
@@ -32,12 +32,16 @@ export class TransformerManager {
     { x: 1, y: 1 },
   ];
 
-  constructor(app: Application, viewport: Viewport) {
+  constructor({
+    app,
+    viewport,
+    id,
+  }: { app: Application; viewport: Viewport; id: string }) {
     this.app = app;
     this.viewport = viewport;
     this.setupEventListeners();
     this.createTransformer();
-    this.socketManager = WebSocketManager.getInstance();
+    this.socketManager = WebSocketManager.getInstance(id);
 
     this.socketManager.subscribe(WebSocketMessageType.FRAME_UPDATE, () => {
       this.reset();

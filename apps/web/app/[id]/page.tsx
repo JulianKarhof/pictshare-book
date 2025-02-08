@@ -8,5 +8,5 @@ export default function Canvas({
 }) {
   const { id } = use(params);
 
-  return <BookCanvas id={id} />;
+  return <BookCanvas canvasId={id} />;
 }

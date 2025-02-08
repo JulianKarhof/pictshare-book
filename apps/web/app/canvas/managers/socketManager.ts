@@ -2,11 +2,10 @@ import type { App } from "@api/index.js";
 import { ElementSchema } from "@api/routes/element/element.schema";
 import { treaty } from "@elysiajs/eden";
 import { EdenWS } from "@elysiajs/eden/treaty";
-import env from "@web/app/env";
 import { BaseObject } from "@web/app/canvas/objects";
+import env from "@web/app/env";
 
 export enum WebSocketMessageType {
-  INIT = "INIT",
   SHAPE_CREATE = "SHAPE_CREATE",
   SHAPE_UPDATE = "SHAPE_UPDATE",
   FRAME_UPDATE = "FRAME_UPDATE",
@@ -27,13 +26,6 @@ export type WebSocketEvent =
   | DefaultEvent
   | ConnectionEvent
   | ErrorEvent;
-
-export interface InitEvent extends BaseWebSocketEvent {
-  type: WebSocketMessageType.INIT;
-  payload: {
-    id: string;
-  };
-}
 
 export interface ShapeCreateEvent extends BaseWebSocketEvent {
   type: WebSocketMessageType.SHAPE_CREATE;
@@ -66,7 +58,6 @@ export interface ErrorEvent extends BaseWebSocketEvent {
 }
 
 type WebSocketEventMap = {
-  [WebSocketMessageType.INIT]: InitEvent;
   [WebSocketMessageType.SHAPE_CREATE]: ShapeCreateEvent;
   [WebSocketMessageType.SHAPE_UPDATE]: ShapeUpdateEvent;
   [WebSocketMessageType.FRAME_UPDATE]: FrameUpdateEvent;
@@ -91,7 +82,7 @@ export class WebSocketManager {
     Set<(data: WebSocketEvent) => void>
   > = new Map();
 
-  private canvasId?: string;
+  private canvasId: string;
   private reconnectAttempts = 0;
   private lastInBetweenUpdate = 0;
   private reconnecting = false;
@@ -100,11 +91,13 @@ export class WebSocketManager {
   private readonly reconnectDelay = 3000;
   private readonly inBetweenUpdateThrottle = 50;
 
-  private constructor() {}
+  private constructor(id: string) {
+    this.canvasId = id;
+  }
 
-  public static getInstance(): WebSocketManager {
+  public static getInstance(id: string): WebSocketManager {
     if (!WebSocketManager.instance) {
-      WebSocketManager.instance = new WebSocketManager();
+      WebSocketManager.instance = new WebSocketManager(id);
     }
     return WebSocketManager.instance;
   }
@@ -133,16 +126,13 @@ export class WebSocketManager {
       }, timeoutMs);
 
       try {
-        this.socket = this.client.ws.subscribe();
+        this.socket = this.client.canvas({ id: this.canvasId }).subscribe();
 
         this.socket.on("open", () => {
           clearTimeout(timeoutId);
           this.setupEventHandlers();
           console.log("WebSocket connected");
 
-          if (this.reconnecting && this.canvasId) {
-            this.initCanvas(this.canvasId);
-          }
           this.reconnectAttempts = 0;
           resolve();
         });
@@ -196,26 +186,8 @@ export class WebSocketManager {
   public destroy(): void {
     this.disconnect();
     this.destroyed = true;
-    // this.listeners.clear();
+    this.listeners.clear();
     WebSocketManager.instance = null;
-  }
-
-  public initCanvas(id: string): void {
-    if (!this.socket) {
-      return console.error("WebSocket is not connected");
-    }
-
-    try {
-      this.socket.send({
-        type: WebSocketMessageType.INIT,
-        timestamp: Date.now(),
-        payload: { id },
-      });
-
-      this.canvasId = id;
-    } catch (error) {
-      console.error("Failed to send canvas init:", error);
-    }
   }
 
   public sendObjectCreate(shape: BaseObject, projectId: string): void {

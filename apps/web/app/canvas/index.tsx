@@ -1,23 +1,22 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { StageManager, WebSocketManager } from "@web/app/canvas/managers";
 import {
   CircleShape,
   ImageObject,
   RectangleShape,
 } from "@web/app/canvas/objects";
-import { StageManager, WebSocketManager } from "@web/app/canvas/managers";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-const BookCanvas = ({ id }: { id: string }) => {
+const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [currentScale, setCurrentScale] = useState(0.2);
   const stageManagerRef = useRef<StageManager>();
 
   useEffect(() => {
     const connect = async () => {
-      const wsManager = WebSocketManager.getInstance();
+      const wsManager = WebSocketManager.getInstance(id);
       try {
         await wsManager.connect();
-        wsManager.initCanvas(id);
       } catch (error) {
         console.error("WebSocket connection error: ", error);
       }
@@ -40,7 +39,7 @@ const BookCanvas = ({ id }: { id: string }) => {
   useEffect(() => {
     const setup = async () => {
       const newStageManager = new StageManager({
-        id,
+        canvasId: id,
         onScaleChange: setCurrentScale,
       });
       stageManagerRef.current = newStageManager;

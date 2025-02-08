@@ -19,7 +19,7 @@ interface InteractiveChildOptions {
 }
 
 export class StageManager {
-  private _id: string;
+  private _canvasId: string;
   private _app: Application;
   private _settings = Settings.getInstance();
   private _viewportManager?: ViewportManager;
@@ -33,17 +33,17 @@ export class StageManager {
   private onScaleChange?: (scale: number) => void;
 
   constructor({
-    id,
+    canvasId,
     onScaleChange,
   }: {
-    id: string;
+    canvasId: string;
     onScaleChange?: (scale: number) => void;
   }) {
-    this._id = id;
-    this._app = new Application();
+    this._canvasId = canvasId;
     this.onScaleChange = onScaleChange;
+    this._app = new Application();
     this.parentContainer = new Container();
-    this.socketManager = WebSocketManager.getInstance();
+    this.socketManager = WebSocketManager.getInstance(canvasId);
   }
 
   public async init(): Promise<void> {
@@ -65,11 +65,15 @@ export class StageManager {
     }
 
     this._viewportManager = new ViewportManager(this._app);
-    this.dragManager = new DragManager(this._app);
-    this.transformerManager = new TransformerManager(
-      this._app,
-      this._viewportManager.viewport,
-    );
+    this.dragManager = new DragManager({
+      app: this._app,
+      canvasId: this._canvasId,
+    });
+    this.transformerManager = new TransformerManager({
+      app: this._app,
+      viewport: this._viewportManager.viewport,
+      id: this._canvasId,
+    });
 
     this._app.stage.eventMode = "static";
     this._app.stage.hitArea = this._app.screen;
@@ -96,7 +100,7 @@ export class StageManager {
 
   private async loadCanvas(): Promise<void> {
     const response = await this.client
-      .projects({ id: this._id })
+      .projects({ id: this._canvasId })
       .elements.get();
 
     if (response.status !== 200) {
@@ -130,7 +134,7 @@ export class StageManager {
       .filter((item) => item !== undefined);
 
     await this.client
-      .projects({ id: this._id })
+      .projects({ id: this._canvasId })
       .elements.bulk.put(stageObjects);
   }
 
@@ -174,7 +178,7 @@ export class StageManager {
     }
 
     this.addInteractiveChild(shape);
-    this.socketManager.sendObjectCreate(shape, this._id);
+    this.socketManager.sendObjectCreate(shape, this._canvasId);
   }
 
   private addInteractiveChild(

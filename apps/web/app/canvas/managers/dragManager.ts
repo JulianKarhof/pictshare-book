@@ -1,6 +1,6 @@
-import { Application, FederatedPointerEvent } from "pixi.js";
 import { WebSocketManager } from "@web/app/canvas/managers";
 import { BaseObject } from "@web/app/canvas/objects";
+import { Application, FederatedPointerEvent } from "pixi.js";
 
 export class DragManager {
   private dragTarget: BaseObject | null = null;
@@ -10,10 +10,10 @@ export class DragManager {
   private lastUpdateTime: number = 0;
   private updateInterval: number = 50;
 
-  constructor(app: Application) {
+  constructor({ app, canvasId }: { app: Application; canvasId: string }) {
     this.app = app;
     this.setupEventListeners();
-    this.socketManager = WebSocketManager.getInstance();
+    this.socketManager = WebSocketManager.getInstance(canvasId);
   }
 
   private setupEventListeners(): void {
