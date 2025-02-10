@@ -50,8 +50,10 @@ interface Project {
 
 export default function PictshareBookProjects({
   initialProjects = [],
+  onChange,
 }: {
   initialProjects: Project[];
+  onChange?: (projects: Project[]) => void;
 }) {
   const form = useForm<typeof ProjectCreateSchema.state>({
     resolver: typeboxResolver(ProjectCreateSchema),
@@ -88,6 +90,8 @@ export default function PictshareBookProjects({
         }
       }
 
+      router.refresh();
+      onChange?.(projects);
       setProjects((projects) =>
         projects.map((p) => (p.id === "loading" ? data : p)),
       );
@@ -108,6 +112,7 @@ export default function PictshareBookProjects({
         }
       }
 
+      onChange?.(projects);
       setProjects((projects) =>
         projects.map((p) =>
           p.id === projectId ? { ...p, isDeleted: true } : p,
