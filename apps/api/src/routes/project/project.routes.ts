@@ -5,11 +5,12 @@ import {
 } from "@api/schemas.js";
 import { Elysia, t } from "elysia";
 import { ElementSchema } from "../element/element.schema.js";
+import { flattenElement } from "../element/element.utils.js";
 import {
+  ProjectCreateSchema,
   ProjectSchema,
   ProjectWithoutElementsSchema,
-} from "./project.schemas.js";
-import { flattenElement } from "../element/element.utils.js";
+} from "./project.schema.js";
 
 const projectRoute = new Elysia()
 
@@ -111,9 +112,7 @@ const projectRoute = new Elysia()
       return project;
     },
     {
-      body: t.Object({
-        name: t.String({ examples: ["My Project"] }),
-      }),
+      body: ProjectCreateSchema,
       response: {
         200: ProjectWithoutElementsSchema,
       },

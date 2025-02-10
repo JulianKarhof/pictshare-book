@@ -1,5 +1,3 @@
-import { CookieHelper } from "@web/app/util/cookieHelper";
-
 type Theme = "light" | "dark";
 
 interface ThemeColors {
@@ -11,7 +9,7 @@ export class Settings {
   private static instance: Settings;
   private currentTheme: Theme = "dark";
 
-  private themeColors: Record<Theme, ThemeColors> = {
+  private themeColors: Record<"light" | "dark", ThemeColors> = {
     light: {
       gridColor: 0x404040,
       backgroundColor: 0xffffff,
@@ -23,11 +21,37 @@ export class Settings {
   };
 
   private constructor() {
-    const savedTheme = CookieHelper.getCookie("theme") as Theme | undefined;
+    const savedTheme = localStorage.getItem("theme") as
+      | "light"
+      | "dark"
+      | "system"
+      | undefined;
 
-    if (savedTheme) {
-      this.currentTheme = savedTheme;
+    if (savedTheme === "system") {
+      if (
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+      ) {
+        this.currentTheme = "dark";
+      } else {
+        this.currentTheme = "light";
+      }
+    } else {
+      if (savedTheme) {
+        this.currentTheme = savedTheme;
+      }
     }
+
+    window.addEventListener("storage", () => {
+      console.log("changing theme");
+      const currentSavedTheme = localStorage.getItem("theme") as
+        | Theme
+        | undefined;
+
+      if (currentSavedTheme && currentSavedTheme !== this.currentTheme) {
+        if (currentSavedTheme) this.currentTheme = currentSavedTheme;
+      }
+    });
   }
 
   public static getInstance(): Settings {
@@ -43,7 +67,7 @@ export class Settings {
 
   public setTheme(theme: Theme): void {
     this.currentTheme = theme;
-    CookieHelper.setCookie("theme", theme);
+    localStorage.setItem("theme", theme);
     window.location.reload();
   }
 

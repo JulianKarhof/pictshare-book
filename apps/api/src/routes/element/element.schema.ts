@@ -1,5 +1,5 @@
 import { ElementType, ShapeType } from "@prisma/client";
-import { t } from "elysia";
+import { t } from "elysia/type-system";
 
 const ElementBaseSchema = t.Object({
   id: t.String({ examples: ["cljk3d4g50000pb56j8qhm8nz"] }),

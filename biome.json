@@ -26,7 +26,10 @@
       "correctness": {
         "noUnusedVariables": "error",
         "useArrayLiterals": "off",
-        "noUnusedImports": "error"
+        "noUnusedImports": {
+          "level": "error",
+          "fix": "none"
+        }
       },
       "style": {
         "noNamespace": "error",

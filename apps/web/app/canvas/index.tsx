@@ -5,12 +5,13 @@ import {
   ImageObject,
   RectangleShape,
 } from "@web/app/canvas/objects";
+import { ModeToggle } from "@web/components/ui/mode-toggle";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [currentScale, setCurrentScale] = useState(0.2);
-  const stageManagerRef = useRef<StageManager>();
+  const stageManagerRef = useRef<StageManager | null>(null);
 
   useEffect(() => {
     const connect = async () => {
@@ -88,6 +89,7 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
     },
     [],
   );
+
   return (
     <div className="flex flex-col justify-center items-center">
       <div className="absolute bottom-4 flex flex-row justify-between items-center bg-gray-800 rounded-md">
@@ -116,24 +118,16 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
           >
             Download
           </button>
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm ml-2"
-            onClick={() => stageManagerRef.current?.saveCanvas()}
-          >
-            Save
-          </button>
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm ml-2"
-            onClick={() => {
-              stageManagerRef.current?.settings.setTheme(
-                stageManagerRef.current?.settings.getTheme() === "light"
-                  ? "dark"
-                  : "light",
-              );
+          <ModeToggle
+            trigger={
+              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm ml-2">
+                Theme
+              </button>
+            }
+            onToggle={() => {
+              window.location.reload();
             }}
-          >
-            Toggle Theme
-          </button>
+          />
         </div>
         <div>
           <div className="text-white m-5">

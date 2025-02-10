@@ -1,22 +1,22 @@
-import prisma from "@api/prisma.js";
+import prisma from "@api/prisma";
 import {
   Common400ErrorSchema,
   Common404ErrorSchema,
   CommonSuccessMessageSchema,
-} from "@api/schemas.js";
+} from "@api/schemas";
+import { Prisma } from "@prisma/client";
 import { Elysia, t } from "elysia";
 import {
   ElementCreateSchema,
   ElementSchema,
   ElementUpdateSchema,
   ElementUpsertSchema,
-} from "./element.schema.js";
+} from "./element.schema";
 import {
   createPrismaData,
   createUpdateData,
   flattenElement,
 } from "./element.utils.js";
-import { Prisma } from "@prisma/client";
 
 const elementRoute = new Elysia()
   .get(
