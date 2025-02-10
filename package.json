@@ -17,6 +17,6 @@
   },
   "workspaces": ["apps/*"],
   "dependencies": {
-    "elysia": "^1.2.10"
+    "elysia": "^1.2.12"
   }
 }

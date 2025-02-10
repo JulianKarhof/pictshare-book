@@ -3,7 +3,7 @@
   "workspaces": {
     "": {
       "dependencies": {
-        "elysia": "^1.2.10",
+        "elysia": "^1.2.12",
       },
       "devDependencies": {
         "@biomejs/biome": "1.9.4",
