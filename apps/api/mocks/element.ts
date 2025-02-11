@@ -1,5 +1,5 @@
 import { ElementType } from "@prisma/client";
-import { mockDate } from "./misc.js";
+import { mockDate } from "./misc";
 
 export const mockElements = [
   {

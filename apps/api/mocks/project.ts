@@ -1,5 +1,5 @@
-import { mockElements } from "./element.js";
-import { mockDate } from "./misc.js";
+import { mockElements } from "./element";
+import { mockDate } from "./misc";
 
 export const mockProjects = [
   {

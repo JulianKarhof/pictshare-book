@@ -1,8 +1,8 @@
 import { mock } from "bun:test";
 import { ElementType } from "@prisma/client";
-import { mockElements } from "./element.js";
-import { mockDate } from "./misc.js";
-import { mockProjects } from "./project.js";
+import { mockElements } from "./element";
+import { mockDate } from "./misc";
+import { mockProjects } from "./project";
 
 export const createMockPrisma = () => ({
   project: {

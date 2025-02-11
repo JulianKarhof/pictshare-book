@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, mock } from "bun:test";
-import { createMockPrisma } from "@mocks/prisma.js";
-import projectRoute from "@routes/project/project.routes.js";
+import { createMockPrisma } from "@mocks/prisma";
+import projectRoute from "@routes/project/project.routes";
 import { Elysia } from "elysia";
 
 const mockPrisma = createMockPrisma();
 
-mock.module("@api/prisma.js", () => ({
+mock.module("@api/prisma", () => ({
   default: mockPrisma,
 }));
 

@@ -1,10 +1,10 @@
-import env from "@api/env.js";
+import env from "@api/env";
 import { createPinoLogger } from "@bogeychan/elysia-logger";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
-import projectRoute from "@routes/project/project.routes.js";
+import projectRoute from "@routes/project/project.routes";
 import { Elysia, t } from "elysia";
-import elementRoute from "./routes/element/element.routes.js";
+import elementRoute from "./routes/element/element.routes";
 
 const log = createPinoLogger({
   level: "debug",

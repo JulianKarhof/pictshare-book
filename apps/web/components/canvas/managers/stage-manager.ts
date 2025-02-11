@@ -1,5 +1,5 @@
-import type { App } from "@api/index.js";
-import { ElementSchema } from "@api/routes/element/element.schema.js";
+import type { App } from "@api/index";
+import { ElementSchema } from "@api/routes/element/element.schema";
 import { treaty } from "@elysiajs/eden";
 import { initDevtools } from "@pixi/devtools";
 import {

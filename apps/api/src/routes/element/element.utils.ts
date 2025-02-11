@@ -3,7 +3,7 @@ import {
   ElementCreateSchema,
   ElementSchema,
   ElementUpdateSchema,
-} from "./element.schema.js";
+} from "./element.schema";
 
 export function flattenElement(
   element: Prisma.ElementGetPayload<{

@@ -1,4 +1,4 @@
-import type { App } from "@api/index.js";
+import type { App } from "@api/index";
 import { ElementSchema } from "@api/routes/element/element.schema";
 import { treaty } from "@elysiajs/eden";
 import { EdenWS } from "@elysiajs/eden/treaty";

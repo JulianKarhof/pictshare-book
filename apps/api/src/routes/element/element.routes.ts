@@ -16,7 +16,7 @@ import {
   createPrismaData,
   createUpdateData,
   flattenElement,
-} from "./element.utils.js";
+} from "./element.utils";
 
 const elementRoute = new Elysia()
   .get(

@@ -1,16 +1,13 @@
-import prisma from "@api/prisma.js";
-import {
-  Common404ErrorSchema,
-  CommonSuccessMessageSchema,
-} from "@api/schemas.js";
+import prisma from "@api/prisma";
+import { Common404ErrorSchema, CommonSuccessMessageSchema } from "@api/schemas";
 import { Elysia, t } from "elysia";
-import { ElementSchema } from "../element/element.schema.js";
-import { flattenElement } from "../element/element.utils.js";
+import { ElementSchema } from "../element/element.schema";
+import { flattenElement } from "../element/element.utils";
 import {
   ProjectCreateSchema,
   ProjectSchema,
   ProjectWithoutElementsSchema,
-} from "./project.schema.js";
+} from "./project.schema";
 
 const projectRoute = new Elysia()
 
