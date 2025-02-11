@@ -1,5 +1,5 @@
-import { PinchToZoomAndMove } from "@web/app/canvas/helpers/pinchToZoomAndMove";
-import { Settings } from "@web/app/canvas/settings";
+import { DragZoomPlugin } from "@web/components/canvas/helpers/drag-zoom-plugin";
+import { Settings } from "@web/components/canvas/settings";
 import * as VP from "pixi-viewport";
 import { Application, Graphics, Texture, TilingSprite } from "pixi.js";
 
@@ -38,7 +38,7 @@ export class ViewportManager {
   private setupViewportPlugins(): void {
     this._viewport.plugins.add(
       "wheel",
-      new PinchToZoomAndMove(this._viewport, {
+      new DragZoomPlugin(this._viewport, {
         zoomReverse: true,
         moveSpeed: 1.5,
       }),

@@ -8,10 +8,10 @@ import {
   ViewportManager,
   WebSocketManager,
   WebSocketMessageType,
-} from "@web/app/canvas/managers";
-import { BaseObject } from "@web/app/canvas/objects";
-import { Settings } from "@web/app/canvas/settings";
-import env from "@web/app/env";
+} from "@web/components/canvas/managers";
+import { BaseObject } from "@web/components/canvas/objects";
+import { Settings } from "@web/components/canvas/settings";
+import env from "@web/util/env";
 import { Application, Assets, Container, Rectangle } from "pixi.js";
 
 interface InteractiveChildOptions {

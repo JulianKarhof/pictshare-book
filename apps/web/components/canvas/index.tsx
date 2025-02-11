@@ -1,10 +1,13 @@
 "use client";
-import { StageManager, WebSocketManager } from "@web/app/canvas/managers";
+import {
+  StageManager,
+  WebSocketManager,
+} from "@web/components/canvas/managers";
 import {
   CircleShape,
   ImageObject,
   RectangleShape,
-} from "@web/app/canvas/objects";
+} from "@web/components/canvas/objects";
 import { ModeToggle } from "@web/components/ui/mode-toggle";
 import { useCallback, useEffect, useRef, useState } from "react";
 

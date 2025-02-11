@@ -16,7 +16,7 @@ const defaults: Options = {
   trackPadZoomSpeed: 5,
 };
 
-export class PinchToZoomAndMove extends Plugin {
+export class DragZoomPlugin extends Plugin {
   parent: Viewport;
   private options: Options;
   private moveReverse: number;

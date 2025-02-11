@@ -2,8 +2,8 @@ import type { App } from "@api/index.js";
 import { ElementSchema } from "@api/routes/element/element.schema";
 import { treaty } from "@elysiajs/eden";
 import { EdenWS } from "@elysiajs/eden/treaty";
-import { BaseObject } from "@web/app/canvas/objects";
-import env from "@web/app/env";
+import { BaseObject } from "@web/components/canvas/objects";
+import env from "@web/util/env";
 
 export enum WebSocketMessageType {
   SHAPE_CREATE = "SHAPE_CREATE",

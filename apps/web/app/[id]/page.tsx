@@ -1,4 +1,4 @@
-import BookCanvas from "@web/app/canvas";
+import BookCanvas from "@web/components/canvas";
 import { use } from "react";
 
 export default function Canvas({

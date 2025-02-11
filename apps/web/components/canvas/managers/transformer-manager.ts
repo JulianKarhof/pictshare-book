@@ -1,8 +1,8 @@
 import {
   WebSocketManager,
   WebSocketMessageType,
-} from "@web/app/canvas/managers";
-import { BaseObject } from "@web/app/canvas/objects";
+} from "@web/components/canvas/managers";
+import { BaseObject } from "@web/components/canvas/objects";
 import { Viewport } from "pixi-viewport";
 import { Application, FederatedPointerEvent, Graphics } from "pixi.js";
 

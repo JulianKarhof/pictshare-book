@@ -1,5 +1,5 @@
-import { WebSocketManager } from "@web/app/canvas/managers";
-import { BaseObject } from "@web/app/canvas/objects";
+import { WebSocketManager } from "@web/components/canvas/managers";
+import { BaseObject } from "@web/components/canvas/objects";
 import { Application, FederatedPointerEvent } from "pixi.js";
 
 export class DragManager {

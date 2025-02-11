@@ -28,6 +28,7 @@ import {
 } from "@web/components/ui/form";
 import { Input } from "@web/components/ui/input";
 import { ModeToggle } from "@web/components/ui/mode-toggle";
+import { client } from "@web/util/client";
 import {
   LayoutGrid,
   LayoutList,
@@ -38,7 +39,6 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { client } from "./util/client";
 
 interface Project {
   id: string;
@@ -48,7 +48,7 @@ interface Project {
   isDeleted?: boolean;
 }
 
-export default function PictshareBookProjects({
+export default function ProjectList({
   initialProjects = [],
   onChange,
 }: {
