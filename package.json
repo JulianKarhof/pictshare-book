@@ -2,7 +2,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "concurrently": "^9.1.2",
-    "lefthook": "^1.10.2",
+    "husky": "^9.1.7",
     "turbo": "^2.3.3"
   },
   "packageManager": "bun@1.1.42",
@@ -11,9 +11,12 @@
     "test": "bun run types && (cd apps/api && bun test) && (cd apps/web && bunx playwright test)",
     "db": "docker compose up -d",
     "lint": "biome check . --fix",
+    "format": "biome format .",
+    "check": "biome check",
     "types": "concurrently -n \"api,web\" \"cd apps/api && bun run types\" \"cd apps/web && bun run types\"",
     "generate": "bunx prisma generate --schema ./apps/api/prisma/schema.prisma",
-    "setup": "bunx lefthook install && bun db && bun generate && (cd apps/api && cp example.env .env) && (cd apps/web && cp example.env.local .env.local) "
+    "setup": "bunx lefthook install && bun db && bun generate && (cd apps/api && cp example.env .env) && (cd apps/web && cp example.env.local .env.local) ",
+    "prepare": "husky"
   },
   "workspaces": ["apps/*"],
   "dependencies": {
