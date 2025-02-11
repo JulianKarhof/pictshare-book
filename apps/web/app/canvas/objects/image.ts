@@ -1,10 +1,10 @@
-import { Sprite, Texture } from "pixi.js";
-import { v4 } from "uuid";
-import { BaseObject } from "./object";
 import {
   ElementSchema,
   ImageElementSchema,
 } from "@api/routes/element/element.schema";
+import { Sprite, Texture } from "pixi.js";
+import { v4 } from "uuid";
+import { BaseObject } from "./object";
 
 export class ImageObject extends Sprite implements BaseObject {
   id: string;

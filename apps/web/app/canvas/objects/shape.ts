@@ -1,10 +1,10 @@
-import { Graphics, GraphicsContext } from "pixi.js";
-import { v4 } from "uuid";
-import { BaseObject } from "./object";
 import {
   ElementSchema,
   ShapeElementSchema,
 } from "@api/routes/element/element.schema";
+import { Graphics, GraphicsContext } from "pixi.js";
+import { v4 } from "uuid";
+import { BaseObject } from "./object";
 
 type ShapeType = "RECTANGLE" | "CIRCLE";
 

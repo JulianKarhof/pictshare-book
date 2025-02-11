@@ -1,6 +1,6 @@
+import { ShapeElementSchema } from "@api/routes/element/element.schema";
 import { GraphicsContext } from "pixi.js";
 import { BaseShape } from "./shape";
-import { ShapeElementSchema } from "@api/routes/element/element.schema";
 
 export class CircleShape extends BaseShape {
   static readonly TYPE = "CIRCLE";

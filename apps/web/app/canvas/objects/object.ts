@@ -1,9 +1,9 @@
+import { ElementSchema } from "@api/routes/element/element.schema";
 import { Container } from "pixi.js";
 import { v4 } from "uuid";
-import { RectangleShape } from "./rectangle";
-import { ImageObject } from "./image";
 import { CircleShape } from "./circle";
-import { ElementSchema } from "@api/routes/element/element.schema";
+import { ImageObject } from "./image";
+import { RectangleShape } from "./rectangle";
 
 export abstract class BaseObject extends Container {
   id: string;
