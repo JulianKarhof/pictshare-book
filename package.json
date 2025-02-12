@@ -17,7 +17,7 @@
     "types": "concurrently -n \"api,web\" \"cd apps/api && bun run types\" \"cd apps/web && bun run types\"",
     "generate": "bunx prisma generate --schema ./apps/api/prisma/schema.prisma",
     "setup": "bun db && bun generate && (cd apps/api && cp example.env .env) && (cd apps/web && cp example.env.local .env.local) ",
-    "prepare": "husky"
+    "prepare": "bunx husky"
   },
   "workspaces": ["apps/*"],
   "dependencies": {
