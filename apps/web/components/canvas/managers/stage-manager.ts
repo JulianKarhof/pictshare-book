@@ -11,7 +11,7 @@ import {
 } from "@web/components/canvas/managers";
 import { BaseObject } from "@web/components/canvas/objects";
 import { Settings } from "@web/components/canvas/settings";
-import env from "@web/util/env";
+import env from "@web/lib/env";
 import { Application, Assets, Container, Rectangle } from "pixi.js";
 
 interface InteractiveChildOptions {

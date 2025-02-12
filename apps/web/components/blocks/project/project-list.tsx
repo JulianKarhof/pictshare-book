@@ -28,7 +28,7 @@ import {
 } from "@web/components/ui/form";
 import { Input } from "@web/components/ui/input";
 import { ModeToggle } from "@web/components/ui/mode-toggle";
-import { client } from "@web/util/client";
+import { client } from "@web/lib/client";
 import {
   LayoutGrid,
   LayoutList,

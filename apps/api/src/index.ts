@@ -4,6 +4,7 @@ import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 import projectRoute from "@routes/project/project.routes";
 import { Elysia, t } from "elysia";
+import authRoute from "./routes/auth/auth.routes";
 import elementRoute from "./routes/element/element.routes";
 
 const log = createPinoLogger({
@@ -25,6 +26,7 @@ const app = new Elysia({
 })
 
   .use(log.into())
+  .use(authRoute)
   .use(projectRoute)
   .use(elementRoute)
 

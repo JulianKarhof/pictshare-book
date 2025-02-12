@@ -1,6 +1,6 @@
 import { revalidateProjects } from "@web/components/blocks/project/project-actions";
 import ProjectList from "@web/components/blocks/project/project-list";
-import { client } from "@web/util/client";
+import { client } from "@web/lib/client";
 
 export default async function Home() {
   const { data, error } = await client.projects.get({
