@@ -1,3 +1,4 @@
+import { authMacro } from "@api/middleware/auth-middleware";
 import prisma from "@api/prisma";
 import {
   Common400ErrorSchema,
@@ -19,6 +20,9 @@ import {
 } from "./element.utils";
 
 const elementRoute = new Elysia()
+
+  .use(authMacro)
+
   .get(
     "/elements/:id",
     async ({ params: { id }, error }) => {
@@ -34,6 +38,7 @@ const elementRoute = new Elysia()
       return flattenElement(element);
     },
     {
+      isAuth: true,
       params: t.Object({
         id: t.String(),
       }),
@@ -44,6 +49,38 @@ const elementRoute = new Elysia()
       detail: {
         description: "Get an element by ID",
         tags: ["Element"],
+      },
+    },
+  )
+
+  .get(
+    "/projects/:id/elements",
+    async ({ params: { id } }) => {
+      const elements = await prisma.element.findMany({
+        where: { projectId: id },
+        include: {
+          image: true,
+          text: true,
+          shape: true,
+        },
+        orderBy: {
+          zIndex: "asc",
+        },
+      });
+
+      return elements.map(flattenElement);
+    },
+    {
+      isAuth: true,
+      params: t.Object({
+        id: t.String(),
+      }),
+      response: {
+        200: t.Array(ElementSchema),
+      },
+      detail: {
+        description: "Get all elements for a project",
+        tags: ["Project", "Element"],
       },
     },
   )
@@ -59,6 +96,7 @@ const elementRoute = new Elysia()
       return flattenElement(element);
     },
     {
+      isAuth: true,
       params: t.Object({
         id: t.String(),
       }),
@@ -68,7 +106,7 @@ const elementRoute = new Elysia()
       },
       detail: {
         description: "Create a new element",
-        tags: ["Element"],
+        tags: ["Project", "Element"],
       },
     },
   )
@@ -89,6 +127,7 @@ const elementRoute = new Elysia()
       return { message: "success" };
     },
     {
+      isAuth: true,
       params: t.Object({
         id: t.String(),
       }),
@@ -156,6 +195,7 @@ const elementRoute = new Elysia()
       return flattenElement(updated);
     },
     {
+      isAuth: true,
       params: t.Object({
         id: t.String(),
       }),
@@ -185,6 +225,7 @@ const elementRoute = new Elysia()
       }
     },
     {
+      isAuth: true,
       params: t.Object({
         id: t.String(),
       }),

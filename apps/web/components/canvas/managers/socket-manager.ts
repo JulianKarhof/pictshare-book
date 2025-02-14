@@ -1,9 +1,7 @@
-import type { App } from "@api/index";
 import { ElementSchema } from "@api/routes/element/element.schema";
-import { treaty } from "@elysiajs/eden";
 import { EdenWS } from "@elysiajs/eden/treaty";
 import { BaseObject } from "@web/components/canvas/objects";
-import env from "@web/lib/env";
+import { client } from "@web/lib/client";
 
 export enum WebSocketMessageType {
   SHAPE_CREATE = "SHAPE_CREATE",
@@ -76,7 +74,6 @@ export class WebSocketManager {
     response: unknown;
   }> | null = null;
 
-  private client = treaty<App>(env.BACKEND_URL);
   private listeners: Map<
     WebSocketMessageType,
     Set<(data: WebSocketEvent) => void>
@@ -126,7 +123,7 @@ export class WebSocketManager {
       }, timeoutMs);
 
       try {
-        this.socket = this.client.canvas({ id: this.canvasId }).subscribe();
+        this.socket = client.canvas({ id: this.canvasId }).subscribe();
 
         this.socket.on("open", () => {
           clearTimeout(timeoutId);
@@ -196,7 +193,7 @@ export class WebSocketManager {
     }
 
     try {
-      this.client
+      client
         .projects({ id: projectId })
         .elements.post(shape.toJson())
         .then((result) => {
@@ -224,7 +221,7 @@ export class WebSocketManager {
         payload: shape,
       });
 
-      this.client.elements({ id: shape.id }).put(shape);
+      client.elements({ id: shape.id }).put(shape);
     } catch (error) {
       console.error("Failed to send shape update:", error);
     }

@@ -1,24 +1,19 @@
-import { afterEach, describe, expect, it, mock } from "bun:test";
-import { createMockPrisma } from "@mocks/prisma";
+import { describe, expect, it, mock } from "bun:test";
+import { authMocks } from "@mocks/auth";
+import { prismaMocks } from "@mocks/prisma";
 import projectRoute from "@routes/project/project.routes";
 import { Elysia } from "elysia";
 
-const mockPrisma = createMockPrisma();
+mock.module("@api/auth", () => ({
+  auth: authMocks,
+}));
 
 mock.module("@api/prisma", () => ({
-  default: mockPrisma,
+  default: prismaMocks,
 }));
 
 describe("Project Routes", () => {
   const app = new Elysia().use(projectRoute);
-
-  afterEach(() => {
-    mockPrisma.project.findMany.mockClear();
-    mockPrisma.project.findUnique.mockClear();
-    mockPrisma.project.create.mockClear();
-    mockPrisma.project.delete.mockClear();
-    mockPrisma.element.findMany.mockClear();
-  });
 
   it("should list all projects", async () => {
     const response = await app
@@ -27,7 +22,7 @@ describe("Project Routes", () => {
 
     expect(Array.isArray(response)).toBe(true);
     expect(response).toHaveLength(2);
-    expect(mockPrisma.project.findMany).toHaveBeenCalled();
+    expect(prismaMocks.project.findMany).toHaveBeenCalled();
     expect(response[0]).toHaveProperty("id", "project-1");
   });
 
@@ -38,7 +33,7 @@ describe("Project Routes", () => {
 
     expect(response).toHaveProperty("id", "project-1");
     expect(response).toHaveProperty("name", "Test Project 1");
-    expect(mockPrisma.project.findUnique).toHaveBeenCalledWith({
+    expect(prismaMocks.project.findUnique).toHaveBeenCalledWith({
       where: { id: "project-1" },
       include: {
         elements: {
@@ -58,26 +53,7 @@ describe("Project Routes", () => {
       .then((res) => res.json());
 
     expect(response).toHaveProperty("message", "Project not found");
-    expect(mockPrisma.project.findUnique).toHaveBeenCalled();
-  });
-
-  it("should get project elements", async () => {
-    const res = await app
-      .handle(new Request("http://localhost/projects/project-1/elements"))
-      .then((res) => res.json());
-
-    expect(Array.isArray(res)).toBe(true);
-    expect(mockPrisma.element.findMany).toHaveBeenCalledWith({
-      where: { projectId: "project-1" },
-      include: {
-        image: true,
-        text: true,
-        shape: true,
-      },
-      orderBy: {
-        zIndex: "asc",
-      },
-    });
+    expect(prismaMocks.project.findUnique).toHaveBeenCalled();
   });
 
   it("should create a new project", async () => {
@@ -95,7 +71,7 @@ describe("Project Routes", () => {
 
     expect(response).toHaveProperty("id", "new-project-id");
     expect(response).toHaveProperty("name", "New Project");
-    expect(mockPrisma.project.create).toHaveBeenCalledWith({
+    expect(prismaMocks.project.create).toHaveBeenCalledWith({
       data: { name: "New Project" },
     });
   });
@@ -113,7 +89,7 @@ describe("Project Routes", () => {
       .then((res) => res.json());
 
     expect(response).toHaveProperty("message", "success");
-    expect(mockPrisma.project.delete).toHaveBeenCalledWith({
+    expect(prismaMocks.project.delete).toHaveBeenCalledWith({
       where: { id: "project-1" },
     });
   });

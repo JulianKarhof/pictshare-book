@@ -1,5 +1,9 @@
 {
   "name": "pictshare-book",
+  "dependencies": {
+    "better-auth": "^1.1.17",
+    "elysia": "^1.2.12"
+  },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "concurrently": "^9.1.2",
@@ -9,7 +13,7 @@
   "packageManager": "bun@1.1.42",
   "scripts": {
     "dev": "turbo dev",
-    "test": "(cd apps/api && bun test) && (cd apps/web && bunx playwright test --reporter=list)",
+    "test": "(cd apps/api && bun test) && (cd apps/web && DATABASE_URL=postgresql://postgres:postgres@localhost:5434/postgres?schema=test bunx playwright test --reporter=list)",
     "build": "turbo run build",
     "db": "docker compose up -d",
     "lint": "biome check",
@@ -18,12 +22,9 @@
     "types": "concurrently -n \"api,web\" \"cd apps/api && bun run types\" \"cd apps/web && bun run types\"",
     "generate": "bunx prisma generate --schema ./apps/api/prisma/schema.prisma",
     "migrate": "(cd apps/api && bunx prisma migrate dev --schema ./prisma/schema.prisma)",
+    "migrate:test": "(cd apps/api && DATABASE_URL=postgresql://postgres:postgres@localhost:5434/postgres?schema=test bunx prisma migrate deploy --schema ./prisma/schema.prisma)",
     "setup": "bun db && bun generate && (cd apps/api && cp example.env .env) && (cd apps/web && cp example.env.local .env.local) ",
     "prepare": "bunx husky"
   },
-  "workspaces": ["apps/*"],
-  "dependencies": {
-    "better-auth": "^1.1.17",
-    "elysia": "^1.2.12"
-  }
+  "workspaces": ["apps/*"]
 }

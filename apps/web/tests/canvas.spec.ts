@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures";
 
 const mockElements = [
   {
@@ -24,65 +25,59 @@ const mockElements = [
 
 const projectId = "cm6jiuf6j0000wqk76ooxu0oz";
 
-test.describe("Canvas interaction tests", () => {
-  test("should test two canvases interacting via ws", async ({ browser }) => {
-    const one = await browser.newContext();
-    const two = await browser.newContext();
-
-    const pageOne = await one.newPage();
-    const pageTwo = await two.newPage();
-
-    await pageOne.route(`**/projects/*/elements`, async (route) => {
+test.describe("Canvas", () => {
+  test("should test two canvases interacting via ws", async ({ one, two }) => {
+    await one.route(`**/projects/*/elements`, async (route) => {
       await route.fulfill({ json: mockElements });
     });
-    await pageTwo.route(`**/projects/*/elements`, async (route) => {
+    await two.route(`**/projects/*/elements`, async (route) => {
       await route.fulfill({ json: mockElements });
     });
 
-    await pageOne.goto(`http://localhost:3000/${projectId}`);
-    await pageTwo.goto(`http://localhost:3000/${projectId}`);
+    await one.goto(`http://localhost:3001/${projectId}`);
+    await two.goto(`http://localhost:3001/${projectId}`);
 
-    const canvasOne = pageOne.locator("canvas");
+    const canvasOne = one.locator("canvas");
     await expect(canvasOne).toBeVisible();
-    const canvasTwo = pageTwo.locator("canvas");
+    const canvasTwo = two.locator("canvas");
     await expect(canvasTwo).toBeVisible();
 
-    await pageOne.waitForLoadState("networkidle");
-    await pageTwo.waitForLoadState("networkidle");
-    await expect(pageOne).toHaveScreenshot("one-first-load.png");
-    await expect(pageTwo).toHaveScreenshot("two-first-load.png");
+    await one.waitForLoadState("networkidle");
+    await two.waitForLoadState("networkidle");
+    await expect(one).toHaveScreenshot("one-first-load.png");
+    await expect(two).toHaveScreenshot("two-first-load.png");
 
-    await pageOne.mouse.move(100, 100);
-    await pageOne.mouse.down();
-    await pageOne.mouse.move(100, 200);
-    await pageOne.waitForTimeout(100);
-    await pageOne.mouse.up();
-    await pageOne.mouse.click(0, 0);
-    await pageTwo.waitForLoadState("networkidle");
+    await one.mouse.move(100, 100);
+    await one.mouse.down();
+    await one.mouse.move(100, 200);
+    await one.waitForTimeout(100);
+    await one.mouse.up();
+    await one.mouse.click(0, 0);
+    await two.waitForLoadState("networkidle");
 
-    await expect(pageOne).toHaveScreenshot("one-after-move.png");
-    await expect(pageTwo).toHaveScreenshot("one-after-move.png");
+    await expect(one).toHaveScreenshot("one-after-move.png");
+    await expect(two).toHaveScreenshot("one-after-move.png");
 
-    await pageTwo.mouse.move(100, 200);
-    await pageTwo.mouse.down();
-    await pageTwo.mouse.move(200, 200);
-    await pageTwo.waitForTimeout(100);
-    await pageTwo.mouse.up();
-    await pageTwo.mouse.click(0, 0);
-    await pageOne.waitForLoadState("networkidle");
+    await two.mouse.move(100, 200);
+    await two.mouse.down();
+    await two.mouse.move(200, 200);
+    await two.waitForTimeout(100);
+    await two.mouse.up();
+    await two.mouse.click(0, 0);
+    await one.waitForLoadState("networkidle");
 
-    await expect(pageOne).toHaveScreenshot("two-after-move.png");
-    await expect(pageTwo).toHaveScreenshot("two-after-move.png");
+    await expect(one).toHaveScreenshot("two-after-move.png");
+    await expect(two).toHaveScreenshot("two-after-move.png");
 
     await one.close();
     await two.close();
   });
 
-  test("should create a new square", async ({ page }) => {
+  test("should create a new square", async ({ loggedInPage: page }) => {
     await page.route(`**/projects/*/elements`, async (route) => {
       await route.fulfill({ json: [] });
     });
-    await page.goto(`http://localhost:3000/${projectId}`);
+    await page.goto(`http://localhost:3001/${projectId}`);
 
     const canvas = page.locator("canvas");
     await expect(canvas).toBeVisible();
@@ -105,11 +100,11 @@ test.describe("Canvas interaction tests", () => {
     await expect(page).toHaveScreenshot("after-add-square.png");
   });
 
-  test("should create a new circle", async ({ page }) => {
+  test("should create a new circle", async ({ loggedInPage: page }) => {
     await page.route(`**/projects/*/elements`, async (route) => {
       await route.fulfill({ json: [] });
     });
-    await page.goto(`http://localhost:3000/${projectId}`);
+    await page.goto(`http://localhost:3001/${projectId}`);
 
     const request = page.waitForRequest((request) => {
       const isPost = request.method() === "POST";

@@ -1,25 +1,20 @@
-import { afterEach, describe, expect, it, mock } from "bun:test";
-import { createMockPrisma } from "@mocks/prisma";
+import { describe, expect, it, mock } from "bun:test";
+import { authMocks } from "@mocks/auth";
+import { prismaMocks } from "@mocks/prisma";
 import { ElementType } from "@prisma/client";
 import { Elysia } from "elysia";
 import elementRoute from "./element.routes";
 
-const mockPrisma = createMockPrisma();
+mock.module("@api/auth", () => ({
+  auth: authMocks,
+}));
 
 mock.module("@api/prisma", () => ({
-  default: mockPrisma,
+  default: prismaMocks,
 }));
 
 describe("Element Routes", () => {
   const app = new Elysia().use(elementRoute);
-
-  afterEach(() => {
-    mockPrisma.element.findUnique.mockClear();
-    mockPrisma.element.findMany.mockClear();
-    mockPrisma.element.create.mockClear();
-    mockPrisma.element.update.mockClear();
-    mockPrisma.element.delete.mockClear();
-  });
 
   describe("GET /:id", () => {
     it("should get an element by ID", async () => {
@@ -38,6 +33,25 @@ describe("Element Routes", () => {
         .then((res) => res.json());
 
       expect(response).toHaveProperty("message", "Element not found");
+    });
+  });
+
+  it("should get project elements", async () => {
+    const res = await app
+      .handle(new Request("http://localhost/projects/project-1/elements"))
+      .then((res) => res.json());
+
+    expect(Array.isArray(res)).toBe(true);
+    expect(prismaMocks.element.findMany).toHaveBeenCalledWith({
+      where: { projectId: "project-1" },
+      include: {
+        image: true,
+        text: true,
+        shape: true,
+      },
+      orderBy: {
+        zIndex: "asc",
+      },
     });
   });
 
@@ -182,7 +196,7 @@ describe("Element Routes", () => {
     });
 
     it("should return 404 for non-existent element", async () => {
-      mockPrisma.element.delete.mockImplementationOnce(() => {
+      prismaMocks.element.delete.mockImplementationOnce(() => {
         throw new Error("Element not found");
       });
 
