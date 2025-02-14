@@ -36,9 +36,11 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import ProfileButton from "../auth/profile-button";
 
 interface Project {
   id: string;
@@ -127,10 +129,6 @@ export default function ProjectList({
     }
   };
 
-  const handleOpenProject = async (projectId: string) => {
-    router.push(`/${projectId}`);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <nav className="bg-card border-b">
@@ -199,6 +197,9 @@ export default function ProjectList({
                 </Form>
               </DialogContent>
             </Dialog>
+            <Suspense fallback={<p>...</p>}>
+              <ProfileButton />
+            </Suspense>
           </div>
         </div>
       </nav>
@@ -210,52 +211,52 @@ export default function ProjectList({
             project.isLoading ? (
               <LoadingCard key={project.id} isGridView={isGridView} />
             ) : (
-              <Card
-                key={project.id}
-                style={{ animationDelay: i * 50 + "ms" }}
-                className={`overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer group bg-card motion-preset-slide-down-sm
+              <Link href={`/${project.id}`} key={project.id}>
+                <Card
+                  style={{ animationDelay: i * 50 + "ms" }}
+                  className={`overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer group bg-card motion-preset-slide-down-sm
                   ${isGridView ? "" : "flex"} ${project.isDeleted ? "motion-translate-y-out-[10%] motion-duration-500 motion-opacity-out-0" : ""}`}
-                onClick={() => handleOpenProject(project.id)}
-              >
-                <div
-                  className={`relative overflow-hidden ${isGridView ? "aspect-video" : "w-1/3"}`}
                 >
-                  <img
-                    src={project.coverImage || "https://placehold.co/600x400"}
-                    alt={project.name}
-                    className={`object-cover w-full h-full transition-transform duration-300
+                  <div
+                    className={`relative overflow-hidden ${isGridView ? "aspect-video" : "w-1/3"}`}
+                  >
+                    <img
+                      src={project.coverImage || "https://placehold.co/600x400"}
+                      alt={project.name}
+                      className={`object-cover w-full h-full transition-transform duration-300
                       ${isGridView ? "group-hover:scale-110" : ""}`}
-                  />
-                </div>
-                <CardHeader className={isGridView ? "" : "w-2/3"}>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-xl font-semibold text-card-foreground">
-                      {project.name}
-                    </CardTitle>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Share</DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteProject(project.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    />
                   </div>
-                </CardHeader>
-              </Card>
+                  <CardHeader className={isGridView ? "" : "w-2/3"}>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-xl font-semibold text-card-foreground">
+                        {project.name}
+                      </CardTitle>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>Edit</DropdownMenuItem>
+                          <DropdownMenuItem>Share</DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteProject(project.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardHeader>
+                </Card>
+              </Link>
             ),
           )}
         </div>

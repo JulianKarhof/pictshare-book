@@ -1,6 +1,4 @@
-import type { App } from "@api/index";
 import { ElementSchema } from "@api/routes/element/element.schema";
-import { treaty } from "@elysiajs/eden";
 import { initDevtools } from "@pixi/devtools";
 import {
   DragManager,
@@ -11,7 +9,7 @@ import {
 } from "@web/components/canvas/managers";
 import { BaseObject } from "@web/components/canvas/objects";
 import { Settings } from "@web/components/canvas/settings";
-import env from "@web/lib/env";
+import { client } from "@web/lib/client";
 import { Application, Assets, Container, Rectangle } from "pixi.js";
 
 interface InteractiveChildOptions {
@@ -28,7 +26,6 @@ export class StageManager {
   private currentScale: number = 0.2;
   private parentContainer: Container;
   private socketManager: WebSocketManager;
-  private client = treaty<App>(env.BACKEND_URL);
 
   private onScaleChange?: (scale: number) => void;
 
@@ -99,7 +96,7 @@ export class StageManager {
   }
 
   private async loadCanvas(): Promise<void> {
-    const response = await this.client
+    const response = await client
       .projects({ id: this._canvasId })
       .elements.get();
 
@@ -133,7 +130,7 @@ export class StageManager {
       })
       .filter((item) => item !== undefined);
 
-    await this.client
+    await client
       .projects({ id: this._canvasId })
       .elements.bulk.put(stageObjects);
   }

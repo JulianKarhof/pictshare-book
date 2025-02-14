@@ -4,7 +4,7 @@ import { mockElements } from "./element";
 import { mockDate } from "./misc";
 import { mockProjects } from "./project";
 
-export const createMockPrisma = () => ({
+export const prismaMocks = {
   project: {
     findMany: mock(() => mockProjects.map(({ elements, ...rest }) => rest)),
     findUnique: mock((args) => {
@@ -107,4 +107,4 @@ export const createMockPrisma = () => ({
       projectId: "project-1",
     })),
   },
-});
+};

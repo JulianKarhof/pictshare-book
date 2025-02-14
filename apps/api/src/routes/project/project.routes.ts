@@ -1,7 +1,7 @@
+import { authMacro } from "@api/middleware/auth-middleware";
 import prisma from "@api/prisma";
 import { Common404ErrorSchema, CommonSuccessMessageSchema } from "@api/schemas";
 import { Elysia, t } from "elysia";
-import { ElementSchema } from "../element/element.schema";
 import { flattenElement } from "../element/element.utils";
 import {
   ProjectCreateSchema,
@@ -11,6 +11,8 @@ import {
 
 const projectRoute = new Elysia()
 
+  .use(authMacro)
+
   .get(
     "/projects",
     async () => {
@@ -18,43 +20,13 @@ const projectRoute = new Elysia()
       return projects;
     },
     {
+      isAuth: true,
       response: {
         200: t.Array(ProjectWithoutElementsSchema),
       },
       detail: {
         description: "List all projects (excludes elements)",
         tags: ["Project"],
-      },
-    },
-  )
-
-  .get(
-    "/projects/:id/elements",
-    async ({ params: { id } }) => {
-      const elements = await prisma.element.findMany({
-        where: { projectId: id },
-        include: {
-          image: true,
-          text: true,
-          shape: true,
-        },
-        orderBy: {
-          zIndex: "asc",
-        },
-      });
-
-      return elements.map(flattenElement);
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      response: {
-        200: t.Array(ElementSchema),
-      },
-      detail: {
-        description: "Get all elements for a project",
-        tags: ["Project", "Element"],
       },
     },
   )
@@ -109,6 +81,7 @@ const projectRoute = new Elysia()
       return project;
     },
     {
+      isAuth: true,
       body: ProjectCreateSchema,
       response: {
         200: ProjectWithoutElementsSchema,
@@ -130,6 +103,7 @@ const projectRoute = new Elysia()
       return { message: "success" };
     },
     {
+      isAuth: true,
       params: t.Object({
         id: t.String(),
       }),

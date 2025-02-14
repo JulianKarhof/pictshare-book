@@ -2,10 +2,10 @@ import env from "@api/env";
 import { createPinoLogger } from "@bogeychan/elysia-logger";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
+import authRoute from "@routes/auth/auth.routes";
+import elementRoute from "@routes/element/element.routes";
 import projectRoute from "@routes/project/project.routes";
 import { Elysia, t } from "elysia";
-import authRoute from "./routes/auth/auth.routes";
-import elementRoute from "./routes/element/element.routes";
 
 const log = createPinoLogger({
   level: "debug",
@@ -17,16 +17,15 @@ const log = createPinoLogger({
   },
 });
 
-const port = 4000;
+const port = process.env.PORT || 4000;
 
 const app = new Elysia({
   websocket: {
     backpressureLimit: 1024,
   },
 })
-
-  .use(log.into())
   .use(authRoute)
+  .use(log.into())
   .use(projectRoute)
   .use(elementRoute)
 

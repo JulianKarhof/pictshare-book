@@ -9,4 +9,6 @@ const getRequiredEnvVar = (key: string): string => {
 export default {
   DATABASE_URL: getRequiredEnvVar("DATABASE_URL"),
   FRONTEND_URL: getRequiredEnvVar("FRONTEND_URL"),
+  GOOGLE_CLIENT_ID: getRequiredEnvVar("GOOGLE_CLIENT_ID"),
+  GOOGLE_CLIENT_SECRET: getRequiredEnvVar("GOOGLE_CLIENT_SECRET"),
 } as const;
