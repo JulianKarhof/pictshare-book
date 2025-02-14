@@ -71,7 +71,6 @@ const elementRoute = new Elysia()
       return elements.map(flattenElement);
     },
     {
-      isAuth: true,
       params: t.Object({
         id: t.String(),
       }),
@@ -160,6 +159,7 @@ const elementRoute = new Elysia()
       return { message: "success" };
     },
     {
+      isAuth: true,
       params: t.Object({
         id: t.String(),
       }),
