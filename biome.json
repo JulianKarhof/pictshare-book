@@ -12,7 +12,8 @@
       "build/**",
       ".turbo/**",
       "pixi-filters.mjs",
-      "test-results"
+      "test-results",
+      "playwright-report"
     ]
   },
   "formatter": {

@@ -15,8 +15,17 @@ const projectRoute = new Elysia()
 
   .get(
     "/projects",
-    async () => {
-      const projects = await prisma.project.findMany();
+    async ({ user }) => {
+      const projects = await prisma.project.findMany({
+        where: {
+          members: {
+            some: {
+              userId: user.id,
+            },
+          },
+        },
+      });
+
       return projects;
     },
     {
@@ -73,9 +82,16 @@ const projectRoute = new Elysia()
 
   .post(
     "/projects",
-    async ({ body: { name } }) => {
+    async ({ body: { name }, user }) => {
       const project = await prisma.project.create({
-        data: { name },
+        data: {
+          name,
+          members: {
+            create: {
+              userId: user.id,
+            },
+          },
+        },
       });
 
       return project;
