@@ -1,10 +1,34 @@
 import { mock } from "bun:test";
 import { ElementType } from "@prisma/client";
 import { mockElements } from "./element";
+import { mockMembers } from "./member";
 import { mockDate } from "./misc";
 import { mockProjects } from "./project";
+import { mockUsers } from "./user";
 
 export const prismaMocks = {
+  user: {
+    findUnique: mock((args) => {
+      if (args.where.id === "user-1") {
+        return mockUsers[0];
+      }
+      return null;
+    }),
+    create: mock((args) => ({
+      id: "new-user-id",
+      name: args.data.name,
+      email: args.data.email,
+      emailVerified: true,
+      image: args.data.image,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })),
+  },
+  member: {
+    findUnique: mock(() => {
+      return mockMembers[0];
+    }),
+  },
   project: {
     findMany: mock(() => mockProjects.map(({ elements, ...rest }) => rest)),
     findUnique: mock((args) => {
@@ -101,10 +125,15 @@ export const prismaMocks = {
       text: null,
       shape: null,
     })),
-    delete: mock(() => ({
-      id: "image-1",
-      type: ElementType.IMAGE,
-      projectId: "project-1",
-    })),
+    delete: mock((args) => {
+      if (args.where.id === "image-1") {
+        return {
+          id: "image-1",
+          type: ElementType.IMAGE,
+          projectId: "project-1",
+        };
+      }
+      return null;
+    }),
   },
 };

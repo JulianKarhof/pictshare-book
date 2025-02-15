@@ -2,10 +2,11 @@ import { authMacro } from "@api/middleware/auth-middleware";
 import prisma from "@api/prisma";
 import {
   Common400ErrorSchema,
+  Common401ErrorSchema,
   Common404ErrorSchema,
   CommonSuccessMessageSchema,
 } from "@api/schemas";
-import { Prisma } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 import { Elysia, t } from "elysia";
 import {
   ElementCreateSchema,
@@ -13,6 +14,7 @@ import {
   ElementUpdateSchema,
   ElementUpsertSchema,
 } from "./element.schema";
+import { ElementService } from "./element.service";
 import {
   createPrismaData,
   createUpdateData,
@@ -38,7 +40,6 @@ const elementRoute = new Elysia()
       return flattenElement(element);
     },
     {
-      isAuth: true,
       params: t.Object({
         id: t.String(),
       }),
@@ -58,11 +59,7 @@ const elementRoute = new Elysia()
     async ({ params: { id } }) => {
       const elements = await prisma.element.findMany({
         where: { projectId: id },
-        include: {
-          image: true,
-          text: true,
-          shape: true,
-        },
+        include: { image: true, text: true, shape: true },
         orderBy: {
           zIndex: "asc",
         },
@@ -86,7 +83,15 @@ const elementRoute = new Elysia()
 
   .post(
     "/projects/:id/elements",
-    async ({ params: { id }, body }) => {
+    async ({ params: { id }, body, error, user }) => {
+      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
+        roles: [Role.EDITOR, Role.OWNER],
+      });
+
+      if (!hasAccess) {
+        return error(401, { message: "Unauthorized" });
+      }
+
       const element = await prisma.element.create({
         data: createPrismaData(id, body),
         include: { image: true, text: true, shape: true },
@@ -102,6 +107,7 @@ const elementRoute = new Elysia()
       body: ElementCreateSchema,
       response: {
         200: ElementSchema,
+        401: Common401ErrorSchema,
       },
       detail: {
         description: "Create a new element",
@@ -112,7 +118,15 @@ const elementRoute = new Elysia()
 
   .post(
     "/projects/:id/elements/bulk",
-    async ({ params: { id }, body }) => {
+    async ({ params: { id }, body, user, error }) => {
+      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
+        roles: [Role.EDITOR, Role.OWNER],
+      });
+
+      if (!hasAccess) {
+        return error(401, { message: "Unauthorized" });
+      }
+
       await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         await Promise.all(
           body.map((b) =>
@@ -133,6 +147,7 @@ const elementRoute = new Elysia()
       body: t.Array(ElementCreateSchema),
       response: {
         200: CommonSuccessMessageSchema,
+        401: Common401ErrorSchema,
       },
       detail: {
         description: "Create multiple elements",
@@ -143,7 +158,15 @@ const elementRoute = new Elysia()
 
   .put(
     "/projects/:id/elements/bulk",
-    async ({ params: { id }, body }) => {
+    async ({ params: { id }, body, user, error }) => {
+      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
+        roles: [Role.EDITOR, Role.OWNER],
+      });
+
+      if (!hasAccess) {
+        return error(401, { message: "Unauthorized" });
+      }
+
       await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         await Promise.all(
           body.map((b) =>
@@ -166,6 +189,7 @@ const elementRoute = new Elysia()
       body: t.Array(ElementUpsertSchema),
       response: {
         200: CommonSuccessMessageSchema,
+        401: Common401ErrorSchema,
       },
       detail: {
         description: "Update multiple elements",
@@ -176,14 +200,31 @@ const elementRoute = new Elysia()
 
   .put(
     "/elements/:id",
-    async ({ params: { id }, body, error }) => {
+    async ({ params: { id }, body, user, error }) => {
       const existing = await prisma.element.findUnique({
         where: { id },
-        include: { image: true, text: true, shape: true },
+        include: {
+          image: true,
+          text: true,
+          shape: true,
+          project: { select: { id: true } },
+        },
       });
 
       if (!existing) {
         return error(404, { message: "Element not found" });
+      }
+
+      const hasAccess = await ElementService.hasProjectAccess(
+        existing.project.id,
+        user.id,
+        {
+          roles: [Role.EDITOR, Role.OWNER],
+        },
+      );
+
+      if (!hasAccess) {
+        return error(401, { message: "Unauthorized" });
       }
 
       const updated = await prisma.element.update({
@@ -203,6 +244,7 @@ const elementRoute = new Elysia()
       response: {
         200: ElementSchema,
         400: Common400ErrorSchema,
+        401: Common401ErrorSchema,
         404: Common404ErrorSchema,
       },
       detail: {
@@ -214,15 +256,23 @@ const elementRoute = new Elysia()
 
   .delete(
     "/elements/:id",
-    async ({ params: { id }, error }) => {
-      try {
-        await prisma.element.delete({
-          where: { id },
-        });
-        return { message: "Element deleted successfully" };
-      } catch (_e) {
+    async ({ params: { id }, user, error }) => {
+      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
+        roles: [Role.EDITOR, Role.OWNER],
+      });
+
+      if (!hasAccess) {
+        return error(401, { message: "Unauthorized" });
+      }
+      const element = await prisma.element.delete({
+        where: { id },
+      });
+
+      if (!element) {
         return error(404, { message: "Element not found" });
       }
+
+      return { message: "Element deleted successfully" };
     },
     {
       isAuth: true,
@@ -231,6 +281,7 @@ const elementRoute = new Elysia()
       }),
       response: {
         200: CommonSuccessMessageSchema,
+        401: Common401ErrorSchema,
         404: Common404ErrorSchema,
       },
       detail: {

@@ -112,9 +112,16 @@ const projectRoute = new Elysia()
 
   .delete(
     "/projects/:id",
-    async ({ params: { id } }) => {
+    async ({ params: { id }, user }) => {
       await prisma.project.delete({
-        where: { id },
+        where: {
+          id,
+          members: {
+            some: {
+              userId: user.id,
+            },
+          },
+        },
       });
 
       return { message: "success" };

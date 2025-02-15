@@ -77,7 +77,7 @@ describe("Project Routes", () => {
         members: {
           create: {
             role: "OWNER",
-            userId: "test-user-id",
+            userId: "user-1",
           },
         },
       },
@@ -98,7 +98,7 @@ describe("Project Routes", () => {
 
     expect(response).toHaveProperty("message", "success");
     expect(prismaMocks.project.delete).toHaveBeenCalledWith({
-      where: { id: "project-1" },
+      where: { id: "project-1", members: { some: { userId: "user-1" } } },
     });
   });
 });

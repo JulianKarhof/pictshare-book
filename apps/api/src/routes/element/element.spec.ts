@@ -183,7 +183,7 @@ describe("Element Routes", () => {
     it("should delete an element", async () => {
       const response = await app
         .handle(
-          new Request("http://localhost/elements/test-image-1", {
+          new Request("http://localhost/elements/image-1", {
             method: "DELETE",
           }),
         )
@@ -196,10 +196,6 @@ describe("Element Routes", () => {
     });
 
     it("should return 404 for non-existent element", async () => {
-      prismaMocks.element.delete.mockImplementationOnce(() => {
-        throw new Error("Element not found");
-      });
-
       const response = await app
         .handle(
           new Request("http://localhost/elements/nonexistent", {
