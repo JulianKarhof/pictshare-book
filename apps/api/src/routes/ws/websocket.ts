@@ -1,3 +1,4 @@
+import { auth } from "@api/auth";
 import { log } from "@api/logger";
 import { Elysia, t } from "elysia";
 
@@ -10,8 +11,20 @@ const websocketRoute = new Elysia().ws("/canvas/:id", {
     timestamp: t.Number(),
     payload: t.Any(),
   }),
-  open(ws) {
-    log.debug(`A websocket opened! ID: ${ws.id}`);
+  async open(ws) {
+    const session = await auth.api.getSession({
+      headers: new Headers({
+        cookie: ws.data.headers.cookie ?? "",
+      }),
+    });
+
+    if (!session) {
+      log.debug(`[unauthorized] ID: ${ws.id}`);
+      ws.close(3000, "Unauthorized");
+      return;
+    }
+
+    log.debug(`[opened] ID: ${ws.id} User: ${session.user.id}`);
     ws.subscribe(ws.data.params.id);
   },
   error(error) {
@@ -37,7 +50,7 @@ const websocketRoute = new Elysia().ws("/canvas/:id", {
     ws.publish(ws.data.params.id, message);
   },
   close(ws) {
-    log.debug(`A websocket closed! ID: ${ws.id}`);
+    log.debug(`[closed] ID: ${ws.id}`);
   },
 });
 

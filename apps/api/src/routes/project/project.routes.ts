@@ -88,6 +88,7 @@ const projectRoute = new Elysia()
           name,
           members: {
             create: {
+              role: "OWNER",
               userId: user.id,
             },
           },
