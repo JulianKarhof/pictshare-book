@@ -6,6 +6,7 @@ export default defineConfig({
   testDir: "./tests",
   timeout: 1000 * 60,
   snapshotPathTemplate: "./tests/snaps/{testFilePath}/{arg}{ext}",
+  workers: 1,
   projects: [
     {
       name: "chrome",

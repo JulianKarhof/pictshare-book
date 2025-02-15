@@ -72,7 +72,14 @@ describe("Project Routes", () => {
     expect(response).toHaveProperty("id", "new-project-id");
     expect(response).toHaveProperty("name", "New Project");
     expect(prismaMocks.project.create).toHaveBeenCalledWith({
-      data: { name: "New Project" },
+      data: {
+        name: "New Project",
+        members: {
+          create: {
+            userId: "test-user-id",
+          },
+        },
+      },
     });
   });
 
