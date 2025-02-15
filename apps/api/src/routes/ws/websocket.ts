@@ -1,57 +1,78 @@
 import { auth } from "@api/auth";
 import { log } from "@api/logger";
+import { Role } from "@prisma/client";
 import { Elysia, t } from "elysia";
+import { ElementService } from "../element/element.service";
 
-const websocketRoute = new Elysia().ws("/canvas/:id", {
-  params: t.Object({
-    id: t.String(),
-  }),
-  body: t.Object({
-    type: t.String(),
-    timestamp: t.Number(),
-    payload: t.Any(),
-  }),
-  async open(ws) {
-    const session = await auth.api.getSession({
-      headers: new Headers({
-        cookie: ws.data.headers.cookie ?? "",
-      }),
-    });
+const websocketRoute = new Elysia()
 
-    if (!session) {
-      log.debug(`[unauthorized] ID: ${ws.id}`);
-      ws.close(3000, "Unauthorized");
-      return;
-    }
+  .state("role", undefined as Role | null | undefined)
 
-    log.debug(`[opened] ID: ${ws.id} User: ${session.user.id}`);
-    ws.subscribe(ws.data.params.id);
-  },
-  error(error) {
-    log.error(error);
-  },
-  message(ws, message) {
-    const logData = {
-      type: message.type,
-      userId: ws.id,
-      payload: message.payload,
-    };
+  .ws("/canvas/:id", {
+    params: t.Object({
+      id: t.String(),
+    }),
+    body: t.Object({
+      type: t.String(),
+      timestamp: t.Number(),
+      payload: t.Any(),
+    }),
+    async open(ws) {
+      const session = await auth.api.getSession({
+        headers: new Headers({
+          cookie: ws.data.headers.cookie ?? "",
+        }),
+      });
 
-    if (message.type !== "FRAME_UPDATE") log.info(logData);
-    else log.debug(logData);
-
-    if (message.type === "FRAME_UPDATE") {
-      const now = Date.now();
-      if (now - message.timestamp > 1000) {
+      if (!session) {
+        log.debug(`[unauthorized] ID: ${ws.id}`);
+        ws.close(3000, "Unauthorized");
         return;
       }
-    }
 
-    ws.publish(ws.data.params.id, message);
-  },
-  close(ws) {
-    log.debug(`[closed] ID: ${ws.id}`);
-  },
-});
+      const access = await ElementService.hasProjectAccess(
+        ws.data.params.id,
+        session.user.id,
+      );
+
+      ws.data.store.role = access;
+
+      log.debug(`[opened] ID: ${ws.id} User: ${session.user.id}`);
+      ws.subscribe(ws.data.params.id);
+    },
+    error(error) {
+      log.error(error);
+    },
+    message(ws, message) {
+      const logData = {
+        type: message.type,
+        userId: ws.id,
+        payload: message.payload,
+      };
+
+      if (ws.data.store.role === null || ws.data.store.role === Role.VIEWER) {
+        ws.send({
+          type: "ERROR",
+          payload: "Unauthorized",
+        });
+        return;
+      }
+
+      if (message.type !== "FRAME_UPDATE") log.info(logData);
+      else log.debug(logData);
+
+      if (message.type === "FRAME_UPDATE") {
+        const now = Date.now();
+        if (now - message.timestamp > 1000) {
+          return;
+        }
+      }
+
+      ws.publish(ws.data.params.id, message);
+    },
+    close(ws) {
+      log.debug(`[closed] ID: ${ws.id}`);
+    },
+  });
 
 export default websocketRoute;

@@ -1,4 +1,5 @@
 import { mock } from "bun:test";
+import { mockUsers } from "./user";
 
 export const authMocks = {
   api: {
@@ -7,14 +8,9 @@ export const authMocks = {
         session: {
           id: "test-session-id",
           token: "gZi3FToPB8eYKkDdqOYab6u973PhBcmr",
-          userId: "test-user-id",
+          userId: mockUsers[0].id,
         },
-        user: {
-          id: "test-user-id",
-          name: "Test User",
-          email: "test@example.com",
-          emailVerified: true,
-        },
+        user: mockUsers[0],
       };
     }),
   },

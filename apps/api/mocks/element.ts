@@ -4,7 +4,9 @@ import { mockDate } from "./misc";
 export const mockElements = [
   {
     id: "image-element",
-    projectId: "project-1",
+    project: {
+      id: "project-1",
+    },
     type: ElementType.IMAGE,
     x: 0,
     y: 0,
