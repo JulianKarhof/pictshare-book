@@ -76,6 +76,7 @@ describe("Project Routes", () => {
         name: "New Project",
         members: {
           create: {
+            role: "OWNER",
             userId: "test-user-id",
           },
         },
