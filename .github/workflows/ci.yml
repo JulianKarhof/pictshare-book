@@ -185,7 +185,7 @@ jobs:
         run: npx playwright install chromium --with-deps --only-shell
 
       - name: Run frontend tests
-        run: cd apps/web && DATABASE_URL=postgresql://postgres:postgres@localhost:5434/postgres?schema=test bunx playwright test
+        run: cd apps/web && bun run test
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}

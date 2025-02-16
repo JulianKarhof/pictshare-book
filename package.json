@@ -13,7 +13,7 @@
   "packageManager": "bun@1.1.42",
   "scripts": {
     "dev": "turbo dev",
-    "test": "(cd apps/api && bun test) && (cd apps/web && DATABASE_URL=postgresql://postgres:postgres@localhost:5434/postgres?schema=test bunx playwright test --reporter=list)",
+    "test": "(cd apps/api && bun test) && (cd apps/web && bun run test)",
     "build": "turbo run build",
     "db": "docker compose up -d",
     "lint": "biome check",
