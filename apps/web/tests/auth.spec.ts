@@ -2,7 +2,7 @@ import { test } from "@playwright/test";
 
 test.describe("Authentication", () => {
   test("should register an account", async ({ page }) => {
-    await page.goto(`http://localhost:3001/auth/sign-up`);
+    await page.goto(`/auth/sign-up`);
 
     await page.getByRole("textbox", { name: "First name" }).fill("Test");
     await page.getByRole("textbox", { name: "Last name" }).fill("User");
@@ -17,11 +17,11 @@ test.describe("Authentication", () => {
       .fill("password");
     await page.getByRole("button", { name: "Create an account" }).click();
 
-    await page.waitForURL("http://localhost:3001/");
+    await page.waitForURL("/");
   });
 
   test("should login", async ({ page }) => {
-    await page.goto(`http://localhost:3001/auth/sign-in`);
+    await page.goto(`/auth/sign-in`);
 
     await page
       .getByRole("textbox", { name: "Email" })
@@ -29,6 +29,6 @@ test.describe("Authentication", () => {
     await page.getByRole("textbox", { name: "Password" }).fill("password");
     await page.getByRole("button", { name: "Login" }).click();
 
-    await page.waitForURL("http://localhost:3001/");
+    await page.waitForURL("/");
   });
 });

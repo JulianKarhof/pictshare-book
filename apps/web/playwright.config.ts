@@ -12,11 +12,11 @@ export default defineConfig({
       name: "chrome",
       use: { ...devices["Desktop Chrome"], channel: "chrome" },
       dependencies: ["setup db"],
+      teardown: "cleanup db",
     },
     {
       name: "setup db",
       testMatch: /global\.setup\.ts/,
-      teardown: "cleanup db",
     },
     {
       name: "cleanup db",
@@ -25,7 +25,7 @@ export default defineConfig({
   ],
   expect: {
     toHaveScreenshot: {
-      maxDiffPixelRatio: 0.006,
+      maxDiffPixels: 100,
     },
   },
   use: {
@@ -39,6 +39,7 @@ export default defineConfig({
       port: 3001,
       timeout: 120 * 1000,
       reuseExistingServer: !isCI,
+      stdout: "pipe",
       env: {
         NODE_ENV: "test",
         PORT: "3001",
@@ -51,6 +52,7 @@ export default defineConfig({
       port: 4001,
       timeout: 120 * 1000,
       reuseExistingServer: !isCI,
+      stdout: "pipe",
       env: {
         NODE_ENV: "test",
         PORT: "4001",
