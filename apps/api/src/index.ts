@@ -11,7 +11,14 @@ import { log } from "./logger";
 const port = process.env.PORT || 4000;
 
 const app = new Elysia()
-  .use(cors({ origin: env.FRONTEND_URL }))
+  .use(
+    cors({
+      origin:
+        process.env.NODE_ENV === "production"
+          ? /.*\.pict\.sh$/
+          : env.FRONTEND_URL,
+    }),
+  )
 
   .use(authRoute)
   .use(projectRoute)
