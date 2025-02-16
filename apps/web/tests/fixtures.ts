@@ -1,4 +1,4 @@
-import { Page, test as base } from "@playwright/test";
+import { APIRequestContext, Page, test as base } from "@playwright/test";
 
 type Fixtures = {
   loggedInPage: Page;
@@ -6,12 +6,36 @@ type Fixtures = {
   two: Page;
 };
 
+const loginUser = async (request: APIRequestContext, email: string) => {
+  const response = await request.post(
+    "http://localhost:4001/auth/sign-in/email",
+    {
+      data: {
+        email,
+        password: "password",
+      },
+    },
+  );
+
+  return response
+    .headers()
+    ["set-cookie"].split("; ")
+    .find((cookie) => cookie.startsWith("better-auth.session_token="))
+    ?.split("=")?.[1];
+};
+
 export const test = base.extend<Fixtures>({
-  loggedInPage: async ({ page }, use) => {
+  loggedInPage: async ({ page, request }, use) => {
+    const token = await loginUser(request, "test_one@user.com");
+
+    if (!token) {
+      throw new Error("Failed to login");
+    }
+
     page.context().addCookies([
       {
         name: "better-auth.session_token",
-        value: "test_token_one",
+        value: token,
         url: "http://localhost",
       },
     ]);
@@ -20,31 +44,49 @@ export const test = base.extend<Fixtures>({
 
     await page.context().clearCookies();
   },
-  one: async ({ page }, use) => {
-    page.context().addCookies([
+  one: async ({ browser, request }, use) => {
+    const context = await browser.newContext();
+    const one = await context.newPage();
+
+    const token = await loginUser(request, "test_one@user.com");
+
+    if (!token) {
+      throw new Error("Failed to login");
+    }
+
+    one.context().addCookies([
       {
         name: "better-auth.session_token",
-        value: "test_token_one",
+        value: token,
         url: "http://localhost",
       },
     ]);
 
-    await use(page);
+    await use(one);
 
-    await page.context().clearCookies();
+    await context.close();
   },
-  two: async ({ page }, use) => {
-    page.context().addCookies([
+  two: async ({ browser, request }, use) => {
+    const context = await browser.newContext();
+    const two = await context.newPage();
+
+    const token = await loginUser(request, "test_two@user.com");
+
+    if (!token) {
+      throw new Error("Failed to login");
+    }
+
+    two.context().addCookies([
       {
         name: "better-auth.session_token",
-        value: "test_token_two",
+        value: token,
         url: "http://localhost",
       },
     ]);
 
-    await use(page);
+    await use(two);
 
-    await page.context().clearCookies();
+    await context.close();
   },
 });
 
