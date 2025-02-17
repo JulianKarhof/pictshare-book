@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1
 
-FROM oven/bun:1 AS base
+FROM oven/bun:1.2 AS base
 
 LABEL fly_launch_runtime="Bun"
 WORKDIR /app
@@ -11,17 +11,18 @@ FROM base AS build
 
 COPY package.json .
 COPY apps/api/package.json .
+COPY apps/web/package.json .
 COPY bun.lock .
 
 RUN bun install
 
 COPY . .
 
-RUN bun prisma generate --schema apps/api/prisma/schema.prisma
-RUN bunx turbo build --filter api
+RUN bunx prisma generate --schema apps/api/prisma/schema.prisma
+RUN cd apps/api && bun run build
 
 
-FROM base
+FROM base AS run
 
 COPY --from=build /app /app
 

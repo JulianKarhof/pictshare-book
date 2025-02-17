@@ -4,7 +4,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 
 export const auth = betterAuth({
-  trustedOrigins: [env.FRONTEND_URL],
+  trustedOrigins: [env.FRONTEND_URL, "book.pict.sh"],
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
@@ -22,6 +22,8 @@ export const auth = betterAuth({
   advanced: {
     crossSubDomainCookies: {
       enabled: true,
+      domain:
+        process.env.NODE_ENV === "production" ? "book.pict.sh" : "localhost",
     },
   },
 });
