@@ -319,7 +319,7 @@ export class WebSocketManager {
       if (parsedData.type === WebSocketMessageType.FRAME_UPDATE) {
         const messageAge = Date.now() - parsedData.timestamp;
         if (messageAge > 1000) {
-          console.log("Discarding old frame update");
+          console.log("Discarding old frame update", messageAge);
           return;
         }
       }
