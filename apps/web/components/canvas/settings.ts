@@ -43,13 +43,25 @@ export class Settings {
     }
 
     window.addEventListener("storage", () => {
-      console.log("changing theme");
       const currentSavedTheme = localStorage.getItem("theme") as
-        | Theme
+        | "light"
+        | "dark"
+        | "system"
         | undefined;
 
-      if (currentSavedTheme && currentSavedTheme !== this.currentTheme) {
-        if (currentSavedTheme) this.currentTheme = currentSavedTheme;
+      if (currentSavedTheme === "system") {
+        if (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+        ) {
+          this.currentTheme = "dark";
+        } else {
+          this.currentTheme = "light";
+        }
+      } else {
+        if (currentSavedTheme) {
+          this.currentTheme = currentSavedTheme;
+        }
       }
     });
   }
