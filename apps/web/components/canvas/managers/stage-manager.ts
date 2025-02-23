@@ -1,11 +1,11 @@
 import { ElementSchema } from "@api/routes/element/element.schema";
+import { WebSocketEventType } from "@api/routes/ws/ws.schema";
 import { initDevtools } from "@pixi/devtools";
 import {
   DragManager,
   TransformerManager,
   ViewportManager,
   WebSocketManager,
-  WebSocketMessageType,
 } from "@web/components/canvas/managers";
 import { BaseObject } from "@web/components/canvas/objects";
 import { Settings } from "@web/components/canvas/settings";
@@ -40,7 +40,7 @@ export class StageManager {
     this.onScaleChange = onScaleChange;
     this._app = new Application();
     this.parentContainer = new Container();
-    this.socketManager = WebSocketManager.getInstance(canvasId);
+    this.socketManager = WebSocketManager.getInstance();
   }
 
   public async init(): Promise<void> {
@@ -57,19 +57,13 @@ export class StageManager {
       preferWebGLVersion: 2,
     });
 
-    if (!this.socketManager.isConnected()) {
-      this.socketManager.connect();
-    }
-
     this._viewportManager = new ViewportManager(this._app);
     this.dragManager = new DragManager({
       app: this._app,
-      canvasId: this._canvasId,
     });
     this.transformerManager = new TransformerManager({
       app: this._app,
       viewport: this._viewportManager.viewport,
-      id: this._canvasId,
     });
 
     this._app.stage.eventMode = "static";
@@ -80,15 +74,15 @@ export class StageManager {
     this.loadCanvas();
 
     this.socketManager.subscribe(
-      WebSocketMessageType.SHAPE_CREATE,
+      WebSocketEventType.SHAPE_CREATE,
       async (data) => {
         this.addInteractiveChild(await BaseObject.from(data.payload));
       },
     );
-    this.socketManager.subscribe(WebSocketMessageType.SHAPE_UPDATE, (data) => {
+    this.socketManager.subscribe(WebSocketEventType.SHAPE_UPDATE, (data) => {
       this.updateShape(data.payload);
     });
-    this.socketManager.subscribe(WebSocketMessageType.FRAME_UPDATE, (data) => {
+    this.socketManager.subscribe(WebSocketEventType.FRAME_UPDATE, (data) => {
       this.updateShape(data.payload);
     });
 
@@ -175,7 +169,10 @@ export class StageManager {
     }
 
     this.addInteractiveChild(shape);
-    this.socketManager.sendObjectCreate(shape, this._canvasId);
+    this.socketManager.send({
+      type: WebSocketEventType.SHAPE_CREATE,
+      payload: shape.toJson(),
+    });
   }
 
   private addInteractiveChild(

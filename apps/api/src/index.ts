@@ -1,10 +1,10 @@
 import env from "@api/env";
+import websocketRoute from "@api/routes/ws/ws.routes";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 import authRoute from "@routes/auth/auth.routes";
 import elementRoute from "@routes/element/element.routes";
 import projectRoute from "@routes/project/project.routes";
-import websocketRoute from "@routes/ws/websocket";
 import { Elysia } from "elysia";
 import { log } from "./logger";
 

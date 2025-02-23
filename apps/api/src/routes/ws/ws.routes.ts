@@ -3,6 +3,7 @@ import { log } from "@api/logger";
 import { Role } from "@prisma/client";
 import { Elysia, t } from "elysia";
 import { ElementService } from "../element/element.service";
+import { WebSocketEventSchema } from "./ws.schema";
 
 const websocketRoute = new Elysia()
 
@@ -12,11 +13,7 @@ const websocketRoute = new Elysia()
     params: t.Object({
       id: t.String(),
     }),
-    body: t.Object({
-      type: t.String(),
-      timestamp: t.Number(),
-      payload: t.Any(),
-    }),
+    body: WebSocketEventSchema,
     async open(ws) {
       const session = await auth.api.getSession({
         headers: new Headers({

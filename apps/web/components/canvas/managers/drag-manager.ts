@@ -1,3 +1,4 @@
+import { WebSocketEventType } from "@api/routes/ws/ws.schema";
 import { WebSocketManager } from "@web/components/canvas/managers";
 import { BaseObject } from "@web/components/canvas/objects";
 import { Application, FederatedPointerEvent } from "pixi.js";
@@ -10,10 +11,10 @@ export class DragManager {
   private lastUpdateTime: number = 0;
   private updateInterval: number = 50;
 
-  constructor({ app, canvasId }: { app: Application; canvasId: string }) {
+  constructor({ app }: { app: Application }) {
     this.app = app;
     this.setupEventListeners();
-    this.socketManager = WebSocketManager.getInstance(canvasId);
+    this.socketManager = WebSocketManager.getInstance();
   }
 
   private setupEventListeners(): void {
@@ -53,7 +54,10 @@ export class DragManager {
 
       const currentTime = Date.now();
       if (currentTime - this.lastUpdateTime >= this.updateInterval) {
-        this.socketManager.sendInBetweenUpdate(this.dragTarget.toJson());
+        this.socketManager.send({
+          type: WebSocketEventType.FRAME_UPDATE,
+          payload: this.dragTarget.toJson(),
+        });
         this.lastUpdateTime = currentTime;
       }
     }
@@ -64,7 +68,10 @@ export class DragManager {
       window.removeEventListener("pointermove", this.onDragMove.bind(this));
       window.removeEventListener("pointerup", this.onDragEnd.bind(this));
 
-      this.socketManager.sendObjectUpdate(this.dragTarget.toJson());
+      this.socketManager.send({
+        type: WebSocketEventType.FRAME_UPDATE,
+        payload: this.dragTarget.toJson(),
+      });
 
       this.dragTarget.alpha = 1;
       this.dragTarget = null;

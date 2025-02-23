@@ -1,7 +1,5 @@
-import {
-  WebSocketManager,
-  WebSocketMessageType,
-} from "@web/components/canvas/managers";
+import { WebSocketEventType } from "@api/routes/ws/ws.schema";
+import { WebSocketManager } from "@web/components/canvas/managers";
 import { BaseObject } from "@web/components/canvas/objects";
 import { Viewport } from "pixi-viewport";
 import { Application, FederatedPointerEvent, Graphics } from "pixi.js";
@@ -32,18 +30,14 @@ export class TransformerManager {
     { x: 1, y: 1 },
   ];
 
-  constructor({
-    app,
-    viewport,
-    id,
-  }: { app: Application; viewport: Viewport; id: string }) {
+  constructor({ app, viewport }: { app: Application; viewport: Viewport }) {
     this.app = app;
     this.viewport = viewport;
     this.setupEventListeners();
     this.createTransformer();
-    this.socketManager = WebSocketManager.getInstance(id);
+    this.socketManager = WebSocketManager.getInstance();
 
-    this.socketManager.subscribe(WebSocketMessageType.FRAME_UPDATE, () => {
+    this.socketManager.subscribe(WebSocketEventType.FRAME_UPDATE, () => {
       this.reset();
     });
   }
@@ -166,7 +160,10 @@ export class TransformerManager {
     this.target.scale.set(scaleX, scaleY);
     this.target.position.set(newX, newY);
 
-    this.socketManager.sendInBetweenUpdate(this.target.toJson());
+    this.socketManager.send({
+      type: WebSocketEventType.FRAME_UPDATE,
+      payload: this.target.toJson(),
+    });
     this.moveTransformer();
   }
 
@@ -205,7 +202,10 @@ export class TransformerManager {
 
     const handleEnd = () => {
       if (this.target)
-        this.socketManager.sendObjectUpdate(this.target.toJson());
+        this.socketManager.send({
+          type: WebSocketEventType.SHAPE_UPDATE,
+          payload: this.target.toJson(),
+        });
       this.isResizing = false;
       this.app.stage.off("pointermove", handleMove);
       this.app.stage.off("pointerup", handleEnd);

@@ -2,6 +2,7 @@
 import {
   StageManager,
   WebSocketManager,
+  WebSocketStatus,
 } from "@web/components/canvas/managers";
 import {
   CircleShape,
@@ -18,27 +19,22 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
 
   useEffect(() => {
     const connect = async () => {
-      const wsManager = WebSocketManager.getInstance(id);
-      try {
-        await wsManager.connect();
-      } catch (error) {
-        console.error("WebSocket connection error: ", error);
-      }
-
-      return wsManager;
+      await WebSocketManager.getInstance().initialize(id);
     };
 
-    const connectionPromise = connect();
+    connect();
 
     return () => {
       const destroy = async () => {
-        const wsManager = await connectionPromise;
-        wsManager.destroy();
+        const wsManager = WebSocketManager.getInstance();
+        if (wsManager.status === WebSocketStatus.OPEN) {
+          wsManager.destroy();
+        }
       };
 
       destroy();
     };
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     const setup = async () => {
