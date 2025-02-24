@@ -5,11 +5,11 @@ import {
   DragManager,
   TransformerManager,
   ViewportManager,
-  WebSocketManager,
 } from "@web/components/canvas/managers";
 import { BaseObject } from "@web/components/canvas/objects";
 import { Settings } from "@web/components/canvas/settings";
 import { client } from "@web/lib/client";
+import { StageService } from "@web/services/stage.service";
 import { Application, Assets, Container, Rectangle } from "pixi.js";
 
 interface InteractiveChildOptions {
@@ -21,15 +21,15 @@ export class StageManager {
   private _app: Application;
   private _settings = Settings.getInstance();
   private _viewportManager?: ViewportManager;
-  private dragManager?: DragManager;
-  private transformerManager?: TransformerManager;
-  private currentScale: number = 0.2;
-  private parentContainer: Container;
-  private socketManager: WebSocketManager;
+  private _dragManager?: DragManager;
+  private _transformerManager?: TransformerManager;
+  private _currentScale: number = 0.2;
+  private _parentContainer: Container;
+  private _stageService: StageService;
 
-  private onScaleChange?: (scale: number) => void;
+  private _onScaleChange?: (scale: number) => void;
 
-  constructor({
+  public constructor({
     canvasId,
     onScaleChange,
   }: {
@@ -37,10 +37,10 @@ export class StageManager {
     onScaleChange?: (scale: number) => void;
   }) {
     this._canvasId = canvasId;
-    this.onScaleChange = onScaleChange;
+    this._onScaleChange = onScaleChange;
     this._app = new Application();
-    this.parentContainer = new Container();
-    this.socketManager = WebSocketManager.getInstance();
+    this._parentContainer = new Container();
+    this._stageService = StageService.getInstance();
   }
 
   public async init(): Promise<void> {
@@ -58,10 +58,10 @@ export class StageManager {
     });
 
     this._viewportManager = new ViewportManager(this._app);
-    this.dragManager = new DragManager({
+    this._dragManager = new DragManager({
       app: this._app,
     });
-    this.transformerManager = new TransformerManager({
+    this._transformerManager = new TransformerManager({
       app: this._app,
       viewport: this._viewportManager.viewport,
     });
@@ -69,27 +69,27 @@ export class StageManager {
     this._app.stage.eventMode = "static";
     this._app.stage.hitArea = this._app.screen;
 
-    this._viewportManager?.viewport.addChild(this.parentContainer);
+    this._viewportManager?.viewport.addChild(this._parentContainer);
 
-    this.loadCanvas();
+    this._loadCanvas();
 
-    this.socketManager.subscribe(
+    this._stageService.subscribe(
       WebSocketEventType.SHAPE_CREATE,
       async (data) => {
-        this.addInteractiveChild(await BaseObject.from(data.payload));
+        this._addInteractiveChild(await BaseObject.from(data.payload));
       },
     );
-    this.socketManager.subscribe(WebSocketEventType.SHAPE_UPDATE, (data) => {
-      this.updateShape(data.payload);
+    this._stageService.subscribe(WebSocketEventType.SHAPE_UPDATE, (data) => {
+      this._updateShape(data.payload);
     });
-    this.socketManager.subscribe(WebSocketEventType.FRAME_UPDATE, (data) => {
-      this.updateShape(data.payload);
+    this._stageService.subscribe(WebSocketEventType.FRAME_UPDATE, (data) => {
+      this._updateShape(data.payload);
     });
 
-    this.setupEventListeners();
+    this._setupEventListeners();
   }
 
-  private async loadCanvas(): Promise<void> {
+  private async _loadCanvas(): Promise<void> {
     const response = await client
       .projects({ id: this._canvasId })
       .elements.get();
@@ -109,14 +109,14 @@ export class StageManager {
 
       const shape = await BaseObject.from(item);
 
-      this.addInteractiveChild(shape, {
+      this._addInteractiveChild(shape, {
         selectAfterCreation: false,
       });
     });
   }
 
   public async saveCanvas(): Promise<void> {
-    const stageObjects = this.parentContainer.children
+    const stageObjects = this._parentContainer.children
       .map((child) => {
         if (BaseObject.typeguard(child)) {
           return child.toJson();
@@ -129,33 +129,33 @@ export class StageManager {
       .elements.bulk.put(stageObjects);
   }
 
-  private updateShape(data: typeof ElementSchema.static): void {
-    this.parentContainer.children.forEach((child) => {
+  private _updateShape(data: typeof ElementSchema.static): void {
+    this._parentContainer.children.forEach((child) => {
       if (BaseObject.typeguard(child)) {
         if (child.id === data.id) child.update(data);
       }
     });
   }
 
-  private setupEventListeners(): void {
+  private _setupEventListeners(): void {
     const viewport = this._viewportManager?.viewport;
     viewport?.addEventListener("wheel", () => {
-      this.currentScale = this._viewportManager?.scale ?? 0.2;
-      this.onScaleChange?.(this.currentScale);
+      this._currentScale = this._viewportManager?.scale ?? 0.2;
+      this._onScaleChange?.(this._currentScale);
     });
     viewport?.addEventListener("pinch", () => {
-      this.currentScale = this._viewportManager?.scale ?? 0.2;
-      this.onScaleChange?.(this.currentScale);
+      this._currentScale = this._viewportManager?.scale ?? 0.2;
+      this._onScaleChange?.(this._currentScale);
     });
     viewport?.on("clicked", () => {
-      this.transformerManager?.reset();
+      this._transformerManager?.reset();
     });
     this._app?.stage.on("dragging", this.save.bind(this));
     this._app?.stage.on("click", this.save.bind(this));
     this._app?.stage.on("drag-end", this.save.bind(this));
   }
 
-  private async loadAssets(): Promise<void> {
+  private async _loadAssets(): Promise<void> {
     const canvasData = localStorage.getItem("canvasData");
     if (canvasData) {
       await this.load(JSON.parse(canvasData));
@@ -168,14 +168,13 @@ export class StageManager {
       shape.position.set(center.x, center.y);
     }
 
-    this.addInteractiveChild(shape);
-    this.socketManager.send({
-      type: WebSocketEventType.SHAPE_CREATE,
-      payload: shape.toJson(),
+    this._addInteractiveChild(shape);
+    this._stageService.sendCreate(shape.toJson()).then((id) => {
+      shape.id = id;
     });
   }
 
-  private addInteractiveChild(
+  private _addInteractiveChild(
     child: BaseObject,
     options: InteractiveChildOptions = {
       selectAfterCreation: true,
@@ -185,19 +184,19 @@ export class StageManager {
     child.cursor = "pointer";
 
     child.on("pointerdown", (event) =>
-      this.dragManager?.onDragStart(event, child),
+      this._dragManager?.onDragStart(event, child),
     );
-    child.on("click", () => this.transformerManager?.onSelect(child));
+    child.on("click", () => this._transformerManager?.onSelect(child));
 
-    if (options.selectAfterCreation) this.transformerManager?.onSelect(child);
-    this.parentContainer.addChild(child);
+    if (options.selectAfterCreation) this._transformerManager?.onSelect(child);
+    this._parentContainer.addChild(child);
     this.save();
 
     return child;
   }
 
   public async save(): Promise<(typeof ElementSchema.static)[]> {
-    const stageObjects = this.parentContainer.children
+    const stageObjects = this._parentContainer.children
       .map((child) => {
         if (BaseObject.typeguard(child)) {
           return child.toJson();
@@ -212,7 +211,7 @@ export class StageManager {
     for (const item of data) {
       const shape = await BaseObject.from(item);
 
-      this.addInteractiveChild(shape, {
+      this._addInteractiveChild(shape, {
         selectAfterCreation: false,
       });
     }
@@ -222,8 +221,8 @@ export class StageManager {
     this._app.destroy(true, {
       children: true,
     });
-    this.dragManager?.cleanup();
-    this.transformerManager?.cleanup();
+    this._dragManager?.cleanup();
+    this._transformerManager?.cleanup();
   }
 
   public get app(): Application {
@@ -240,7 +239,7 @@ export class StageManager {
 
   public async download(): Promise<void> {
     this._app?.renderer.extract.download({
-      target: this.parentContainer,
+      target: this._parentContainer,
       filename: "book.png",
       resolution: 0.4,
       frame: new Rectangle(-5000, -5000, 10000, 10000),

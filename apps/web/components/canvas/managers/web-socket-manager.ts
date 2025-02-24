@@ -4,7 +4,7 @@ import {
   WebSocketEventType,
 } from "@api/routes/ws/ws.schema";
 import { EdenWS } from "@elysiajs/eden/treaty";
-import { client } from "@web/lib/client";
+import { client as treatyClient } from "@web/lib/client";
 
 export enum WebSocketStatus {
   CONNECTING = "CONNECTING",
@@ -14,17 +14,16 @@ export enum WebSocketStatus {
   DESTROYED = "DESTROYED",
 }
 
+export type EdenWebSocket = EdenWS<{
+  body: WebSocketEvent;
+  params: {};
+  query: never;
+  headers: never;
+  response: unknown;
+}>;
+
 export class WebSocketManager {
-  private static _instance: WebSocketManager | null = null;
-  private _initializationPromise: Promise<WebSocketManager> | null = null;
-  private _ws: EdenWS<{
-    body: WebSocketEvent;
-    params: {};
-    query: never;
-    headers: never;
-    response: unknown;
-  }> | null = null;
-  private _canvasId: string | null = null;
+  private _ws: EdenWebSocket | null = null;
   private _status: WebSocketStatus = WebSocketStatus.CLOSED;
   private _messageQueue: WebSocketEvent[] = [];
   private _listeners: Map<
@@ -32,46 +31,25 @@ export class WebSocketManager {
     Set<(data: WebSocketEventMap[WebSocketEventType]) => void>
   > = new Map();
 
-  private static readonly CONNECTION_TIMEOUT = 5000;
+  private static readonly _CONNECTION_TIMEOUT_MS = 5000;
 
-  private constructor() {}
+  public constructor() {}
 
-  public async initialize(canvasId: string): Promise<WebSocketManager> {
-    if (this._canvasId === canvasId && this._status === WebSocketStatus.OPEN) {
-      console.log("WebSocketManager already initialized");
+  private _getWsClient:
+    | ((client: typeof treatyClient) => EdenWebSocket)
+    | null = null;
+
+  public async init(
+    connect: (client: typeof treatyClient) => EdenWebSocket,
+  ): Promise<WebSocketManager> {
+    this._getWsClient = connect;
+    try {
+      await this._connect();
       return this;
+    } catch (error) {
+      console.error("Failed to initialize WebSocketManager:", error);
+      throw error;
     }
-
-    if (this._initializationPromise) {
-      console.log("WebSocketManager initialization already in progress");
-      return this._initializationPromise;
-    }
-
-    if (this._canvasId && this._canvasId !== canvasId) {
-      this.destroy();
-    }
-
-    this._initializationPromise = (async () => {
-      this._canvasId = canvasId;
-      try {
-        await this.connect();
-        return this;
-      } catch (error) {
-        console.error("Failed to initialize WebSocketManager:", error);
-        throw error;
-      } finally {
-        this._initializationPromise = null;
-      }
-    })();
-
-    return this._initializationPromise;
-  }
-
-  public static getInstance(): WebSocketManager {
-    if (!WebSocketManager._instance) {
-      WebSocketManager._instance = new WebSocketManager();
-    }
-    return WebSocketManager._instance;
   }
 
   public send(event: Omit<WebSocketEvent, "timestamp">) {
@@ -83,7 +61,7 @@ export class WebSocketManager {
     if (this._status !== WebSocketStatus.OPEN) {
       this._messageQueue.push(eventWithTimestamp);
       if (this._status === WebSocketStatus.CLOSED) {
-        this.reconnect();
+        this._reconnect();
       }
     } else {
       this._ws?.send(eventWithTimestamp);
@@ -109,15 +87,14 @@ export class WebSocketManager {
       ?.delete(callback as (data: WebSocketEvent) => void);
   }
 
-  private processMessageQueue() {
+  private _processMessageQueue() {
     while (this._messageQueue.length > 0) {
-      console.log("Processing message queue");
       const message = this._messageQueue.shift()!;
       this.send(message);
     }
   }
 
-  private handleMessage(event: WebSocketEvent) {
+  private _handleMessage(event: WebSocketEvent) {
     if (!this._listeners.has(event.type)) return;
 
     this._listeners.get(event.type)?.forEach((callback) => {
@@ -125,39 +102,48 @@ export class WebSocketManager {
     });
   }
 
-  private connect(): Promise<void> {
+  private _connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this._status === WebSocketStatus.CONNECTING)
-        return reject(new Error("WebSocket already connected"));
+        return reject(new Error("WebSocket already connecting"));
       if (this._status === WebSocketStatus.OPEN) return resolve();
-      if (!this._canvasId) return reject(new Error("Canvas ID not provided"));
+
       this._status = WebSocketStatus.CONNECTING;
 
       const timeout = setTimeout(() => {
         reject(new Error("WebSocket connection timeout"));
         this._status = WebSocketStatus.CLOSED;
-      }, WebSocketManager.CONNECTION_TIMEOUT);
+      }, WebSocketManager._CONNECTION_TIMEOUT_MS);
 
-      this._ws = client.canvas({ id: this._canvasId }).subscribe();
+      if (!this._getWsClient) {
+        reject(new Error("WebSocket client not initialized"));
+        this._status = WebSocketStatus.CLOSED;
+        return;
+      }
+
+      this._ws = this._getWsClient(treatyClient);
 
       this._ws.on("open", () => {
         clearTimeout(timeout);
         console.log("WebSocket connected");
         this._status = WebSocketStatus.OPEN;
-        this.processMessageQueue();
+        this._processMessageQueue();
         resolve();
       });
+
       this._ws.on("message", (message) =>
-        this.handleMessage(message.data as unknown as WebSocketEvent),
+        this._handleMessage(message.data as unknown as WebSocketEvent),
       );
+
       this._ws.on("close", () => {
         clearTimeout(timeout);
         console.log("WebSocket disconnected");
         if (this._status !== WebSocketStatus.DESTROYED) {
           this._status = WebSocketStatus.CLOSED;
-          this.reconnect();
+          this._reconnect();
         }
       });
+
       this._ws.on("error", (error) => {
         clearTimeout(timeout);
         console.error("WebSocket error:", error);
@@ -169,13 +155,13 @@ export class WebSocketManager {
           document.visibilityState === "visible" &&
           this._status === WebSocketStatus.CLOSED
         ) {
-          this.reconnect();
+          this._reconnect();
         }
       };
     });
   }
 
-  private async reconnect(): Promise<void> {
+  private async _reconnect(): Promise<void> {
     if (
       this._status === WebSocketStatus.DESTROYED ||
       this._status === WebSocketStatus.CONNECTING
@@ -183,7 +169,7 @@ export class WebSocketManager {
       return;
     console.log("WebSocket reconnecting...");
     try {
-      await this.connect();
+      await this._connect();
     } catch (error) {
       console.error("WebSocket reconnect failed:", error);
     }
@@ -197,7 +183,6 @@ export class WebSocketManager {
       this._ws = null;
     }
     document.onvisibilitychange = null;
-    this._canvasId = null;
     this._listeners.clear();
     this._messageQueue = [];
   }

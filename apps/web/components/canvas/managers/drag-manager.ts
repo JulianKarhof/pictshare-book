@@ -1,87 +1,80 @@
-import { WebSocketEventType } from "@api/routes/ws/ws.schema";
-import { WebSocketManager } from "@web/components/canvas/managers";
 import { BaseObject } from "@web/components/canvas/objects";
+import { StageService } from "@web/services/stage.service";
 import { Application, FederatedPointerEvent } from "pixi.js";
 
 export class DragManager {
-  private dragTarget: BaseObject | null = null;
-  private dragOffset: { x: number; y: number } = { x: 0, y: 0 };
-  private app: Application;
-  private socketManager: WebSocketManager;
-  private lastUpdateTime: number = 0;
-  private updateInterval: number = 50;
+  private _dragTarget: BaseObject | null = null;
+  private _dragOffset: { x: number; y: number } = { x: 0, y: 0 };
+  private _app: Application;
+  private _stageService: StageService;
+  private _lastUpdateTime: number = 0;
+  private _updateInterval: number = 50;
 
-  constructor({ app }: { app: Application }) {
-    this.app = app;
-    this.setupEventListeners();
-    this.socketManager = WebSocketManager.getInstance();
+  public constructor({ app }: { app: Application }) {
+    this._app = app;
+    this._setupEventListeners();
+    this._stageService = StageService.getInstance();
   }
 
-  private setupEventListeners(): void {
-    this.app.stage.on("pointerup", this.onDragEnd.bind(this));
-    this.app.stage.on("pointerupoutside", this.onDragEnd.bind(this));
+  private _setupEventListeners(): void {
+    this._app.stage.on("pointerup", this._onDragEnd.bind(this));
+    this._app.stage.on("pointerupoutside", this._onDragEnd.bind(this));
   }
 
   public onDragStart(event: FederatedPointerEvent, target: BaseObject): void {
     target.alpha = 0.8;
-    this.dragTarget = target;
+    this._dragTarget = target;
 
     const localPosition = target.parent.toLocal(event.global);
-    this.dragOffset = {
+    this._dragOffset = {
       x: localPosition.x - target.x,
       y: localPosition.y - target.y,
     };
 
-    window.addEventListener("pointermove", this.onDragMove.bind(this));
-    window.addEventListener("pointerup", this.onDragEnd.bind(this));
+    window.addEventListener("pointermove", this._onDragMove.bind(this));
+    window.addEventListener("pointerup", this._onDragEnd.bind(this));
   }
 
-  private onDragMove(event: PointerEvent): void {
-    if (this.dragTarget) {
-      this.app.stage.emit("dragging");
+  private _onDragMove(event: PointerEvent): void {
+    if (this._dragTarget) {
+      this._app.stage.emit("dragging");
 
-      const canvas = this.app.canvas;
+      const canvas = this._app.canvas;
       const rect = canvas.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
 
-      const newPosition = this.dragTarget.parent.toLocal({ x, y });
+      const newPosition = this._dragTarget.parent.toLocal({ x, y });
 
-      this.dragTarget.position.set(
-        newPosition.x - this.dragOffset.x,
-        newPosition.y - this.dragOffset.y,
+      this._dragTarget.position.set(
+        newPosition.x - this._dragOffset.x,
+        newPosition.y - this._dragOffset.y,
       );
 
       const currentTime = Date.now();
-      if (currentTime - this.lastUpdateTime >= this.updateInterval) {
-        this.socketManager.send({
-          type: WebSocketEventType.FRAME_UPDATE,
-          payload: this.dragTarget.toJson(),
-        });
-        this.lastUpdateTime = currentTime;
+      if (currentTime - this._lastUpdateTime >= this._updateInterval) {
+        this._stageService.sendFrameUpdate(this._dragTarget.toJson());
+        this._lastUpdateTime = currentTime;
       }
     }
   }
 
-  private onDragEnd(): void {
-    if (this.dragTarget) {
-      window.removeEventListener("pointermove", this.onDragMove.bind(this));
-      window.removeEventListener("pointerup", this.onDragEnd.bind(this));
+  private _onDragEnd(): void {
+    if (this._dragTarget) {
+      window.removeEventListener("pointermove", this._onDragMove.bind(this));
+      window.removeEventListener("pointerup", this._onDragEnd.bind(this));
 
-      this.socketManager.send({
-        type: WebSocketEventType.FRAME_UPDATE,
-        payload: this.dragTarget.toJson(),
-      });
+      this._stageService.sendUpdate(this._dragTarget.toJson());
 
-      this.dragTarget.alpha = 1;
-      this.dragTarget = null;
+      this._dragTarget.alpha = 1;
+      this._dragTarget = null;
     }
   }
 
   public cleanup(): void {
-    window.removeEventListener("pointermove", this.onDragMove.bind(this));
-    window.removeEventListener("pointerup", this.onDragEnd.bind(this));
-    this.app.stage?.off("pointerup", this.onDragEnd.bind(this));
-    this.app.stage?.off("pointerupoutside", this.onDragEnd.bind(this));
+    window.removeEventListener("pointermove", this._onDragMove.bind(this));
+    window.removeEventListener("pointerup", this._onDragEnd.bind(this));
+    this._app.stage?.off("pointerup", this._onDragEnd.bind(this));
+    this._app.stage?.off("pointerupoutside", this._onDragEnd.bind(this));
   }
 }
