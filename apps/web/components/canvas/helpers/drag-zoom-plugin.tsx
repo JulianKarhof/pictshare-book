@@ -18,7 +18,7 @@ const defaults: Options = {
 
 export class DragZoomPlugin extends Plugin {
   public parent: Viewport;
-  private _options: Options;
+  public options: Options;
   private _moveReverse: number;
   private _zoomReverse: number;
   private _lastWheelTime: number = 0;
@@ -27,7 +27,7 @@ export class DragZoomPlugin extends Plugin {
   public constructor(parent: Viewport, options: Partial<Options>) {
     super(parent);
     this.parent = parent;
-    this._options = Object.assign({}, defaults, options);
+    this.options = Object.assign({}, defaults, options);
 
     this._moveReverse = options.moveReverse ? 1 : -1;
     this._zoomReverse = options.zoomReverse ? 1 : -1;
@@ -60,8 +60,8 @@ export class DragZoomPlugin extends Plugin {
   }
 
   private _pan(event: WheelEvent) {
-    this.parent.x += event.deltaX * this._options.moveSpeed * this._moveReverse;
-    this.parent.y += event.deltaY * this._options.moveSpeed * this._moveReverse;
+    this.parent.x += event.deltaX * this.options.moveSpeed * this._moveReverse;
+    this.parent.y += event.deltaY * this.options.moveSpeed * this._moveReverse;
     this.parent.emit("moved", { type: "drag", viewport: this.parent });
   }
 
@@ -71,8 +71,8 @@ export class DragZoomPlugin extends Plugin {
 
   private _zoom(event: WheelEvent) {
     const zoomSpeed = this._isTrackpad
-      ? this._options.trackPadZoomSpeed
-      : this._options.zoomSpeed;
+      ? this.options.trackPadZoomSpeed
+      : this.options.zoomSpeed;
 
     const delta = 1 - (this._zoomReverse * event.deltaY * zoomSpeed) / 300;
 
