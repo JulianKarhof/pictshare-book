@@ -38,9 +38,51 @@
           "fix": "none"
         }
       },
+      "nursery": {
+        "useConsistentMemberAccessibility": {
+          "level": "warn",
+          "options": {
+            "accessibility": "explicit"
+          }
+        }
+      },
       "style": {
         "noNamespace": "error",
-        "useAsConstAssertion": "error"
+        "useAsConstAssertion": "error",
+        "useNamingConvention": {
+          "level": "warn",
+          "options": {
+            "strictCase": false,
+            "conventions": [
+              {
+                "selector": {
+                  "kind": "enumMember"
+                },
+                "formats": ["CONSTANT_CASE", "camelCase"]
+              },
+              {
+                "selector": {
+                  "modifiers": ["private"],
+                  "kind": "classMember"
+                },
+                "match": "_(.+)"
+              },
+              {
+                "selector": {
+                  "kind": "classMember"
+                },
+                "match": "[^_].*"
+              },
+              {
+                "selector": {
+                  "modifiers": ["readonly", "static"],
+                  "kind": "classProperty"
+                },
+                "formats": ["CONSTANT_CASE"]
+              }
+            ]
+          }
+        }
       },
       "suspicious": {
         "noExplicitAny": "error",
