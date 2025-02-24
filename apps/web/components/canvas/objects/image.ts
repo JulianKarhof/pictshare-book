@@ -7,12 +7,12 @@ import { v4 } from "uuid";
 import { BaseObject } from "./object";
 
 export class ImageObject extends Sprite implements BaseObject {
-  id: string;
-  readonly type: string;
-  readonly isObject = true;
-  url: string;
+  public id: string;
+  public readonly type: string;
+  public readonly isObject = true;
+  public url: string;
 
-  constructor({ url }: { url: string }) {
+  public constructor({ url }: { url: string }) {
     super(Texture.from(url));
     this.id = v4();
     this.type = "IMAGE";

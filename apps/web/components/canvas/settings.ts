@@ -6,10 +6,10 @@ interface ThemeColors {
 }
 
 export class Settings {
-  private static instance: Settings;
-  private currentTheme: Theme = "dark";
+  private static _instance: Settings;
+  private _currentTheme: Theme = "dark";
 
-  private themeColors: Record<"light" | "dark", ThemeColors> = {
+  private _themeColors: Record<"light" | "dark", ThemeColors> = {
     light: {
       gridColor: 0x404040,
       backgroundColor: 0xffffff,
@@ -32,13 +32,13 @@ export class Settings {
         window.matchMedia &&
         window.matchMedia("(prefers-color-scheme: dark)").matches
       ) {
-        this.currentTheme = "dark";
+        this._currentTheme = "dark";
       } else {
-        this.currentTheme = "light";
+        this._currentTheme = "light";
       }
     } else {
       if (savedTheme) {
-        this.currentTheme = savedTheme;
+        this._currentTheme = savedTheme;
       }
     }
 
@@ -54,40 +54,40 @@ export class Settings {
           window.matchMedia &&
           window.matchMedia("(prefers-color-scheme: dark)").matches
         ) {
-          this.currentTheme = "dark";
+          this._currentTheme = "dark";
         } else {
-          this.currentTheme = "light";
+          this._currentTheme = "light";
         }
       } else {
         if (currentSavedTheme) {
-          this.currentTheme = currentSavedTheme;
+          this._currentTheme = currentSavedTheme;
         }
       }
     });
   }
 
   public static getInstance(): Settings {
-    if (!Settings.instance) {
-      Settings.instance = new Settings();
+    if (!Settings._instance) {
+      Settings._instance = new Settings();
     }
-    return Settings.instance;
+    return Settings._instance;
   }
 
   public getTheme(): Theme {
-    return this.currentTheme;
+    return this._currentTheme;
   }
 
   public setTheme(theme: Theme): void {
-    this.currentTheme = theme;
+    this._currentTheme = theme;
     localStorage.setItem("theme", theme);
     window.location.reload();
   }
 
   public get gridColor(): number {
-    return this.themeColors[this.currentTheme].gridColor;
+    return this._themeColors[this._currentTheme].gridColor;
   }
 
   public get backgroundColor(): number {
-    return this.themeColors[this.currentTheme].backgroundColor;
+    return this._themeColors[this._currentTheme].backgroundColor;
   }
 }

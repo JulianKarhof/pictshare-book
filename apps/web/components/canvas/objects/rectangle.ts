@@ -3,9 +3,9 @@ import { GraphicsContext } from "pixi.js";
 import { BaseShape } from "./shape";
 
 export class RectangleShape extends BaseShape {
-  static readonly TYPE = "RECTANGLE";
+  public static readonly TYPE = "RECTANGLE";
 
-  constructor(color?: number | null) {
+  public constructor(color?: number | null) {
     const context = new GraphicsContext()
       .rect(0, 0, 400, 400)
       .fill(color ?? 0xcb9df0);
