@@ -49,7 +49,7 @@ export const prismaMocks = {
   element: {
     findMany: mock(() => mockElements),
     findUnique: mock((args) => {
-      if (args.where.id === "image-element") {
+      if (args.where.id === "image-element" || args.where.id === "image-1") {
         return mockElements[0];
       }
       return null;

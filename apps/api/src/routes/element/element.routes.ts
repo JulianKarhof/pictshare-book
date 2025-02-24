@@ -257,20 +257,30 @@ const elementRoute = new Elysia()
   .delete(
     "/elements/:id",
     async ({ params: { id }, user, error }) => {
-      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
-        roles: [Role.EDITOR, Role.OWNER],
-      });
-
-      if (!hasAccess) {
-        return error(401, { message: "Unauthorized" });
-      }
-      const element = await prisma.element.delete({
+      const element = await prisma.element.findUnique({
         where: { id },
+        include: { project: { select: { id: true } } },
       });
 
       if (!element) {
         return error(404, { message: "Element not found" });
       }
+
+      const hasAccess = await ElementService.hasProjectAccess(
+        element.project.id,
+        user.id,
+        {
+          roles: [Role.EDITOR, Role.OWNER],
+        },
+      );
+
+      if (!hasAccess) {
+        return error(401, { message: "Unauthorized" });
+      }
+
+      await prisma.element.delete({
+        where: { id },
+      });
 
       return { message: "Element deleted successfully" };
     },

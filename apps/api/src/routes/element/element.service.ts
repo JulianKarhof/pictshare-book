@@ -2,7 +2,7 @@ import prisma from "@api/prisma";
 import { Role } from "@prisma/client";
 
 export abstract class ElementService {
-  static async hasProjectAccess(
+  public static async hasProjectAccess(
     projectId: string,
     userId: string,
     settings: { roles?: Role[] } = {},
@@ -18,6 +18,9 @@ export abstract class ElementService {
               in: settings.roles,
             }
           : undefined,
+      },
+      select: {
+        role: true,
       },
     });
 
