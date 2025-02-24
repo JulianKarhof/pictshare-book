@@ -12,6 +12,8 @@ export class StageService {
   private _canvasId: string | null = null;
   private _initializationPromise: Promise<void> | null = null;
 
+  private static readonly _FRAME_UPDATE_THROTTLE_MS = 50;
+
   private constructor() {}
 
   public static getInstance(): StageService {
@@ -51,11 +53,22 @@ export class StageService {
     return this;
   }
 
+  private _lastInBetweenUpdate = 0;
+
   public sendFrameUpdate(element: typeof ElementSchema.static): void {
+    const now = Date.now();
+    if (
+      now - this._lastInBetweenUpdate <
+      StageService._FRAME_UPDATE_THROTTLE_MS
+    ) {
+      return;
+    }
+
     this._ws.send({
       type: WebSocketEventType.FRAME_UPDATE,
       payload: element,
     });
+    this._lastInBetweenUpdate = now;
   }
 
   public async sendCreate(
