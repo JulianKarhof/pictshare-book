@@ -82,11 +82,22 @@ export class StageManager {
     this._stageService.subscribe(WebSocketEventType.SHAPE_UPDATE, (data) => {
       this._updateShape(data.payload);
     });
+    this._stageService.subscribe(WebSocketEventType.SHAPE_DELETE, (data) => {
+      this._removeInteractiveChild(data.payload.id);
+    });
     this._stageService.subscribe(WebSocketEventType.FRAME_UPDATE, (data) => {
       this._updateShape(data.payload);
     });
 
     this._setupEventListeners();
+  }
+
+  private _updateShape(data: typeof ElementSchema.static): void {
+    this._parentContainer.children.forEach((child) => {
+      if (BaseObject.typeguard(child)) {
+        if (child.id === data.id) child.update(data);
+      }
+    });
   }
 
   private async _loadCanvas(): Promise<void> {
@@ -129,14 +140,6 @@ export class StageManager {
       .elements.bulk.put(stageObjects);
   }
 
-  private _updateShape(data: typeof ElementSchema.static): void {
-    this._parentContainer.children.forEach((child) => {
-      if (BaseObject.typeguard(child)) {
-        if (child.id === data.id) child.update(data);
-      }
-    });
-  }
-
   private _setupEventListeners(): void {
     const viewport = this._viewportManager?.viewport;
     viewport?.addEventListener("wheel", () => {
@@ -153,6 +156,15 @@ export class StageManager {
     this._app?.stage.on("dragging", this.save.bind(this));
     this._app?.stage.on("click", this.save.bind(this));
     this._app?.stage.on("drag-end", this.save.bind(this));
+
+    window.addEventListener("keydown", this.handleKeyPress.bind(this));
+  }
+
+  public handleKeyPress(event: KeyboardEvent): void {
+    if (event.key === "Backspace" || event.key === "Delete") {
+      const target = this._transformerManager?.target;
+      if (target) this._removeShape(target);
+    }
   }
 
   private async _loadAssets(): Promise<void> {
@@ -186,13 +198,33 @@ export class StageManager {
     child.on("pointerdown", (event) =>
       this._dragManager?.onDragStart(event, child),
     );
-    child.on("click", () => this._transformerManager?.onSelect(child));
+    child.on("click", () => this._transformerManager?.select(child));
 
-    if (options.selectAfterCreation) this._transformerManager?.onSelect(child);
+    if (options.selectAfterCreation) this._transformerManager?.select(child);
     this._parentContainer.addChild(child);
-    this.save();
 
     return child;
+  }
+
+  private _removeShape(shape: BaseObject): void {
+    this._removeInteractiveChild(shape.id);
+
+    this._stageService.sendDelete(shape.toJson());
+  }
+
+  private _removeInteractiveChild(id: string): void {
+    const child = this._parentContainer.children.find((child) =>
+      BaseObject.typeguard(child) ? child.id === id : false,
+    );
+
+    if (child) {
+      child.off("pointerdown");
+      child.off("click");
+      if (this._transformerManager?.target === child) {
+        this._transformerManager.reset();
+      }
+      this._parentContainer.removeChild(child);
+    }
   }
 
   public async save(): Promise<(typeof ElementSchema.static)[]> {

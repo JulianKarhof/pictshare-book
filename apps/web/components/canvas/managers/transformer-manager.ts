@@ -214,9 +214,13 @@ export class TransformerManager {
     this._app.stage.on("pointerup", handleEnd);
   }
 
-  public onSelect(target: BaseObject): void {
+  public select(target: BaseObject): void {
     if (this._target !== target) this._target = target;
     this.moveTransformer();
+  }
+
+  public get target(): BaseObject | null {
+    return this._target;
   }
 
   public reset(): void {
