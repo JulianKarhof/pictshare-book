@@ -3,9 +3,9 @@ import { GraphicsContext } from "pixi.js";
 import { BaseShape } from "./shape";
 
 export class CircleShape extends BaseShape {
-  static readonly TYPE = "CIRCLE";
+  public static readonly TYPE = "CIRCLE";
 
-  constructor(color: number | null = null) {
+  public constructor(color: number | null = null) {
     const context = new GraphicsContext()
       .circle(0, 0, 200)
       .fill(color ?? 0xcb9df0);

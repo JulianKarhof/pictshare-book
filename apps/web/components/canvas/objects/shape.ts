@@ -9,12 +9,12 @@ import { BaseObject } from "./object";
 type ShapeType = "RECTANGLE" | "CIRCLE";
 
 export class BaseShape extends Graphics implements BaseObject {
-  id: string;
-  readonly type = "SHAPE";
-  readonly isObject = true;
-  shapeType: ShapeType;
+  public id: string;
+  public readonly type = "SHAPE";
+  public readonly isObject = true;
+  public shapeType: ShapeType;
 
-  constructor({
+  public constructor({
     context,
     shapeType,
   }: {

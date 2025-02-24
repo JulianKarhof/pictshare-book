@@ -6,11 +6,11 @@ import { ImageObject } from "./image";
 import { RectangleShape } from "./rectangle";
 
 export abstract class BaseObject extends Container {
-  id: string;
-  readonly type: string;
-  readonly isObject = true;
+  public id: string;
+  public readonly type: string;
+  public readonly isObject = true;
 
-  constructor({ type }: { type: string }) {
+  public constructor({ type }: { type: string }) {
     super();
     this.id = v4();
     this.type = type;
