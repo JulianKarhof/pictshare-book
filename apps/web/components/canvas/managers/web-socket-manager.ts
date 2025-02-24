@@ -1,4 +1,5 @@
 import {
+  ConnectionStatus,
   WebSocketEvent,
   WebSocketEventMap,
   WebSocketEventType,
@@ -32,6 +33,7 @@ export class WebSocketManager {
   > = new Map();
 
   private static readonly _CONNECTION_TIMEOUT_MS = 5000;
+  private static readonly _RECONNECT_DELAY_MS = 3000;
 
   public constructor() {}
 
@@ -64,7 +66,12 @@ export class WebSocketManager {
         this._reconnect();
       }
     } else {
-      this._ws?.send(eventWithTimestamp);
+      try {
+        this._ws?.send(eventWithTimestamp);
+      } catch (error) {
+        this._messageQueue.push(eventWithTimestamp);
+        console.error("Failed to send WebSocket event:", error);
+      }
     }
   }
 
@@ -94,7 +101,7 @@ export class WebSocketManager {
     }
   }
 
-  private _handleMessage(event: WebSocketEvent) {
+  private _notifyListeners(event: WebSocketEvent) {
     if (!this._listeners.has(event.type)) return;
 
     this._listeners.get(event.type)?.forEach((callback) => {
@@ -121,18 +128,31 @@ export class WebSocketManager {
         return;
       }
 
-      this._ws = this._getWsClient(treatyClient);
+      try {
+        this._ws = this._getWsClient(treatyClient);
+      } catch (error) {
+        reject(error);
+        this._status = WebSocketStatus.CLOSED;
+        return;
+      }
 
       this._ws.on("open", () => {
         clearTimeout(timeout);
         console.log("WebSocket connected");
         this._status = WebSocketStatus.OPEN;
+        this._notifyListeners({
+          type: WebSocketEventType.CONNECTION,
+          timestamp: Date.now(),
+          payload: {
+            status: ConnectionStatus.CONNECTED,
+          },
+        });
         this._processMessageQueue();
         resolve();
       });
 
       this._ws.on("message", (message) =>
-        this._handleMessage(message.data as unknown as WebSocketEvent),
+        this._notifyListeners(message.data as unknown as WebSocketEvent),
       );
 
       this._ws.on("close", () => {
@@ -168,11 +188,22 @@ export class WebSocketManager {
     )
       return;
     console.log("WebSocket reconnecting...");
-    try {
-      await this._connect();
-    } catch (error) {
-      console.error("WebSocket reconnect failed:", error);
-    }
+
+    setTimeout(async () => {
+      try {
+        await this._connect();
+      } catch (error) {
+        console.error("WebSocket reconnect failed:", error);
+        this._notifyListeners({
+          type: WebSocketEventType.CONNECTION,
+          timestamp: Date.now(),
+          payload: {
+            status: ConnectionStatus.DISCONNECTED,
+            message: "reconnect failed",
+          },
+        });
+      }
+    }, WebSocketManager._RECONNECT_DELAY_MS);
   }
 
   public destroy() {
