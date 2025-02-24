@@ -1,15 +1,12 @@
 "use client";
-import {
-  StageManager,
-  WebSocketManager,
-  WebSocketStatus,
-} from "@web/components/canvas/managers";
+import { StageManager } from "@web/components/canvas/managers";
 import {
   CircleShape,
   ImageObject,
   RectangleShape,
 } from "@web/components/canvas/objects";
 import { ModeToggle } from "@web/components/ui/mode-toggle";
+import { StageService } from "@web/services/stage.service";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
@@ -18,21 +15,10 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
   const stageManagerRef = useRef<StageManager | null>(null);
 
   useEffect(() => {
-    const connect = async () => {
-      await WebSocketManager.getInstance().initialize(id);
-    };
-
-    connect();
+    const stageServicePromise = StageService.getInstance().init(id);
 
     return () => {
-      const destroy = async () => {
-        const wsManager = WebSocketManager.getInstance();
-        if (wsManager.status === WebSocketStatus.OPEN) {
-          wsManager.destroy();
-        }
-      };
-
-      destroy();
+      stageServicePromise.then((service) => service.destroy());
     };
   }, [id]);
 

@@ -1,41 +1,41 @@
 import { DragZoomPlugin } from "@web/components/canvas/helpers/drag-zoom-plugin";
 import { Settings } from "@web/components/canvas/settings";
-import * as VP from "pixi-viewport";
+import { Viewport } from "pixi-viewport";
 import { Application, Graphics, Texture, TilingSprite } from "pixi.js";
 
 export class ViewportManager {
-  private _viewport: VP.Viewport;
-  private background: TilingSprite;
-  private app: Application;
-  private settings: Settings;
+  private _viewport: Viewport;
+  private _background: TilingSprite;
+  private _app: Application;
+  private _settings: Settings;
 
-  private lastGridSize: number;
+  private _lastGridSize: number;
 
-  constructor(app: Application) {
-    this.app = app;
-    this.settings = Settings.getInstance();
-    this._viewport = this.createViewport();
-    this.background = this.createBackground();
-    this.setupViewportPlugins();
-    this.setupEventListeners();
-    this.lastGridSize = 0;
-    this.handleZoomPan();
+  public constructor(app: Application) {
+    this._app = app;
+    this._settings = Settings.getInstance();
+    this._viewport = this._createViewport();
+    this._background = this._createBackground();
+    this._setupViewportPlugins();
+    this._setupEventListeners();
+    this._lastGridSize = 0;
+    this._handleZoomPan();
   }
 
-  private createViewport(): VP.Viewport {
-    const viewport = new VP.Viewport({
+  private _createViewport(): Viewport {
+    const viewport = new Viewport({
       worldWidth: 1000,
       worldHeight: 1000,
-      events: this.app.renderer.events,
+      events: this._app.renderer.events,
       stopPropagation: true,
       passiveWheel: false,
     });
     viewport.scale = 0.2;
-    this.app.stage.addChild(viewport);
+    this._app.stage.addChild(viewport);
     return viewport;
   }
 
-  private setupViewportPlugins(): void {
+  private _setupViewportPlugins(): void {
     this._viewport.plugins.add(
       "wheel",
       new DragZoomPlugin(this._viewport, {
@@ -46,31 +46,31 @@ export class ViewportManager {
     this._viewport.pinch().drag({ mouseButtons: "middle-right" });
   }
 
-  private setupEventListeners(): void {
-    this._viewport.addEventListener("zoomed", () => this.handleZoomPan());
-    this._viewport.addEventListener("moved", () => this.handleZoomPan());
-    window.addEventListener("resize", () => this.handleZoomPan());
+  private _setupEventListeners(): void {
+    this._viewport.addEventListener("zoomed", () => this._handleZoomPan());
+    this._viewport.addEventListener("moved", () => this._handleZoomPan());
+    window.addEventListener("resize", () => this._handleZoomPan());
   }
 
-  private handleZoomPan(): void {
-    this.updateBackgroundPosition();
-    this.updateBackgroundSize();
-    this.updateGridSize();
+  private _handleZoomPan(): void {
+    this._updateBackgroundPosition();
+    this._updateBackgroundSize();
+    this._updateGridSize();
   }
 
-  private updateBackgroundPosition(): void {
-    this.background.tilePosition.y = -this._viewport.top;
-    this.background.tilePosition.x = -this._viewport.left;
-    this.background.y = this._viewport.top;
-    this.background.x = this._viewport.left;
+  private _updateBackgroundPosition(): void {
+    this._background.tilePosition.y = -this._viewport.top;
+    this._background.tilePosition.x = -this._viewport.left;
+    this._background.y = this._viewport.top;
+    this._background.x = this._viewport.left;
   }
 
-  private updateBackgroundSize(): void {
-    this.background.width = window.innerWidth / this._viewport.scale.x;
-    this.background.height = window.innerHeight / this._viewport.scale.y;
+  private _updateBackgroundSize(): void {
+    this._background.width = window.innerWidth / this._viewport.scale.x;
+    this._background.height = window.innerHeight / this._viewport.scale.y;
   }
 
-  private createBackground(): TilingSprite {
+  private _createBackground(): TilingSprite {
     const scale = this._viewport.scale.x;
     const gridSize = Math.pow(2, Math.floor(Math.log2(100 / scale)));
     const lineSize = Math.pow(2, Math.log2(1 / scale));
@@ -78,12 +78,12 @@ export class ViewportManager {
     const gridGraphics = new Graphics()
       .rect(0, 0, gridSize - 1, gridSize - 1)
       .stroke({
-        color: this.settings.gridColor,
+        color: this._settings.gridColor,
         width: lineSize,
         alignment: 0,
       });
 
-    const texture = this.app.renderer.generateTexture({
+    const texture = this._app.renderer.generateTexture({
       target: gridGraphics,
     });
 
@@ -91,8 +91,8 @@ export class ViewportManager {
 
     const background = new TilingSprite({
       texture,
-      width: this.app.screen.width,
-      height: this.app.screen.height,
+      width: this._app.screen.width,
+      height: this._app.screen.height,
       alpha: 0.1,
       tilePosition: { x: 0, y: 0 },
     });
@@ -101,7 +101,7 @@ export class ViewportManager {
     return background;
   }
 
-  private drawGrid(gridSize: number): Texture {
+  private _drawGrid(gridSize: number): Texture {
     const scale = this._viewport.scale.x;
     const lineSize = Math.pow(2, Math.floor(Math.log2(100 / scale))) / 100;
     const adjustedSize = gridSize - lineSize;
@@ -109,7 +109,7 @@ export class ViewportManager {
     const gridGraphics = new Graphics()
       .rect(0, 0, adjustedSize, adjustedSize)
       .stroke({
-        color: this.settings.gridColor,
+        color: this._settings.gridColor,
         width: lineSize,
         alignment: 0,
       })
@@ -118,15 +118,15 @@ export class ViewportManager {
       .moveTo(0, adjustedSize / 2)
       .lineTo(adjustedSize, adjustedSize / 2)
       .stroke({
-        color: this.settings.gridColor,
+        color: this._settings.gridColor,
         alpha: 0.3,
         width: lineSize,
         alignment: 0,
       });
 
-    this.background.texture.destroy(true); // very important to prevent memory leaks
+    this._background.texture.destroy(true); // very important to prevent memory leaks
 
-    const texture = this.app.renderer.generateTexture({
+    const texture = this._app.renderer.generateTexture({
       target: gridGraphics,
       resolution: 2,
     });
@@ -135,18 +135,18 @@ export class ViewportManager {
     return texture;
   }
 
-  private updateGridSize(): void {
+  private _updateGridSize(): void {
     const scale = this._viewport.scale.x;
     const gridSize = Math.pow(2, Math.floor(Math.log2(100 / scale)));
 
-    if (gridSize !== this.lastGridSize) {
-      this.lastGridSize = gridSize;
+    if (gridSize !== this._lastGridSize) {
+      this._lastGridSize = gridSize;
 
-      this.background.texture = this.drawGrid(gridSize);
+      this._background.texture = this._drawGrid(gridSize);
     }
   }
 
-  public get viewport(): VP.Viewport {
+  public get viewport(): Viewport {
     return this._viewport;
   }
 
