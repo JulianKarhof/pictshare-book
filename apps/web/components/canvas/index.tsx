@@ -15,10 +15,10 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
   const stageManagerRef = useRef<StageManager | null>(null);
 
   useEffect(() => {
-    const stageServicePromise = StageService.getInstance().init(id);
+    StageService.getInstance().init(id);
 
     return () => {
-      stageServicePromise.then((service) => service.destroy());
+      StageService.getInstance().destroy();
     };
   }, [id]);
 
