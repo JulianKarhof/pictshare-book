@@ -54,7 +54,7 @@ model Image {
   id  String @id @default(cuid())
   url String
 
-  element   Element @relation(fields: [elementId], references: [id], onDelete: Restrict)
+  element   Element @relation(fields: [elementId], references: [id], onDelete: Cascade)
   elementId String  @unique
 
   @@index([elementId])
