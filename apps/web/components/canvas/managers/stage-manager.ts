@@ -6,7 +6,7 @@ import {
   TransformerManager,
   ViewportManager,
 } from "@web/components/canvas/managers";
-import { BaseObject } from "@web/components/canvas/objects";
+import { BaseObject, BaseShape } from "@web/components/canvas/objects";
 import { Settings } from "@web/components/canvas/settings";
 import { client } from "@web/lib/client";
 import { StageService } from "@web/services/stage.service";
@@ -140,6 +140,16 @@ export class StageManager {
       .elements.bulk.put(stageObjects);
   }
 
+  public zoomIn(): void {
+    this._viewportManager?.zoom(0.25);
+    this._onScaleChange?.(this._viewportManager?.scale ?? 0.2);
+  }
+
+  public zoomOut(): void {
+    this._viewportManager?.zoom(-0.25);
+    this._onScaleChange?.(this._viewportManager?.scale ?? 0.2);
+  }
+
   private _setupEventListeners(): void {
     const viewport = this._viewportManager?.viewport;
     viewport?.addEventListener("wheel", () => {
@@ -178,6 +188,12 @@ export class StageManager {
     if (this._viewportManager) {
       const center = this._viewportManager.viewport.center;
       shape.position.set(center.x, center.y);
+    }
+
+    if (shape instanceof BaseShape) {
+      const colorScheme = [0x640d5f, 0xd91656, 0xeb5b00, 0xffb200];
+      shape.fillStyle.color =
+        colorScheme[Math.floor(Math.random() * colorScheme.length)];
     }
 
     this._addInteractiveChild(shape);

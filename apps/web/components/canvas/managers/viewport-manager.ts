@@ -146,6 +146,18 @@ export class ViewportManager {
     }
   }
 
+  public zoom(scale: number): void {
+    this._viewport.zoomPercent(scale, true).clampZoom({
+      maxScale: 1.5,
+      minScale: 0.0246,
+    });
+    this._viewport.emit("zoomed", {
+      type: "clamp-zoom",
+      viewport: this._viewport,
+    });
+    this._handleZoomPan();
+  }
+
   public get viewport(): Viewport {
     return this._viewport;
   }

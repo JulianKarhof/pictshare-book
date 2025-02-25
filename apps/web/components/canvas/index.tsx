@@ -5,15 +5,18 @@ import {
   ImageObject,
   RectangleShape,
 } from "@web/components/canvas/objects";
-import { ModeToggle } from "@web/components/ui/mode-toggle";
 import { StageService } from "@web/services/stage.service";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Dropzone from "react-dropzone";
+import { ImageShelf } from "./image-shelf";
+import { Toolbar } from "./toolbar";
+import { ZoomControls } from "./zoom-controls";
 
 const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [currentScale, setCurrentScale] = useState(0.2);
   const stageManagerRef = useRef<StageManager | null>(null);
+  const [images, _setImages] = useState<string[]>([]);
 
   useEffect(() => {
     StageService.getInstance().init(id);
@@ -76,57 +79,38 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
     [],
   );
 
+  const handleFiles = useCallback((files: File[]) => {
+    console.log(files);
+  }, []);
+
   return (
     <div className="flex flex-col justify-center items-center">
-      <div className="absolute bottom-4 flex flex-row justify-between items-center bg-gray-800 rounded-md z-50">
-        <div className="pl-3">
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm"
-            onClick={() => handleAddShape("square")}
-          >
-            Square
-          </button>
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm ml-2"
-            onClick={() => handleAddShape("circle")}
-          >
-            Circle
-          </button>
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm ml-2"
-            onClick={() => handleAddShape("picture")}
-          >
-            Picture
-          </button>
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm ml-2"
-            onClick={() => stageManagerRef.current?.download()}
-          >
-            Download
-          </button>
-          <ModeToggle
-            trigger={
-              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm ml-2">
-                Theme
-              </button>
-            }
-            onToggle={() => {
-              window.location.reload();
-            }}
-          />
-        </div>
-        <div>
-          <div className="text-white m-5">
-            {(currentScale * 100 + 80).toFixed(0)}%
-          </div>
-        </div>
-      </div>
-      <Dropzone onDrop={(files) => console.log(files)}>
+      <Toolbar
+        className="absolute left-4 top-4 z-50"
+        onAddShape={handleAddShape}
+        onFileSelect={handleFiles}
+        onDownload={() => stageManagerRef.current?.download()}
+      />
+
+      <ZoomControls
+        className="absolute left-4 bottom-4 z-50"
+        currentScale={currentScale}
+        onZoomIn={() => stageManagerRef.current?.zoomIn()}
+        onZoomOut={() => stageManagerRef.current?.zoomOut()}
+      />
+
+      <ImageShelf
+        className="fixed bottom-0 right-4 z-50"
+        images={images}
+        onImageSelect={(element) => stageManagerRef.current?.addShape(element)}
+      />
+
+      <Dropzone onDrop={handleFiles} noKeyboard noClick>
         {({ getRootProps, isDragActive }) => (
           <div {...getRootProps()} className="relative">
             <div ref={ref} />
             {isDragActive && (
-              <div className="absolute inset-0 bg-gray-500/30 backdrop-blur-sm border-2 border-dashed border-gray-500 flex items-center justify-center z-40">
+              <div className="absolute inset-0 bg-gray-500/30 backdrop-blur-sm border-2 border-dashed border-gray-500 flex items-center justify-center z-60">
                 <div className="text-white text-xl font-semibold">
                   Drop files here to upload
                 </div>
