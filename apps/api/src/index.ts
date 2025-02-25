@@ -7,6 +7,7 @@ import elementRoute from "@routes/element/element.routes";
 import projectRoute from "@routes/project/project.routes";
 import { Elysia } from "elysia";
 import { log } from "./logger";
+import imageRoute from "./routes/image/image.routes";
 
 const port = process.env.PORT || 4000;
 
@@ -23,6 +24,7 @@ const app = new Elysia()
   .use(authRoute)
   .use(projectRoute)
   .use(elementRoute)
+  .use(imageRoute)
   .use(websocketRoute)
 
   .use(
@@ -41,6 +43,6 @@ const app = new Elysia()
 
   .listen(port);
 
-console.log(`Server is running on port ${port}`);
+log.info(`Server is running on port ${port}`);
 
 export type App = typeof app;
