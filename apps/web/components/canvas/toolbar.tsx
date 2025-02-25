@@ -13,7 +13,6 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode } from "react";
-import Logo from "../../public/logo.svg";
 
 interface ToolbarProps {
   onAddShape: (type: "square" | "circle" | "picture") => void;
@@ -35,7 +34,7 @@ export const Toolbar = ({
         className="bg-card/80 backdrop-blur-sm rounded-full border border-border p-2 mb-1 flex items-center justify-center h-14 w-14 group relative overflow-hidden"
       >
         <Image
-          src={Logo}
+          src="/logo.svg"
           alt="pictshare logo"
           height={28}
           width={28}
