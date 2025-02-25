@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  devIndicators: {
+    appIsrStatus: false,
+  },
   experimental: {
     turbo: {
       resolveExtensions: [

@@ -8,6 +8,7 @@ import {
 import { ModeToggle } from "@web/components/ui/mode-toggle";
 import { StageService } from "@web/services/stage.service";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Dropzone from "react-dropzone";
 
 const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -77,7 +78,7 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
 
   return (
     <div className="flex flex-col justify-center items-center">
-      <div className="absolute bottom-4 flex flex-row justify-between items-center bg-gray-800 rounded-md">
+      <div className="absolute bottom-4 flex flex-row justify-between items-center bg-gray-800 rounded-md z-50">
         <div className="pl-3">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm"
@@ -120,7 +121,20 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
           </div>
         </div>
       </div>
-      <div ref={ref} />
+      <Dropzone onDrop={(files) => console.log(files)}>
+        {({ getRootProps, isDragActive }) => (
+          <div {...getRootProps()} className="relative">
+            <div ref={ref} />
+            {isDragActive && (
+              <div className="absolute inset-0 bg-gray-500/30 backdrop-blur-sm border-2 border-dashed border-gray-500 flex items-center justify-center z-40">
+                <div className="text-white text-xl font-semibold">
+                  Drop files here to upload
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Dropzone>
     </div>
   );
 };
