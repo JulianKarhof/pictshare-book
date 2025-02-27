@@ -1,15 +1,15 @@
 import { WebSocketEventType } from "@api/routes/ws/ws.schema";
-import { BaseObject } from "@web/components/canvas/objects";
 import { StageService } from "@web/services/stage.service";
 import { Viewport } from "pixi-viewport";
 import { Application, FederatedPointerEvent, Graphics } from "pixi.js";
+import { DisplayElement } from "../objects";
 
 export class TransformerManager {
   private _app: Application;
   private _viewport: Viewport;
   private _stageService: StageService;
   private _transformer: Graphics = new Graphics();
-  private _target: BaseObject | null = null;
+  private _target: DisplayElement | null = null;
   private _isResizing: boolean = false;
   private _initialSize = { width: 0, height: 0 };
   private _initialPosition = { x: 0, y: 0 };
@@ -164,7 +164,7 @@ export class TransformerManager {
     this._target.scale.set(scaleX, scaleY);
     this._target.position.set(newX, newY);
 
-    this._stageService.sendFrameUpdate(this._target.toJson());
+    this._stageService.sendFrameUpdate(this._target.toJSON());
     this.moveTransformer();
   }
 
@@ -203,7 +203,7 @@ export class TransformerManager {
 
     const handleEnd = () => {
       if (this._target) {
-        this._stageService.sendUpdate(this._target.toJson());
+        this._stageService.sendUpdate(this._target.toJSON());
       }
       this._isResizing = false;
       this._app.stage.off("pointermove", handleMove);
@@ -214,12 +214,12 @@ export class TransformerManager {
     this._app.stage.on("pointerup", handleEnd);
   }
 
-  public select(target: BaseObject): void {
+  public select(target: DisplayElement): void {
     if (this._target !== target) this._target = target;
     this.moveTransformer();
   }
 
-  public get target(): BaseObject | null {
+  public get target(): DisplayElement | null {
     return this._target;
   }
 

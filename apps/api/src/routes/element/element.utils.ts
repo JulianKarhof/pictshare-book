@@ -1,4 +1,10 @@
-import { ElementType, Prisma } from "@prisma/client";
+import {
+  Prisma,
+  ElementType as PrismaElementType,
+  ShapeType,
+} from "@prisma/client";
+import { ElementType } from "./element.schema";
+
 import {
   ElementCreateSchema,
   ElementSchema,
@@ -7,21 +13,21 @@ import {
 
 export function flattenElement(
   element: Prisma.ElementGetPayload<{
-    include: { shape: true; image: true; text: true };
+    include: { shape: true; image: { include: { asset: true } }; text: true };
     omit: { projectId: true };
   }>,
 ): typeof ElementSchema.static {
   const { image, shape, text, ...rest } = element;
   switch (element.type) {
-    case ElementType.IMAGE: {
-      const { id, elementId, ...imageProps } = image!;
+    case PrismaElementType.IMAGE: {
+      const { id, elementId, asset, ...imageProps } = image!;
       return {
         ...rest,
         ...imageProps,
         type: ElementType.IMAGE,
       };
     }
-    case ElementType.TEXT: {
+    case PrismaElementType.TEXT: {
       const { id, elementId, ...textProps } = text!;
       return {
         ...rest,
@@ -29,13 +35,24 @@ export function flattenElement(
         type: ElementType.TEXT,
       };
     }
-    case ElementType.SHAPE: {
-      const { id, elementId, ...shapeProps } = shape!;
-      return {
-        ...rest,
-        ...shapeProps,
-        type: ElementType.SHAPE,
-      };
+    case PrismaElementType.SHAPE: {
+      const { id, elementId, shapeType, cornerRadius, points, ...shapeProps } =
+        shape!;
+      switch (shapeType!) {
+        case ShapeType.CIRCLE:
+          return {
+            ...rest,
+            ...shapeProps,
+            type: ElementType.CIRCLE,
+          };
+        case ShapeType.RECTANGLE:
+          return {
+            ...rest,
+            ...shapeProps,
+            cornerRadius,
+            type: ElementType.RECTANGLE,
+          };
+      }
     }
   }
 }
@@ -46,7 +63,7 @@ export function createPrismaData(
 ): Prisma.ElementCreateInput {
   switch (body.type) {
     case ElementType.IMAGE: {
-      const { url, ...rest } = body;
+      const { assetId, ...rest } = body;
       return {
         ...rest,
         project: {
@@ -56,7 +73,11 @@ export function createPrismaData(
         },
         image: {
           create: {
-            url: url,
+            asset: {
+              connect: {
+                id: assetId,
+              },
+            },
           },
         },
       };
@@ -80,10 +101,12 @@ export function createPrismaData(
         },
       };
     }
-    case ElementType.SHAPE: {
-      const { shapeType, fill, stroke, strokeWidth, points, ...rest } = body;
+    case ElementType.CIRCLE:
+      const { fill, stroke, strokeWidth, ...rest } = body;
+
       return {
         ...rest,
+        type: PrismaElementType.SHAPE,
         project: {
           connect: {
             id: projectId,
@@ -91,11 +114,31 @@ export function createPrismaData(
         },
         shape: {
           create: {
-            shapeType,
+            shapeType: ShapeType.CIRCLE,
             fill,
             stroke,
             strokeWidth,
-            points: points ?? [],
+          },
+        },
+      };
+    case ElementType.RECTANGLE: {
+      const { fill, stroke, strokeWidth, cornerRadius, ...rest } = body;
+
+      return {
+        ...rest,
+        type: PrismaElementType.SHAPE,
+        project: {
+          connect: {
+            id: projectId,
+          },
+        },
+        shape: {
+          create: {
+            shapeType: ShapeType.RECTANGLE,
+            fill,
+            stroke,
+            strokeWidth,
+            cornerRadius,
           },
         },
       };
@@ -121,7 +164,9 @@ export function createUpdateData(
     case ElementType.IMAGE:
       return {
         ...baseData,
-        ...(body.url && { image: { update: { url: body.url } } }),
+        ...(body.assetId && {
+          image: { update: { asset: { connect: { id: body.assetId } } } },
+        }),
       };
     case ElementType.TEXT:
       return {
@@ -139,22 +184,32 @@ export function createUpdateData(
             }
           : {}),
       };
-    case ElementType.SHAPE:
+    case ElementType.CIRCLE:
       return {
         ...baseData,
-        ...(body.shapeType ||
-        body.fill ||
-        body.stroke ||
-        body.strokeWidth ||
-        body.points
+        ...(body.fill || body.stroke || body.strokeWidth
           ? {
               shape: {
                 update: {
-                  shapeType: body.shapeType,
                   fill: body.fill,
                   stroke: body.stroke,
                   strokeWidth: body.strokeWidth,
-                  points: body.points ?? [],
+                },
+              },
+            }
+          : {}),
+      };
+    case ElementType.RECTANGLE:
+      return {
+        ...baseData,
+        ...(body.fill || body.stroke || body.strokeWidth || body.cornerRadius
+          ? {
+              shape: {
+                update: {
+                  fill: body.fill,
+                  stroke: body.stroke,
+                  strokeWidth: body.strokeWidth,
+                  cornerRadius: body.cornerRadius,
                 },
               },
             }

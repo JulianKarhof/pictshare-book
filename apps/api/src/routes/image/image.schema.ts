@@ -1,4 +1,4 @@
-import { t } from "elysia";
+import { t } from "elysia/type-system";
 
 const ImageAssetBaseSchema = t.Object({
   id: t.String({ examples: ["cljk3d4g50000pb56j8qhm8nz"] }),
@@ -22,19 +22,6 @@ const ImageAssetBaseSchema = t.Object({
     examples: [1920],
     description: "Image width in pixels",
   }),
-  exifData: t.Optional(
-    t.Nullable(
-      t.Any({
-        examples: [
-          {
-            make: "Canon",
-            model: "EOS R5",
-            exposureTime: "1/250",
-          },
-        ],
-      }),
-    ),
-  ),
   orientation: t.Optional(
     t.Nullable(
       t.Number({

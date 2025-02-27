@@ -76,12 +76,13 @@ model Text {
 }
 
 model Shape {
-  id          String    @id @default(cuid())
-  shapeType   ShapeType
-  fill        Int?
-  stroke      Int?
-  strokeWidth Float?
-  points      Float[]
+  id           String    @id @default(cuid())
+  shapeType    ShapeType
+  fill         Int?
+  stroke       Int?
+  strokeWidth  Float?
+  cornerRadius Float?
+  points       Float[]
 
   element   Element @relation(fields: [elementId], references: [id], onDelete: Cascade)
   elementId String  @unique

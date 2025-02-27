@@ -48,7 +48,11 @@ const projectRoute = new Elysia()
         include: {
           elements: {
             include: {
-              image: true,
+              image: {
+                include: {
+                  asset: true,
+                },
+              },
               text: true,
               shape: true,
             },

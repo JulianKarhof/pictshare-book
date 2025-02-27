@@ -1,9 +1,9 @@
-import { BaseObject } from "@web/components/canvas/objects";
 import { StageService } from "@web/services/stage.service";
 import { Application, FederatedPointerEvent } from "pixi.js";
+import { DisplayElement } from "../objects";
 
 export class DragManager {
-  private _dragTarget: BaseObject | null = null;
+  private _dragTarget: DisplayElement | null = null;
   private _dragOffset: { x: number; y: number } = { x: 0, y: 0 };
   private _app: Application;
   private _stageService: StageService;
@@ -21,7 +21,10 @@ export class DragManager {
     this._app.stage.on("pointerupoutside", this._onDragEnd.bind(this));
   }
 
-  public onDragStart(event: FederatedPointerEvent, target: BaseObject): void {
+  public onDragStart(
+    event: FederatedPointerEvent,
+    target: DisplayElement,
+  ): void {
     target.alpha = 0.8;
     this._dragTarget = target;
 
@@ -53,7 +56,7 @@ export class DragManager {
 
       const currentTime = Date.now();
       if (currentTime - this._lastUpdateTime >= this._updateInterval) {
-        this._stageService.sendFrameUpdate(this._dragTarget.toJson());
+        this._stageService.sendFrameUpdate(this._dragTarget.toJSON());
         this._lastUpdateTime = currentTime;
       }
     }
@@ -64,7 +67,7 @@ export class DragManager {
       window.removeEventListener("pointermove", this._onDragMove.bind(this));
       window.removeEventListener("pointerup", this._onDragEnd.bind(this));
 
-      this._stageService.sendUpdate(this._dragTarget.toJson());
+      this._stageService.sendUpdate(this._dragTarget.toJSON());
 
       this._dragTarget.alpha = 1;
       this._dragTarget = null;

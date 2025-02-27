@@ -67,6 +67,14 @@
                 },
                 "match": "_(.+)"
               },
+
+              {
+                "selector": {
+                  "modifiers": ["protected"],
+                  "kind": "classMember"
+                },
+                "match": ".*"
+              },
               {
                 "selector": {
                   "kind": "classMember"

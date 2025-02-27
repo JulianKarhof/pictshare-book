@@ -1,66 +1,182 @@
 import {
-  ElementSchema,
+  ElementType,
   ImageElementSchema,
 } from "@api/routes/element/element.schema";
-import { Sprite, Texture } from "pixi.js";
-import { v4 } from "uuid";
-import { BaseObject } from "./object";
+import { Assets, Sprite } from "pixi.js";
+import {
+  DisplayElement,
+  DisplayElementJSON,
+  DisplayElementParams,
+  ElementFactory,
+} from "./object";
 
-export class ImageObject extends Sprite implements BaseObject {
-  public id: string;
-  public readonly type: string;
-  public readonly isObject = true;
-  public url: string;
+export interface ImageElementParams extends DisplayElementParams {
+  src: string;
+  width?: number;
+  height?: number;
+  assetId: string;
+  keepAspectRatio?: boolean;
+}
 
-  public constructor({ url }: { url: string }) {
-    super(Texture.from(url));
-    this.id = v4();
-    this.type = "IMAGE";
-    this.anchor.set(0.5);
-    this.height = 400;
-    this.width = 400;
-    this.url = url;
-    this._setupInteractivity();
+export interface ImageElementJSON extends DisplayElementJSON {
+  src: string;
+  assetId: string;
+  keepAspectRatio?: boolean;
+}
+
+export class ImageElement extends DisplayElement {
+  protected readonly elementType = ElementType.IMAGE;
+
+  private _src: string;
+  private _assetId: string;
+  private _sprite: Sprite | null = null;
+  private _originalWidth: number = 0;
+  private _originalHeight: number = 0;
+  private _targetWidth?: number;
+  private _targetHeight?: number;
+  private _keepAspectRatio: boolean;
+
+  public constructor(params: ImageElementParams) {
+    super(params);
+
+    this._src =
+      params.src ??
+      "https://fastly.picsum.photos/id/901/200/200.jpg?hmac=BofL61KMrHssTtPwqR7iI272BvpjGsjt5PJ_ultE4Z8";
+    this._assetId = params.assetId;
+    this._targetWidth = params.width;
+    this._targetHeight = params.height;
+    this._keepAspectRatio = params.keepAspectRatio ?? true;
+
+    this.draw();
   }
 
-  private _setupInteractivity(): void {
-    this.eventMode = "static";
-    this.cursor = "pointer";
+  protected async draw(): Promise<void> {
+    try {
+      const texture = await Assets.load(this._src);
+
+      this._sprite = new Sprite(texture);
+
+      this._originalWidth = texture.width;
+      this._originalHeight = texture.height;
+
+      this._sprite.anchor.set(0.5);
+
+      if (this._targetWidth !== undefined || this._targetHeight !== undefined) {
+        this._resizeImage(this._targetWidth, this._targetHeight);
+      }
+
+      this.addChild(this._sprite);
+    } catch (error) {
+      console.error(`Failed to load image: ${this._src}`, error);
+      const placeholder = this.createGraphics();
+      placeholder
+        .fill(0xcccccc)
+        .setStrokeStyle({ width: 1, color: 0x999999 })
+        .rect(-50, -50, 100, 100)
+        .moveTo(-30, -30)
+        .lineTo(30, 30)
+        .moveTo(30, -30)
+        .lineTo(-30, 30);
+      this.addChild(placeholder);
+    }
   }
 
-  public toJson(): typeof ImageElementSchema.static {
+  public setSrc(src: string): this {
+    this._src = src;
+    this.redraw();
+    return this;
+  }
+
+  public getSrc(): string {
+    return this._src;
+  }
+
+  public resize(width?: number, height?: number): this {
+    this._targetWidth = width;
+    this._targetHeight = height;
+    this._resizeImage(width, height);
+    return this;
+  }
+
+  private _resizeImage(width?: number, height?: number): void {
+    if (!this._sprite) return;
+
+    if (width === undefined && height === undefined) {
+      this._sprite.width = this._originalWidth;
+      this._sprite.height = this._originalHeight;
+      return;
+    }
+
+    if (this._keepAspectRatio) {
+      const aspectRatio = this._originalWidth / this._originalHeight;
+
+      if (width !== undefined && height !== undefined) {
+        this._sprite.width = width;
+        this._sprite.height = width / aspectRatio;
+      } else if (width !== undefined) {
+        this._sprite.width = width;
+        this._sprite.height = width / aspectRatio;
+      } else if (height !== undefined) {
+        this._sprite.height = height;
+        this._sprite.width = height * aspectRatio;
+      }
+    } else {
+      if (width !== undefined) this._sprite.width = width;
+      if (height !== undefined) this._sprite.height = height;
+    }
+  }
+
+  public setKeepAspectRatio(keep: boolean): this {
+    this._keepAspectRatio = keep;
+    if (this._targetWidth !== undefined || this._targetHeight !== undefined) {
+      this._resizeImage(this._targetWidth, this._targetHeight);
+    }
+    return this;
+  }
+
+  public getOriginalDimensions(): { width: number; height: number } {
     return {
-      id: this.id,
-      type: "IMAGE",
-      x: this.x,
-      y: this.y,
-      angle: this.rotation,
-      scaleX: this.scale.x,
-      scaleY: this.scale.y,
-      width: this.width,
-      height: this.height,
-      zIndex: this.zIndex,
-      url: this.url,
+      width: this._originalWidth,
+      height: this._originalHeight,
     };
   }
 
-  public update(data: typeof ElementSchema.static): void {
-    this.x = data.x;
-    this.y = data.y;
-    this.rotation = data.angle;
-    this.scale.set(data.scaleX, data.scaleY);
-    this.width = data.width;
-    this.height = data.height;
+  public getCurrentDimensions(): { width: number; height: number } {
+    return {
+      width: this._sprite?.width || 0,
+      height: this._sprite?.height || 0,
+    };
   }
 
-  public static from(data: typeof ImageElementSchema.static): ImageObject {
-    const image = new ImageObject({
-      url: data.url,
+  public override toJSON(): typeof ImageElementSchema.static {
+    const baseJson = super.baseToJSON();
+    return {
+      ...baseJson,
+      type: this.elementType,
+      assetId: this._assetId ?? "",
+    };
+  }
+
+  public static fromJSON(json: typeof ImageElementSchema.static): ImageElement {
+    const image = new ImageElement({
+      id: json.id,
+      x: json.x,
+      y: json.y,
+      angle: json.angle,
+      scaleX: json.scaleX,
+      scaleY: json.scaleY,
+      zIndex: json.zIndex,
+      src: "https://fastly.picsum.photos/id/901/200/200.jpg?hmac=BofL61KMrHssTtPwqR7iI272BvpjGsjt5PJ_ultE4Z8", // TODO
+      width: json.width,
+      height: json.width,
+      assetId: json.assetId,
     });
-    Object.assign(image, {
-      ...data,
-      scale: { x: data.scaleX, y: data.scaleY },
-    });
+
+    image._originalWidth = json.width;
+    image._originalHeight = json.height;
+
     return image;
   }
 }
+
+ElementFactory.register(ElementType.IMAGE, ImageElement);

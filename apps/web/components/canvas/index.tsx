@@ -1,14 +1,10 @@
 "use client";
 import { StageManager } from "@web/components/canvas/managers";
-import {
-  CircleShape,
-  ImageObject,
-  RectangleShape,
-} from "@web/components/canvas/objects";
 import { StageService } from "@web/services/stage.service";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Dropzone from "react-dropzone";
 import { ImageShelf } from "./image-shelf";
+import { CircleElement, ImageElement, RectangleElement } from "./objects";
 import { Toolbar } from "./toolbar";
 import { ZoomControls } from "./zoom-controls";
 
@@ -62,19 +58,20 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
       let element;
       switch (type) {
         case "square":
-          element = new RectangleShape();
+          element = new RectangleElement();
           break;
         case "circle":
-          element = new CircleShape();
+          element = new CircleElement();
           break;
         case "picture":
-          element = new ImageObject({
-            url: "https://fastly.picsum.photos/id/404/2000/2000.jpg?hmac=pCwJvO67FP1G3bObWhz5HjADxB2tS8v8s7TqrfqYEd0",
+          element = new ImageElement({
+            src: "https://fastly.picsum.photos/id/901/200/200.jpg?hmac=BofL61KMrHssTtPwqR7iI272BvpjGsjt5PJ_ultE4Z8",
+            assetId: "cm7kup7sm0001wq0crge5t0n4",
           });
           break;
       }
 
-      stageManagerRef.current?.addShape(element);
+      stageManagerRef.current?.addElement(element);
     },
     [],
   );
@@ -102,7 +99,9 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
       <ImageShelf
         className="fixed bottom-0 right-4 z-50"
         images={images}
-        onImageSelect={(element) => stageManagerRef.current?.addShape(element)}
+        onImageSelect={(element) =>
+          stageManagerRef.current?.addElement(element)
+        }
       />
 
       <Dropzone onDrop={handleFiles} noKeyboard noClick>
