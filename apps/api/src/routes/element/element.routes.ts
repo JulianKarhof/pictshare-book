@@ -6,7 +6,7 @@ import {
   Common404ErrorSchema,
   CommonSuccessMessageSchema,
 } from "@api/schemas";
-import { Prisma, Role } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { Elysia, t } from "elysia";
 import {
   ElementCreateSchema,
@@ -30,7 +30,11 @@ const elementRoute = new Elysia()
     async ({ params: { id }, error }) => {
       const element = await prisma.element.findUnique({
         where: { id },
-        include: { image: true, text: true, shape: true },
+        include: {
+          image: { include: { asset: true } },
+          text: true,
+          shape: true,
+        },
       });
 
       if (!element) {
@@ -59,7 +63,11 @@ const elementRoute = new Elysia()
     async ({ params: { id } }) => {
       const elements = await prisma.element.findMany({
         where: { projectId: id },
-        include: { image: true, text: true, shape: true },
+        include: {
+          image: { include: { asset: true } },
+          text: true,
+          shape: true,
+        },
         orderBy: {
           zIndex: "asc",
         },
@@ -94,7 +102,11 @@ const elementRoute = new Elysia()
 
       const element = await prisma.element.create({
         data: createPrismaData(id, body),
-        include: { image: true, text: true, shape: true },
+        include: {
+          image: { include: { asset: true } },
+          text: true,
+          shape: true,
+        },
       });
 
       return flattenElement(element);
@@ -127,15 +139,13 @@ const elementRoute = new Elysia()
         return error(401, { message: "Unauthorized" });
       }
 
-      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-        await Promise.all(
-          body.map((b) =>
-            tx.element.create({
-              data: createPrismaData(id, b),
-            }),
-          ),
-        );
-      });
+      await prisma.$transaction(
+        body.map((element) =>
+          prisma.element.create({
+            data: createPrismaData(id, element),
+          }),
+        ),
+      );
 
       return { message: "success" };
     },
@@ -167,17 +177,15 @@ const elementRoute = new Elysia()
         return error(401, { message: "Unauthorized" });
       }
 
-      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-        await Promise.all(
-          body.map((b) =>
-            tx.element.upsert({
-              where: { id: b.id },
-              create: createPrismaData(id, b),
-              update: createUpdateData(b),
-            }),
-          ),
-        );
-      });
+      await prisma.$transaction(
+        body.map((element) =>
+          prisma.element.upsert({
+            where: { id: element.id },
+            create: createPrismaData(id, element),
+            update: createUpdateData(element),
+          }),
+        ),
+      );
 
       return { message: "success" };
     },
@@ -230,7 +238,11 @@ const elementRoute = new Elysia()
       const updated = await prisma.element.update({
         where: { id },
         data: createUpdateData(body),
-        include: { image: true, text: true, shape: true },
+        include: {
+          image: { include: { asset: true } },
+          text: true,
+          shape: true,
+        },
       });
 
       return flattenElement(updated);

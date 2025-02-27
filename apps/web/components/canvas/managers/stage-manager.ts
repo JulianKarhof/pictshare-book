@@ -6,7 +6,13 @@ import {
   TransformerManager,
   ViewportManager,
 } from "@web/components/canvas/managers";
-import { BaseObject, BaseShape } from "@web/components/canvas/objects";
+import {
+  CircleElement,
+  DisplayElement,
+  ElementFactory,
+  ImageElement,
+  RectangleElement,
+} from "@web/components/canvas/objects";
 import { Settings } from "@web/components/canvas/settings";
 import { client } from "@web/lib/client";
 import { StageService } from "@web/services/stage.service";
@@ -76,26 +82,27 @@ export class StageManager {
     this._stageService.subscribe(
       WebSocketEventType.SHAPE_CREATE,
       async (data) => {
-        this._addInteractiveChild(await BaseObject.from(data.payload));
+        const element = ElementFactory.fromJSON(data.payload);
+        if (element) this._addInteractiveChild(element);
       },
     );
     this._stageService.subscribe(WebSocketEventType.SHAPE_UPDATE, (data) => {
-      this._updateShape(data.payload);
+      this._updateElement(data.payload);
     });
     this._stageService.subscribe(WebSocketEventType.SHAPE_DELETE, (data) => {
       this._removeInteractiveChild(data.payload.id);
     });
     this._stageService.subscribe(WebSocketEventType.FRAME_UPDATE, (data) => {
-      this._updateShape(data.payload);
+      this._updateElement(data.payload);
     });
 
     this._setupEventListeners();
   }
 
-  private _updateShape(data: typeof ElementSchema.static): void {
+  private _updateElement(data: typeof ElementSchema.static): void {
     this._parentContainer.children.forEach((child) => {
-      if (BaseObject.typeguard(child)) {
-        if (child.id === data.id) child.update(data);
+      if (child instanceof DisplayElement) {
+        if (child.getId() === data.id) child.update(data);
       }
     });
   }
@@ -113,25 +120,27 @@ export class StageManager {
       a.type === "IMAGE" ? -1 : 1,
     );
 
-    sortedResponse?.forEach(async (item) => {
-      if (item.type === "IMAGE") {
-        await Assets.load(item.url);
+    for (const item of sortedResponse || []) {
+      if (item instanceof ImageElement) {
+        await Assets.load(item.getSrc());
       }
 
-      const shape = await BaseObject.from(item);
-
-      this._addInteractiveChild(shape, {
-        selectAfterCreation: false,
-      });
-    });
+      const element = ElementFactory.fromJSON(item);
+      if (element) {
+        this._addInteractiveChild(element, {
+          selectAfterCreation: false,
+        });
+      }
+    }
   }
 
   public async saveCanvas(): Promise<void> {
     const stageObjects = this._parentContainer.children
       .map((child) => {
-        if (BaseObject.typeguard(child)) {
-          return child.toJson();
+        if (child instanceof DisplayElement) {
+          return child.toJSON();
         }
+        return undefined;
       })
       .filter((item) => item !== undefined);
 
@@ -173,44 +182,36 @@ export class StageManager {
   public handleKeyPress(event: KeyboardEvent): void {
     if (event.key === "Backspace" || event.key === "Delete") {
       const target = this._transformerManager?.target;
-      if (target) this._removeShape(target);
+      if (target && target instanceof DisplayElement)
+        this._removeElement(target);
     }
   }
 
-  private async _loadAssets(): Promise<void> {
-    const canvasData = localStorage.getItem("canvasData");
-    if (canvasData) {
-      await this.load(JSON.parse(canvasData));
-    }
-  }
-
-  public addShape(shape: BaseObject): void {
+  public addElement(element: DisplayElement): void {
     if (this._viewportManager) {
       const center = this._viewportManager.viewport.center;
-      shape.position.set(center.x, center.y);
+      element.position.set(center.x, center.y);
     }
 
-    if (shape instanceof BaseShape) {
-      const colorScheme = [0x640d5f, 0xd91656, 0xeb5b00, 0xffb200];
-      shape.fillStyle.color =
-        colorScheme[Math.floor(Math.random() * colorScheme.length)];
-    }
+    const colorScheme = [0x640d5f, 0xd91656, 0xeb5b00, 0xffb200];
+    if (element instanceof CircleElement || element instanceof RectangleElement)
+      element.setFill(
+        colorScheme[Math.floor(Math.random() * colorScheme.length)],
+      );
 
-    this._addInteractiveChild(shape);
-    this._stageService.sendCreate(shape.toJson()).then((id) => {
-      shape.id = id;
+    this._addInteractiveChild(element);
+
+    this._stageService.sendCreate(element.toJSON()).then((id) => {
+      element.setId(id);
     });
   }
 
   private _addInteractiveChild(
-    child: BaseObject,
+    child: DisplayElement,
     options: InteractiveChildOptions = {
       selectAfterCreation: true,
     },
-  ): BaseObject {
-    child.eventMode = "static";
-    child.cursor = "pointer";
-
+  ): DisplayElement {
     child.on("pointerdown", (event) =>
       this._dragManager?.onDragStart(event, child),
     );
@@ -222,15 +223,15 @@ export class StageManager {
     return child;
   }
 
-  private _removeShape(shape: BaseObject): void {
-    this._removeInteractiveChild(shape.id);
+  private _removeElement(element: DisplayElement): void {
+    this._removeInteractiveChild(element.getId());
 
-    this._stageService.sendDelete(shape.toJson());
+    this._stageService.sendDelete(element.toJSON());
   }
 
   private _removeInteractiveChild(id: string): void {
     const child = this._parentContainer.children.find((child) =>
-      BaseObject.typeguard(child) ? child.id === id : false,
+      child instanceof DisplayElement ? child.getId() === id : false,
     );
 
     if (child) {
@@ -243,25 +244,27 @@ export class StageManager {
     }
   }
 
-  public async save(): Promise<(typeof ElementSchema.static)[]> {
+  public async save(): Promise<object[]> {
     const stageObjects = this._parentContainer.children
       .map((child) => {
-        if (BaseObject.typeguard(child)) {
-          return child.toJson();
+        if (child instanceof DisplayElement) {
+          return child.toJSON();
         }
+        return undefined;
       })
       .filter((item) => item !== undefined);
 
     return stageObjects;
   }
 
-  public async load(data: (typeof ElementSchema.static)[]): Promise<void> {
+  public async load(data: object[]): Promise<void> {
     for (const item of data) {
-      const shape = await BaseObject.from(item);
-
-      this._addInteractiveChild(shape, {
-        selectAfterCreation: false,
-      });
+      const element = ElementFactory.fromJSON(item);
+      if (element) {
+        this._addInteractiveChild(element, {
+          selectAfterCreation: false,
+        });
+      }
     }
   }
 

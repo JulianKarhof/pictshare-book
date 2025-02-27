@@ -1,5 +1,11 @@
-import { ElementType, ShapeType } from "@prisma/client";
 import { t } from "elysia/type-system";
+
+export enum ElementType {
+  IMAGE = "IMAGE",
+  TEXT = "TEXT",
+  CIRCLE = "CIRCLE",
+  RECTANGLE = "RECTANGLE",
+}
 
 const ElementBaseSchema = t.Object({
   id: t.String({ examples: ["cljk3d4g50000pb56j8qhm8nz"] }),
@@ -29,10 +35,7 @@ export const ImageElementSchema = t.Composite([
   ElementBaseSchema,
   t.Object({
     type: t.Literal(ElementType.IMAGE),
-    url: t.String({
-      examples: ["https://example.com/image.jpg"],
-      format: "uri",
-    }),
+    assetId: t.String({ examples: ["cljk3d4g50000pb56j8qhm8nz"] }),
   }),
 ]);
 
@@ -47,24 +50,35 @@ export const TextElementSchema = t.Composite([
   }),
 ]);
 
-export const ShapeElementSchema = t.Composite([
+export const CircleElementSchema = t.Composite([
   ElementBaseSchema,
   t.Object({
-    type: t.Literal(ElementType.SHAPE),
-    shapeType: t.Enum(ShapeType),
+    angle: t.Number({ examples: [0] }),
+    type: t.Literal(ElementType.CIRCLE),
     fill: t.Nullable(t.Number({ examples: [0xff0000] })),
     stroke: t.Nullable(t.Number({ examples: [0x000000] })),
     strokeWidth: t.Nullable(t.Number({ examples: [2] })),
-    points: t.Optional(
-      t.Nullable(t.Array(t.Number(), { examples: [[0, 0, 100, 100]] })),
-    ),
+  }),
+]);
+
+export const RectangleElementSchema = t.Composite([
+  ElementBaseSchema,
+  t.Object({
+    type: t.Literal(ElementType.RECTANGLE),
+    width: t.Number({ examples: [100] }),
+    height: t.Number({ examples: [50] }),
+    fill: t.Nullable(t.Number({ examples: [0xff0000] })),
+    stroke: t.Nullable(t.Number({ examples: [0x000000] })),
+    strokeWidth: t.Nullable(t.Number({ examples: [2] })),
+    cornerRadius: t.Nullable(t.Number({ examples: [10] })),
   }),
 ]);
 
 export const ElementSchema = t.Union([
   ImageElementSchema,
   TextElementSchema,
-  ShapeElementSchema,
+  CircleElementSchema,
+  RectangleElementSchema,
 ]);
 
 export const ElementCreateSchema = t.Omit(ElementSchema, [

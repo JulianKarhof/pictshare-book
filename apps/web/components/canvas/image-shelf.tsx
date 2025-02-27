@@ -1,9 +1,9 @@
-import { ImageObject } from "@web/components/canvas/objects";
+import { ImageElement } from "@web/components/canvas/objects";
 import { Image as ImageIcon } from "lucide-react";
 
 interface ImageShelfProps {
   images: string[];
-  onImageSelect: (element: ImageObject) => void;
+  onImageSelect: (element: ImageElement) => void;
   className?: string;
 }
 
@@ -36,7 +36,10 @@ export const ImageShelf = ({
                   key={index}
                   url={imageUrl}
                   onSelect={() => {
-                    const element = new ImageObject({ url: imageUrl });
+                    const element = new ImageElement({
+                      src: imageUrl,
+                      assetId: "",
+                    });
                     onImageSelect(element);
                   }}
                 />
