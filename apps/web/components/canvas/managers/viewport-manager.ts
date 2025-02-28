@@ -29,6 +29,7 @@ export class ViewportManager {
       events: this._app.renderer.events,
       stopPropagation: true,
       passiveWheel: false,
+      disableOnContextMenu: true,
     });
     viewport.scale = 0.2;
     this._app.stage.addChild(viewport);

@@ -2,7 +2,7 @@ import { WebSocketEventType } from "@api/routes/ws/ws.schema";
 import { StageService } from "@web/services/stage.service";
 import { Viewport } from "pixi-viewport";
 import { Application, FederatedPointerEvent, Graphics } from "pixi.js";
-import { DisplayElement } from "../objects";
+import { DisplayElement, ImageElement } from "../objects";
 
 export class TransformerManager {
   private _app: Application;
@@ -16,6 +16,8 @@ export class TransformerManager {
   private _initialPointerPosition = { x: 0, y: 0 };
   private _shiftPressed = false;
   private _optionPressed = false;
+  private _ctrlPressed = false;
+
   private _initialScale = { x: 1, y: 1 };
   private _handles: Graphics[] = [
     new Graphics(),
@@ -51,15 +53,22 @@ export class TransformerManager {
     this._viewport.on("moved", this.moveTransformer.bind(this));
     window.addEventListener("keydown", this.handleKeyDown.bind(this));
     window.addEventListener("keyup", this.handleKeyUp.bind(this));
+    window.addEventListener("click", function (event) {
+      if (event.ctrlKey) {
+        event.preventDefault();
+      }
+    });
   }
 
   public handleKeyDown(event: KeyboardEvent): void {
     if (event.key === "Shift") this._shiftPressed = true;
     if (event.key === "Alt") this._optionPressed = true;
+    if (event.key === "Control") this._ctrlPressed = true;
   }
   public handleKeyUp(event: KeyboardEvent): void {
     if (event.key === "Shift") this._shiftPressed = false;
     if (event.key === "Alt") this._optionPressed = false;
+    if (event.key === "Control") this._ctrlPressed = false;
   }
 
   public moveTransformer(): void {
@@ -87,7 +96,6 @@ export class TransformerManager {
           dimensions.width + padding * 2,
           dimensions.height + padding * 2,
         )
-        .rect(this._target.position.x, this._target.position.y, 1, 1)
         .stroke({ color: 0x3c82f6, width: lineSize, alignment: 0 });
 
       this._signs.forEach((offset, index) => {
@@ -126,7 +134,12 @@ export class TransformerManager {
     let deltaWidth: number;
     let deltaHeight: number;
 
-    if (this._shiftPressed) {
+    const shouldKeepAspect =
+      this._target instanceof ImageElement && !this._ctrlPressed
+        ? true
+        : this._shiftPressed;
+
+    if (shouldKeepAspect) {
       const scaleDeltaX =
         (this._initialSize.width + dx) / this._initialSize.width;
       const scaleDeltaY =
