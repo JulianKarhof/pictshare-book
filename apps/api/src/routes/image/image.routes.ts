@@ -1,3 +1,4 @@
+import env from "@api/env";
 import { log } from "@api/logger";
 import { authMacro } from "@api/middleware/auth-middleware";
 import prisma from "@api/prisma";
@@ -12,7 +13,10 @@ import { Role } from "@prisma/client";
 import { Elysia, t } from "elysia";
 import imageSize from "image-size";
 import { ElementService } from "../element/element.service";
-import { ImageAssetSchema, ImageDeleteSchema } from "./image.schema";
+import { ImageDeleteSchema, ImageReturnSchema } from "./image.schema";
+
+const endpoint = env.S3_ENDPOINT;
+const bucket = env.S3_BUCKET_NAME;
 
 const imageRoute = new Elysia()
   .use(authMacro)
@@ -24,14 +28,19 @@ const imageRoute = new Elysia()
         where: { projectId: id },
       });
 
-      return images;
+      const imageAssets = images.map((image) => ({
+        ...image,
+        src: `${endpoint}/${bucket}/${image.key}`,
+      }));
+
+      return imageAssets;
     },
     {
       params: t.Object({
         id: t.String(),
       }),
       response: {
-        200: t.Array(ImageAssetSchema),
+        200: t.Array(ImageReturnSchema),
       },
       detail: {
         description: "Get all images for a project",
@@ -52,41 +61,52 @@ const imageRoute = new Elysia()
       }
 
       try {
-        const extension = body.file.name
-          ? body.file.name.split(".").pop()
-          : body.file.type.split("/")[1];
+        const uploadedImages = [];
 
-        if (!extension) {
-          return error(400, { message: "Could not determine file extension" });
+        for (const file of body.files) {
+          const extension = file.name
+            ? file.name.split(".").pop()
+            : file.type.split("/")[1];
+
+          if (!extension) {
+            return error(400, {
+              message: "Could not determine file extension",
+            });
+          }
+
+          const fileId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+          const key = `${id}/images/${fileId}.${extension}`;
+          const s3Response = await S3Service.uploadFile(file, key);
+
+          const bytes = await file.bytes();
+          const size = imageSize(bytes);
+          if (!size.height || !size.width) {
+            return error(400, { message: "Invalid image dimensions" });
+          }
+
+          const imageAsset = await prisma.imageAsset.create({
+            data: {
+              key: s3Response.key,
+              mimeType: file.type,
+              size: file.size,
+              height: size.height,
+              width: size.width,
+              orientation: size.orientation,
+              projectId: id,
+              uploaderId: user.id,
+            },
+          });
+
+          uploadedImages.push({
+            ...imageAsset,
+            src: `${endpoint}/${bucket}/${imageAsset.key}`,
+          });
         }
 
-        const fileId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
-        const key = `${id}/images/${fileId}.${extension}`;
-        const s3Response = await S3Service.uploadFile(body.file, key);
-
-        const bytes = await body.file.bytes();
-        const size = imageSize(bytes);
-        if (!size.height || !size.width) {
-          return error(400, { message: "Invalid image dimensions" });
-        }
-
-        const imageAsset = await prisma.imageAsset.create({
-          data: {
-            key: s3Response.key,
-            mimeType: body.file.type,
-            size: body.file.size,
-            height: size.height,
-            width: size.width,
-            orientation: size.orientation,
-            projectId: id,
-            uploaderId: user.id,
-          },
-        });
-
-        return imageAsset;
+        return uploadedImages;
       } catch (err) {
-        log.error("Failed to upload image", err);
-        return error(400, { message: "Failed to upload image" });
+        log.error("Failed to upload images", err);
+        return error(400, { message: "Failed to upload images" });
       }
     },
     {
@@ -95,10 +115,13 @@ const imageRoute = new Elysia()
         id: t.String(),
       }),
       body: t.Object({
-        file: t.File({}),
+        files: t.Files({
+          maxSize: 1024 * 1024 * 5,
+          maxFiles: 10,
+        }),
       }),
       response: {
-        200: ImageAssetSchema,
+        200: t.Array(ImageReturnSchema),
         400: Common400ErrorSchema,
         401: Common401ErrorSchema,
       },

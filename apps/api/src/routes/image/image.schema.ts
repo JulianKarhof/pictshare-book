@@ -1,6 +1,6 @@
 import { t } from "elysia/type-system";
 
-const ImageAssetBaseSchema = t.Object({
+export const ImageAssetSchema = t.Object({
   id: t.String({ examples: ["cljk3d4g50000pb56j8qhm8nz"] }),
   key: t.String({
     examples: ["proj_123/images/1234567890-abc123.jpg"],
@@ -52,7 +52,14 @@ const ImageAssetBaseSchema = t.Object({
   ),
 });
 
-export const ImageAssetSchema = ImageAssetBaseSchema;
+export const ImageReturnSchema = t.Intersect([
+  ImageAssetSchema,
+  t.Object({
+    src: t.String({
+      examples: ["https://example.com/image.jpg"],
+    }),
+  }),
+]);
 
 export const ImageCreateSchema = t.Omit(ImageAssetSchema, [
   "id",

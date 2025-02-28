@@ -2,7 +2,8 @@ import {
   ElementType,
   ImageElementSchema,
 } from "@api/routes/element/element.schema";
-import { Assets, Sprite } from "pixi.js";
+import { Assets, Sprite, Texture } from "pixi.js";
+import { AssetManager } from "../managers/asset-manager";
 import {
   DisplayElement,
   DisplayElementJSON,
@@ -11,7 +12,6 @@ import {
 } from "./object";
 
 export interface ImageElementParams extends DisplayElementParams {
-  src: string;
   width?: number;
   height?: number;
   assetId: string;
@@ -19,7 +19,6 @@ export interface ImageElementParams extends DisplayElementParams {
 }
 
 export interface ImageElementJSON extends DisplayElementJSON {
-  src: string;
   assetId: string;
   keepAspectRatio?: boolean;
 }
@@ -27,7 +26,7 @@ export interface ImageElementJSON extends DisplayElementJSON {
 export class ImageElement extends DisplayElement {
   protected readonly elementType = ElementType.IMAGE;
 
-  private _src: string;
+  private _src?: string;
   private _assetId: string;
   private _sprite: Sprite | null = null;
   private _originalWidth: number = 0;
@@ -36,23 +35,33 @@ export class ImageElement extends DisplayElement {
   private _targetHeight?: number;
   private _keepAspectRatio: boolean;
 
+  private _onDrawComplete: (() => void)[] = [];
+
   public constructor(params: ImageElementParams) {
     super(params);
 
-    this._src =
-      params.src ??
-      "https://fastly.picsum.photos/id/901/200/200.jpg?hmac=BofL61KMrHssTtPwqR7iI272BvpjGsjt5PJ_ultE4Z8";
+    const asset = AssetManager.getInstance().getAsset(params.assetId);
+
+    this._src = asset?.src;
     this._assetId = params.assetId;
-    this._targetWidth = params.width;
-    this._targetHeight = params.height;
+    this._targetWidth = params.width ?? 600;
+    this._targetHeight = params.height ?? 600;
     this._keepAspectRatio = params.keepAspectRatio ?? true;
 
     this.draw();
   }
 
   protected async draw(): Promise<void> {
+    if (!this._src) {
+      this._renderPlaceholder();
+
+      this._completeDrawing();
+      return;
+    }
     try {
-      const texture = await Assets.load(this._src);
+      const texture: Texture = await Assets.load(this._src);
+
+      texture.source.autoGenerateMipmaps = true;
 
       this._sprite = new Sprite(texture);
 
@@ -66,19 +75,34 @@ export class ImageElement extends DisplayElement {
       }
 
       this.addChild(this._sprite);
+      this._completeDrawing();
     } catch (error) {
+      this._renderPlaceholder();
+      this._completeDrawing();
       console.error(`Failed to load image: ${this._src}`, error);
-      const placeholder = this.createGraphics();
-      placeholder
-        .fill(0xcccccc)
-        .setStrokeStyle({ width: 1, color: 0x999999 })
-        .rect(-50, -50, 100, 100)
-        .moveTo(-30, -30)
-        .lineTo(30, 30)
-        .moveTo(30, -30)
-        .lineTo(-30, 30);
-      this.addChild(placeholder);
     }
+  }
+
+  private _completeDrawing(): void {
+    this._onDrawComplete.forEach((callback) => callback());
+    this._onDrawComplete = [];
+  }
+
+  public onDrawComplete(callback: () => void): this {
+    this._onDrawComplete.push(callback);
+    return this;
+  }
+
+  private _renderPlaceholder(): void {
+    const placeholder = this.createGraphics()
+      .fill(0xcccccc)
+      .setStrokeStyle({ width: 1, color: 0x999999 })
+      .rect(-50, -50, 100, 100)
+      .moveTo(-30, -30)
+      .lineTo(30, 30)
+      .moveTo(30, -30)
+      .lineTo(-30, 30);
+    this.addChild(placeholder);
   }
 
   public setSrc(src: string): this {
@@ -87,7 +111,7 @@ export class ImageElement extends DisplayElement {
     return this;
   }
 
-  public getSrc(): string {
+  public getSrc(): string | undefined {
     return this._src;
   }
 
@@ -111,8 +135,13 @@ export class ImageElement extends DisplayElement {
       const aspectRatio = this._originalWidth / this._originalHeight;
 
       if (width !== undefined && height !== undefined) {
-        this._sprite.width = width;
-        this._sprite.height = width / aspectRatio;
+        if (this._originalWidth <= this._originalHeight) {
+          this._sprite.width = width;
+          this._sprite.height = width / aspectRatio;
+        } else {
+          this._sprite.height = height;
+          this._sprite.width = height * aspectRatio;
+        }
       } else if (width !== undefined) {
         this._sprite.width = width;
         this._sprite.height = width / aspectRatio;
@@ -166,7 +195,6 @@ export class ImageElement extends DisplayElement {
       scaleX: json.scaleX,
       scaleY: json.scaleY,
       zIndex: json.zIndex,
-      src: "https://fastly.picsum.photos/id/901/200/200.jpg?hmac=BofL61KMrHssTtPwqR7iI272BvpjGsjt5PJ_ultE4Z8", // TODO
       width: json.width,
       height: json.width,
       assetId: json.assetId,

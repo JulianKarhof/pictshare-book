@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   Circle,
   Download,
-  Image as ImageIcon,
   LucideIcon,
   Moon,
   Square,
@@ -15,15 +14,15 @@ import Link from "next/link";
 import { ReactNode } from "react";
 
 interface ToolbarProps {
-  onAddShape: (type: "square" | "circle" | "picture") => void;
-  onFileSelect: (files: File[]) => void;
+  onAddShape: (type: "square" | "circle") => void;
+  onImageUpload: (files: File[]) => void;
   onDownload: () => void;
   className?: string;
 }
 
 export const Toolbar = ({
   onAddShape,
-  onFileSelect,
+  onImageUpload: onFileSelect,
   onDownload,
   className,
 }: ToolbarProps) => {
@@ -56,20 +55,19 @@ export const Toolbar = ({
           title="Add Circle"
         />
 
-        <ToolbarButton
-          icon={ImageIcon}
-          onClick={() => onAddShape("picture")}
-          title="Add Picture"
-        />
-
         <ToolbarButton icon={Upload} title="Upload Image" asChild>
           <input
             type="file"
             className="hidden"
             accept="image/*"
+            multiple
             onChange={(e) => {
               const files = Array.from(e.target.files || []);
-              onFileSelect(files);
+
+              if (files.length > 0 && onFileSelect) {
+                onFileSelect(files);
+                e.target.value = "";
+              }
             }}
           />
         </ToolbarButton>
