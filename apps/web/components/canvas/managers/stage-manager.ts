@@ -61,6 +61,7 @@ export class StageManager {
       antialias: true,
       autoDensity: true,
       preferWebGLVersion: 2,
+      powerPreference: "high-performance",
     });
 
     this._viewportManager = new ViewportManager(this._app);
@@ -108,21 +109,22 @@ export class StageManager {
   }
 
   private async _loadCanvas(): Promise<void> {
-    const response = await client
+    const { error, data } = await client
       .projects({ id: this._canvasId })
       .elements.get();
 
-    if (response.status !== 200) {
-      return console.error(response.error);
+    if (error) {
+      return console.error(error.value);
     }
 
-    const sortedResponse = response.data?.sort((a) =>
-      a.type === "IMAGE" ? -1 : 1,
-    );
+    const sortedResponse = data?.sort((a) => (a.type === "IMAGE" ? -1 : 1));
 
-    for (const item of sortedResponse || []) {
+    for (const item of sortedResponse) {
       if (item instanceof ImageElement) {
-        await Assets.load(item.getSrc());
+        const src = item.getSrc();
+        if (src) {
+          await Assets.load(src);
+        }
       }
 
       const element = ElementFactory.fromJSON(item);
@@ -212,13 +214,23 @@ export class StageManager {
       selectAfterCreation: true,
     },
   ): DisplayElement {
-    child.on("pointerdown", (event) =>
+    child.on("pointerdown", (event) => {
       this._dragManager?.onDragStart(event, child),
-    );
+        this._transformerManager?.reset();
+    });
     child.on("click", () => this._transformerManager?.select(child));
 
-    if (options.selectAfterCreation) this._transformerManager?.select(child);
     this._parentContainer.addChild(child);
+
+    if (options.selectAfterCreation) {
+      if (child instanceof ImageElement) {
+        child.onDrawComplete(() => {
+          this._transformerManager?.select(child);
+        });
+      } else {
+        this._transformerManager?.select(child);
+      }
+    }
 
     return child;
   }
@@ -293,7 +305,7 @@ export class StageManager {
       target: this._parentContainer,
       filename: "book.png",
       resolution: 0.4,
-      frame: new Rectangle(-5000, -5000, 10000, 10000),
+      frame: new Rectangle(-5000, -5500, 18000, 18000),
     });
   }
 }
