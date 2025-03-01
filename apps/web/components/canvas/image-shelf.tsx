@@ -7,7 +7,7 @@ import {
   UploadIcon,
 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useSettings } from "./settings";
 
 interface ImageShelfProps {
   images: (typeof ImageReturnSchema.static)[];
@@ -22,7 +22,7 @@ export const ImageShelf = ({
   onImageUpload,
   className,
 }: ImageShelfProps) => {
-  const [isPinned, setIsPinned] = useState(false);
+  const { imageShelfPinned: isPinned, setImageShelfPinned } = useSettings();
 
   return (
     <div
@@ -61,7 +61,9 @@ export const ImageShelf = ({
               />
             </label>
             <button
-              onClick={() => setIsPinned(!isPinned)}
+              onClick={() => {
+                setImageShelfPinned(!isPinned);
+              }}
               className={`p-1.5 rounded-md hover:bg-accent ${
                 isPinned ? "text-primary bg-accent/50" : "text-card-foreground"
               }`}

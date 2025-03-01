@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from "react";
 type Theme = "light" | "dark";
 
 interface ThemeColors {
@@ -8,6 +9,7 @@ interface ThemeColors {
 export class Settings {
   private static _instance: Settings;
   private _currentTheme: Theme = "dark";
+  private _imageShelfPinned: boolean = false;
 
   private _themeColors: Record<"light" | "dark", ThemeColors> = {
     light: {
@@ -21,11 +23,16 @@ export class Settings {
   };
 
   private constructor() {
+    if (typeof window === "undefined") return;
+
     const savedTheme = localStorage.getItem("theme") as
       | "light"
       | "dark"
       | "system"
       | undefined;
+
+    this._imageShelfPinned =
+      localStorage.getItem("image_shelf_pinned") === "true";
 
     if (savedTheme === "system") {
       if (
@@ -83,6 +90,15 @@ export class Settings {
     window.location.reload();
   }
 
+  public get imageShelfPinned(): boolean {
+    return this._imageShelfPinned;
+  }
+
+  public set imageShelfPinned(pinned: boolean) {
+    this._imageShelfPinned = pinned;
+    localStorage.setItem("image_shelf_pinned", pinned.toString());
+  }
+
   public get gridColor(): number {
     return this._themeColors[this._currentTheme].gridColor;
   }
@@ -90,4 +106,59 @@ export class Settings {
   public get backgroundColor(): number {
     return this._themeColors[this._currentTheme].backgroundColor;
   }
+}
+
+export function useSettings() {
+  const [settings, setSettings] = useState<Settings | null>(null);
+  const [imageShelfPinned, setImageShelfPinnedState] = useState(false);
+
+  useEffect(() => {
+    const settingsInstance = Settings.getInstance();
+    setSettings(settingsInstance);
+    setImageShelfPinnedState(settingsInstance.imageShelfPinned);
+  }, []);
+
+  const setImageShelfPinned = useCallback(
+    (pinned: boolean) => {
+      if (settings) {
+        settings.imageShelfPinned = pinned;
+        setImageShelfPinnedState(pinned);
+      }
+    },
+    [settings],
+  );
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "image_shelf_pinned") {
+        const newPinnedValue = e.newValue === "true";
+        if (newPinnedValue !== imageShelfPinned) {
+          setImageShelfPinnedState(newPinnedValue);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [imageShelfPinned]);
+
+  const theme = settings?.getTheme() || "dark";
+
+  const setTheme = useCallback(
+    (newTheme: "light" | "dark") => {
+      settings?.setTheme(newTheme);
+    },
+    [settings],
+  );
+
+  return {
+    imageShelfPinned,
+    setImageShelfPinned,
+    theme,
+    setTheme,
+    backgroundColor: settings?.backgroundColor || 0x1a1a1a,
+    gridColor: settings?.gridColor || 0xaaaaaa,
+  };
 }

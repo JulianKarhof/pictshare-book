@@ -108,7 +108,13 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
         onImageUpload={handleFiles}
       />
 
-      <Dropzone onDrop={handleFiles} noKeyboard noClick>
+      <Dropzone
+        onDrop={handleFiles}
+        maxFiles={10}
+        maxSize={1024 * 1024 * 20}
+        noKeyboard
+        noClick
+      >
         {({ getRootProps, isDragActive }) => (
           <div {...getRootProps()} className="relative">
             <div ref={ref} />

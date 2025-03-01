@@ -41,11 +41,14 @@ export class ImageElement extends DisplayElement {
     super(params);
 
     const asset = AssetManager.getInstance().getAsset(params.assetId);
+    const baseImageSize = 1200;
 
     this._src = asset?.src;
     this._assetId = params.assetId;
-    this._targetWidth = params.width ?? 600;
-    this._targetHeight = params.height ?? 600;
+    this._targetWidth = params.width ?? baseImageSize;
+    this._targetHeight = params.height ?? baseImageSize;
+    this._width = params.width ?? baseImageSize;
+    this._height = params.height ?? baseImageSize;
     this._keepAspectRatio = params.keepAspectRatio ?? true;
 
     this.draw();
