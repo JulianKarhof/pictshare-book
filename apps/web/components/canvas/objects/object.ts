@@ -34,8 +34,8 @@ export abstract class DisplayElement extends Container {
     this.position.set(params.x ?? 0, params.y ?? 0);
     this.rotation = params.angle ?? 0;
 
-    this._width = params.width ?? 400;
-    this._height = params.height ?? 400;
+    this._width = params.width ?? 800;
+    this._height = params.height ?? 800;
 
     this.scale.set(params.scaleX ?? 1, params.scaleY ?? 1);
 

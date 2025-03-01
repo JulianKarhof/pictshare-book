@@ -116,7 +116,7 @@ const imageRoute = new Elysia()
       }),
       body: t.Object({
         files: t.Files({
-          maxSize: 1024 * 1024 * 5,
+          maxSize: 1024 * 1024 * 20,
           maxFiles: 10,
         }),
       }),
