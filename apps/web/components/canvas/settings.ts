@@ -8,7 +8,7 @@ interface ThemeColors {
 
 export class Settings {
   private static _instance: Settings;
-  private _currentTheme: Theme = "dark";
+  private _currentTheme: Theme = "light";
   private _imageShelfPinned: boolean = false;
 
   private _themeColors: Record<"light" | "dark", ThemeColors> = {
@@ -144,7 +144,7 @@ export function useSettings() {
     };
   }, [imageShelfPinned]);
 
-  const theme = settings?.getTheme() || "dark";
+  const theme = settings?.getTheme() || "light";
 
   const setTheme = useCallback(
     (newTheme: "light" | "dark") => {

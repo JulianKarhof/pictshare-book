@@ -78,7 +78,7 @@ test.describe("Canvas", () => {
     const request = page.waitForRequest((request) => {
       const isPost = request.method() === "POST";
       const isElementsUrl = request.url().includes("/elements");
-      const isSquare = request.postDataJSON()?.shapeType === "RECTANGLE";
+      const isSquare = request.postDataJSON()?.type === "RECTANGLE";
 
       return isPost && isElementsUrl && isSquare;
     });
@@ -87,7 +87,7 @@ test.describe("Canvas", () => {
       clip: centerClip,
     });
 
-    await page.click("text=Square");
+    await page.getByTestId("add-square").click();
     await request;
     await page.waitForTimeout(100);
 
@@ -105,7 +105,7 @@ test.describe("Canvas", () => {
     const request = page.waitForRequest((request) => {
       const isPost = request.method() === "POST";
       const isElementsUrl = request.url().includes("/elements");
-      const isSquare = request.postDataJSON()?.shapeType === "CIRCLE";
+      const isSquare = request.postDataJSON()?.type === "CIRCLE";
 
       return isPost && isElementsUrl && isSquare;
     });
@@ -114,7 +114,7 @@ test.describe("Canvas", () => {
       clip: centerClip,
     });
 
-    await page.click("text=Circle");
+    await page.getByTestId("add-circle").click();
     await request;
     await page.waitForTimeout(100);
 

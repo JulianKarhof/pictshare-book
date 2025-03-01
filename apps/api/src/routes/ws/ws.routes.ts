@@ -1,8 +1,8 @@
 import { auth } from "@api/auth";
 import { log } from "@api/logger";
 import { Role } from "@prisma/client";
+import { ElementService } from "@routes/element/element.service";
 import { Elysia, t } from "elysia";
-import { ElementService } from "../element/element.service";
 import { WebSocketEventSchema } from "./ws.schema";
 
 const websocketRoute = new Elysia()

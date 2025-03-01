@@ -67,7 +67,7 @@ export class RectangleElement extends DisplayElement {
       });
     }
 
-    if (this._fill) graphics.fill(this._fill);
+    if (this._fill !== null) graphics.fill(this._fill);
 
     this.addChild(graphics);
   }
