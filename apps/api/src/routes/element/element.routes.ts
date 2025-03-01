@@ -7,6 +7,7 @@ import {
   CommonSuccessMessageSchema,
 } from "@api/schemas";
 import { Role } from "@prisma/client";
+import { ElementService } from "@routes/element/element.service";
 import { Elysia, t } from "elysia";
 import {
   ElementCreateSchema,
@@ -14,7 +15,6 @@ import {
   ElementUpdateSchema,
   ElementUpsertSchema,
 } from "./element.schema";
-import { ElementService } from "./element.service";
 import {
   createPrismaData,
   createUpdateData,

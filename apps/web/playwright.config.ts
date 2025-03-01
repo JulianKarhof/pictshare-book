@@ -26,6 +26,7 @@ export default defineConfig({
   expect: {
     toHaveScreenshot: {
       maxDiffPixels: 100,
+      stylePath: "./tests/hide-ui.css",
     },
   },
   use: {
@@ -41,7 +42,7 @@ export default defineConfig({
       reuseExistingServer: !isCI,
       stdout: "pipe",
       env: {
-        NODE_ENV: "test",
+        NEXT_PUBLIC_IS_TEST: "true",
         PORT: "3001",
         NEXT_PUBLIC_BACKEND_URL: "http://localhost:4001",
       },
@@ -61,6 +62,8 @@ export default defineConfig({
         FRONTEND_URL: "http://localhost:3001",
         BETTER_AUTH_SECRET: "test",
         BETTER_AUTH_URL: "http://localhost:4001/auth",
+        S3_ENDPOINT: "http://localhost:9000",
+        S3_BUCKET_NAME: "test",
       },
     },
   ],

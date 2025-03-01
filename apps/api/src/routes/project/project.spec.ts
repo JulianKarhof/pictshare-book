@@ -1,15 +1,15 @@
 import { describe, expect, it, mock } from "bun:test";
-import { authMocks } from "@mocks/auth";
-import { prismaMocks } from "@mocks/prisma";
+import { AuthMock } from "@mocks/auth";
+import { PrismaMock } from "@mocks/prisma";
 import projectRoute from "@routes/project/project.routes";
 import { Elysia } from "elysia";
 
 mock.module("@api/auth", () => ({
-  auth: authMocks,
+  auth: AuthMock,
 }));
 
 mock.module("@api/prisma", () => ({
-  default: prismaMocks,
+  default: PrismaMock,
 }));
 
 describe("Project Routes", () => {
@@ -22,7 +22,7 @@ describe("Project Routes", () => {
 
     expect(Array.isArray(response)).toBe(true);
     expect(response).toHaveLength(2);
-    expect(prismaMocks.project.findMany).toHaveBeenCalled();
+    expect(PrismaMock.project.findMany).toHaveBeenCalled();
     expect(response[0]).toHaveProperty("id", "project-1");
   });
 
@@ -33,12 +33,16 @@ describe("Project Routes", () => {
 
     expect(response).toHaveProperty("id", "project-1");
     expect(response).toHaveProperty("name", "Test Project 1");
-    expect(prismaMocks.project.findUnique).toHaveBeenCalledWith({
+    expect(PrismaMock.project.findUnique).toHaveBeenCalledWith({
       where: { id: "project-1" },
       include: {
         elements: {
           include: {
-            image: true,
+            image: {
+              include: {
+                asset: true,
+              },
+            },
             text: true,
             shape: true,
           },
@@ -53,7 +57,7 @@ describe("Project Routes", () => {
       .then((res) => res.json());
 
     expect(response).toHaveProperty("message", "Project not found");
-    expect(prismaMocks.project.findUnique).toHaveBeenCalled();
+    expect(PrismaMock.project.findUnique).toHaveBeenCalled();
   });
 
   it("should create a new project", async () => {
@@ -71,7 +75,7 @@ describe("Project Routes", () => {
 
     expect(response).toHaveProperty("id", "new-project-id");
     expect(response).toHaveProperty("name", "New Project");
-    expect(prismaMocks.project.create).toHaveBeenCalledWith({
+    expect(PrismaMock.project.create).toHaveBeenCalledWith({
       data: {
         name: "New Project",
         members: {
@@ -97,7 +101,7 @@ describe("Project Routes", () => {
       .then((res) => res.json());
 
     expect(response).toHaveProperty("message", "success");
-    expect(prismaMocks.project.delete).toHaveBeenCalledWith({
+    expect(PrismaMock.project.delete).toHaveBeenCalledWith({
       where: { id: "project-1", members: { some: { userId: "user-1" } } },
     });
   });

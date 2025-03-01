@@ -10,9 +10,9 @@ import {
   CommonSuccessMessageSchema,
 } from "@api/schemas";
 import { Role } from "@prisma/client";
+import { ElementService } from "@routes/element/element.service";
 import { Elysia, t } from "elysia";
-import imageSize from "image-size";
-import { ElementService } from "../element/element.service";
+import { imageSize } from "image-size";
 import { ImageDeleteSchema, ImageReturnSchema } from "./image.schema";
 
 const endpoint = env.S3_ENDPOINT;

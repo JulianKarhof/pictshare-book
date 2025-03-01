@@ -27,7 +27,7 @@ export const Toolbar = ({
   className,
 }: ToolbarProps) => {
   return (
-    <div className={` ${className}`}>
+    <div id="toolbar" className={` ${className}`}>
       <Link
         href={"/"}
         className="bg-card/80 backdrop-blur-sm rounded-full border border-border p-2 mb-1 flex items-center justify-center h-14 w-14 group relative overflow-hidden"
@@ -47,12 +47,14 @@ export const Toolbar = ({
           icon={Square}
           onClick={() => onAddShape("square")}
           title="Add Square"
+          data-testid="add-square"
         />
 
         <ToolbarButton
           icon={Circle}
           onClick={() => onAddShape("circle")}
           title="Add Circle"
+          data-testid="add-circle"
         />
 
         <ToolbarButton icon={Upload} title="Upload Image" asChild>
@@ -60,6 +62,7 @@ export const Toolbar = ({
             type="file"
             className="hidden"
             accept="image/*"
+            data-testid="upload-input"
             multiple
             onChange={(e) => {
               const files = Array.from(e.target.files || []);
@@ -72,8 +75,14 @@ export const Toolbar = ({
           />
         </ToolbarButton>
 
-        <ToolbarButton icon={Download} onClick={onDownload} title="Download" />
+        <ToolbarButton
+          icon={Download}
+          onClick={onDownload}
+          title="Download"
+          data-testid="download"
+        />
         <ModeToggle
+          data-testid="mode-toggle"
           trigger={
             <button
               className="bg-secondary/80 backdrop-blur-sm hover:bg-secondary/60 text-secondary-foreground p-2 rounded-full border border-border relative"
@@ -108,6 +117,7 @@ export const ToolbarButton = ({
   className,
   asChild,
   children,
+  ...rest
 }: ToolbarButtonProps) => {
   const baseClassName =
     "bg-secondary/80 backdrop-blur-sm hover:bg-secondary/60 text-secondary-foreground p-2 rounded-full border border-border";
@@ -129,6 +139,7 @@ export const ToolbarButton = ({
       className={`${baseClassName} ${className || ""}`}
       onClick={onClick}
       title={title}
+      {...rest}
     >
       <Icon className="h-5 w-5" />
     </button>

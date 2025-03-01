@@ -195,11 +195,18 @@ export class StageManager {
       element.position.set(center.x, center.y);
     }
 
+    const isTest = process.env.NEXT_PUBLIC_IS_TEST === "true";
     const colorScheme = [0x640d5f, 0xd91656, 0xeb5b00, 0xffb200];
-    if (element instanceof CircleElement || element instanceof RectangleElement)
+    if (
+      element instanceof CircleElement ||
+      element instanceof RectangleElement
+    ) {
       element.setFill(
-        colorScheme[Math.floor(Math.random() * colorScheme.length)],
+        isTest
+          ? 0x000000
+          : colorScheme[Math.floor(Math.random() * colorScheme.length)],
       );
+    }
 
     this._addInteractiveChild(element);
 

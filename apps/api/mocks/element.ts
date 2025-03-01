@@ -1,4 +1,5 @@
 import { ElementType } from "@prisma/client";
+import { mockImageAssets } from "./image";
 import { mockDate } from "./misc";
 
 export const mockElements = [
@@ -18,8 +19,9 @@ export const mockElements = [
     zIndex: 0,
     image: {
       id: "image-1",
-      url: "https://example.com/image.jpg",
       elementId: "image-element",
+      asset: mockImageAssets[0],
+      assetId: mockImageAssets[0].id,
     },
     text: null,
     shape: null,

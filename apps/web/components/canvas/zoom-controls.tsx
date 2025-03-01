@@ -15,6 +15,7 @@ export const ZoomControls = ({
 }: ZoomControlsProps) => {
   return (
     <div
+      id="zoom-controls"
       className={`flex items-center gap-2 bg-card/80 backdrop-blur-sm rounded-lg border border-border p-2 ${className}`}
     >
       <button

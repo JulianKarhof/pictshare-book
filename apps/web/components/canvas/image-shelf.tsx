@@ -26,6 +26,7 @@ export const ImageShelf = ({
 
   return (
     <div
+      id="image-shelf"
       className={`w-96 h-[60vh] bg-card/80 backdrop-blur-sm shadow-lg transform transition-transform duration-300 ease-in-out ${
         isPinned
           ? "translate-y-[6px]"

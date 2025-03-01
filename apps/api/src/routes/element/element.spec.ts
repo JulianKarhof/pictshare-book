@@ -1,16 +1,17 @@
 import { describe, expect, it, mock } from "bun:test";
-import { authMocks } from "@mocks/auth";
-import { prismaMocks } from "@mocks/prisma";
-import { ElementType } from "@prisma/client";
+import { AuthMock } from "@mocks/auth";
+import { PrismaMock } from "@mocks/prisma";
+import { ElementType, Role } from "@prisma/client";
 import { Elysia } from "elysia";
 import elementRoute from "./element.routes";
+import { ElementService } from "./element.service";
 
 mock.module("@api/auth", () => ({
-  auth: authMocks,
+  auth: AuthMock,
 }));
 
 mock.module("@api/prisma", () => ({
-  default: prismaMocks,
+  default: PrismaMock,
 }));
 
 describe("Element Routes", () => {
@@ -24,7 +25,6 @@ describe("Element Routes", () => {
 
       expect(response).toHaveProperty("id", "image-element");
       expect(response).toHaveProperty("type", ElementType.IMAGE);
-      expect(response).toHaveProperty("url", "https://example.com/image.jpg");
     });
 
     it("should return 404 for non-existent element", async () => {
@@ -42,10 +42,10 @@ describe("Element Routes", () => {
       .then((res) => res.json());
 
     expect(Array.isArray(res)).toBe(true);
-    expect(prismaMocks.element.findMany).toHaveBeenCalledWith({
+    expect(PrismaMock.element.findMany).toHaveBeenCalledWith({
       where: { projectId: "project-1" },
       include: {
-        image: true,
+        image: { include: { asset: true } },
         text: true,
         shape: true,
       },
@@ -68,7 +68,7 @@ describe("Element Routes", () => {
         angle: 0,
         zIndex: 0,
         projectId: "test-project-1",
-        url: "https://example.com/new-image.jpg",
+        assetId: "image-asset-1",
       };
 
       const response = await app
@@ -82,10 +82,6 @@ describe("Element Routes", () => {
         .then((res) => res.json());
 
       expect(response).toHaveProperty("id", "new-element-id");
-      expect(response).toHaveProperty(
-        "url",
-        "https://example.com/new-image.jpg",
-      );
       expect(response).toMatchObject({
         type: ElementType.IMAGE,
         x: 100,
@@ -145,7 +141,6 @@ describe("Element Routes", () => {
         scaleY: 2,
         angle: 0.5,
         zIndex: 10,
-        url: "https://example.com/updated-image.jpg",
       };
 
       const response = await app
@@ -206,5 +201,26 @@ describe("Element Routes", () => {
 
       expect(response).toHaveProperty("message", "Element not found");
     });
+  });
+});
+
+describe("ElementService", () => {
+  it("hasProjectAccess should return role when user has access", async () => {
+    const projectId = "project-1";
+    const userId = "user-1";
+    const expectedRole = Role.OWNER;
+
+    const result = await ElementService.hasProjectAccess(projectId, userId);
+
+    expect(result).toBe(expectedRole);
+  });
+
+  it("hasProjectAccess should return null when user has no access", async () => {
+    const projectId = "project-1";
+    const userId = "non-existent-user";
+
+    const result = await ElementService.hasProjectAccess(projectId, userId);
+
+    expect(result).toBeNull();
   });
 });

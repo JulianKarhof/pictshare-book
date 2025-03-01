@@ -44,7 +44,7 @@ export class CircleElement extends DisplayElement {
     const radius = Math.min(this._width, this._height) / 2;
 
     graphics.circle(0, 0, radius);
-    if (this._fill) graphics.fill(this._fill);
+    if (this._fill !== null) graphics.fill(this._fill);
 
     this.addChild(graphics);
   }

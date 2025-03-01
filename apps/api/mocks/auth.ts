@@ -1,7 +1,7 @@
 import { mock } from "bun:test";
 import { mockUsers } from "./user";
 
-export const authMocks = {
+export const AuthMock = {
   api: {
     getSession: mock(() => {
       return {
