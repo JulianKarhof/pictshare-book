@@ -4,21 +4,11 @@ import {
 } from "@api/routes/element/element.schema";
 import { Assets, Sprite, Texture } from "pixi.js";
 import { AssetManager } from "../managers/asset-manager";
-import {
-  DisplayElement,
-  DisplayElementJSON,
-  DisplayElementParams,
-  ElementFactory,
-} from "./object";
+import { DisplayElement, DisplayElementParams, ElementFactory } from "./object";
 
 export interface ImageElementParams extends DisplayElementParams {
   width?: number;
   height?: number;
-  assetId: string;
-  keepAspectRatio?: boolean;
-}
-
-export interface ImageElementJSON extends DisplayElementJSON {
   assetId: string;
   keepAspectRatio?: boolean;
 }

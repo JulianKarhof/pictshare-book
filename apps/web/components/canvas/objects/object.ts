@@ -20,7 +20,6 @@ export interface DisplayElementJSON extends Required<DisplayElementParams> {
 
 export abstract class DisplayElement extends Container {
   protected id: string;
-  protected isVisible: boolean;
   protected _width: number;
   protected _height: number;
   protected abstract readonly elementType: ElementType;
@@ -29,7 +28,6 @@ export abstract class DisplayElement extends Container {
     super();
 
     this.id = params.id || crypto.randomUUID();
-    this.isVisible = true; // TODO
 
     this.position.set(params.x ?? 0, params.y ?? 0);
     this.rotation = params.angle ?? 0;
@@ -39,9 +37,7 @@ export abstract class DisplayElement extends Container {
 
     this.scale.set(params.scaleX ?? 1, params.scaleY ?? 1);
 
-    this.alpha = 1; // TODO
     this.zIndex = params.zIndex ?? 0;
-    this.visible = this.isVisible;
 
     this.sortableChildren = true;
     this.interactive = true;
@@ -101,6 +97,34 @@ export abstract class DisplayElement extends Container {
       this.redraw();
     }
 
+    return this;
+  }
+
+  /**
+   * Sets the width of this element (the graphic not the container)
+   */
+  public setWidth(width: number): this {
+    this._width = width;
+    this.redraw();
+    return this;
+  }
+
+  /**
+   * Sets the height of this element (the graphic not the container)
+   */
+  public setHeight(height: number): this {
+    this._height = height;
+    this.redraw();
+    return this;
+  }
+
+  /**
+   * Resizes this element (the graphic not the container)
+   */
+  public resize(width: number, height: number): this {
+    this._width = width;
+    this._height = height;
+    this.redraw();
     return this;
   }
 

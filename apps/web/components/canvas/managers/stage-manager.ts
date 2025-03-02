@@ -7,16 +7,15 @@ import {
   ViewportManager,
 } from "@web/components/canvas/managers";
 import {
-  CircleElement,
   DisplayElement,
   ElementFactory,
   ImageElement,
-  RectangleElement,
 } from "@web/components/canvas/objects";
 import { Settings } from "@web/components/canvas/settings";
 import { client } from "@web/lib/client";
 import { StageService } from "@web/services/stage.service";
 import { Application, Assets, Container, Rectangle } from "pixi.js";
+import { ShapeElement } from "../objects/shape";
 
 interface InteractiveChildOptions {
   selectAfterCreation?: boolean;
@@ -197,15 +196,12 @@ export class StageManager {
 
     const isTest = process.env.NEXT_PUBLIC_IS_TEST === "true";
     const colorScheme = [0x640d5f, 0xd91656, 0xeb5b00, 0xffb200];
-    if (
-      element instanceof CircleElement ||
-      element instanceof RectangleElement
-    ) {
-      element.setFill(
-        isTest
+    if (element instanceof ShapeElement) {
+      element.setFill({
+        color: isTest
           ? 0x000000
           : colorScheme[Math.floor(Math.random() * colorScheme.length)],
-      );
+      });
     }
 
     this._addInteractiveChild(element);
