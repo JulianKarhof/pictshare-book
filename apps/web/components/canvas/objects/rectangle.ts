@@ -1,45 +1,21 @@
 import { ElementType } from "@api/routes/element/element.schema";
 import { RectangleElementSchema } from "@api/routes/element/element.schema";
-import {
-  DisplayElement,
-  DisplayElementJSON,
-  DisplayElementParams,
-  ElementFactory,
-} from "./object";
+import { ElementFactory } from "./object";
+import { ShapeElement, ShapeElementParams } from "./shape";
 
-export interface RectangleElementParams extends DisplayElementParams {
-  width?: number;
-  height?: number;
-  stroke?: number | null;
-  strokeWidth?: number | null;
+export interface RectangleElementParams extends ShapeElementParams {
   cornerRadius?: number | null;
-  fill?: number | null;
 }
 
-export interface RectangleElementJSON extends DisplayElementJSON {
-  width: number;
-  height: number;
-  stroke?: number | null;
-  strokeWidth?: number | null;
-  cornerRadius?: number;
-  fill: number | null;
-}
-
-export class RectangleElement extends DisplayElement {
+export class RectangleElement extends ShapeElement {
   protected readonly elementType = ElementType.RECTANGLE;
 
-  private _stroke: number | null;
-  private _strokeWidth: number | null;
   private _cornerRadius: number;
-  private _fill: number | null;
 
   public constructor(params: RectangleElementParams = {}) {
     super(params);
 
-    this._stroke = params.stroke ?? null;
-    this._strokeWidth = params.strokeWidth ?? null;
     this._cornerRadius = params.cornerRadius ?? 0;
-    this._fill = params.fill ?? null;
 
     this.draw();
   }
@@ -56,70 +32,16 @@ export class RectangleElement extends DisplayElement {
       graphics.rect(x, y, this._width, this._height);
     }
 
-    if (
-      this._stroke !== null &&
-      this._strokeWidth !== null &&
-      this._strokeWidth > 0
-    ) {
+    if (this.strokeWidth !== null && this.strokeWidth > 0) {
       graphics.setStrokeStyle({
-        width: this._strokeWidth,
-        color: this._stroke,
+        width: this.strokeWidth,
+        color: this.strokeColor,
       });
     }
 
-    if (this._fill !== null) graphics.fill(this._fill);
+    if (this.fillColor !== null) graphics.fill(this.fillColor);
 
     this.addChild(graphics);
-  }
-
-  public setWidth(width: number): this {
-    this._width = width;
-    this.redraw();
-    return this;
-  }
-
-  public getWidth(): number {
-    return this._width;
-  }
-
-  public setHeight(height: number): this {
-    this._height = height;
-    this.redraw();
-    return this;
-  }
-
-  public getHeight(): number {
-    return this._height;
-  }
-
-  public setFill(color: number | null): this {
-    this._fill = color;
-    this.redraw();
-    return this;
-  }
-
-  public getFill(): number | null {
-    return this._fill;
-  }
-
-  public setStroke(color: number | null): this {
-    this._stroke = color;
-    this.redraw();
-    return this;
-  }
-
-  public getStroke(): number | null {
-    return this._stroke;
-  }
-
-  public setStrokeWidth(width: number | null): this {
-    this._strokeWidth = width;
-    this.redraw();
-    return this;
-  }
-
-  public getStrokeWidth(): number | null {
-    return this._strokeWidth;
   }
 
   public setCornerRadius(radius: number): this {
@@ -128,27 +50,11 @@ export class RectangleElement extends DisplayElement {
     return this;
   }
 
-  public getCornerRadius(): number {
-    return this._cornerRadius;
-  }
-
-  public resize(width: number, height: number): this {
-    this._width = width;
-    this._height = height;
-    this.redraw();
-    return this;
-  }
-
   public override toJSON(): typeof RectangleElementSchema.static {
     return {
       ...super.baseToJSON(),
       type: this.elementType,
-      width: this._width,
-      height: this._height,
-      stroke: this._stroke,
-      strokeWidth: this._strokeWidth,
       cornerRadius: this._cornerRadius,
-      fill: this._fill,
     };
   }
 

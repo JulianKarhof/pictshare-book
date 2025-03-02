@@ -2,27 +2,16 @@ import {
   CircleElementSchema,
   ElementType,
 } from "@api/routes/element/element.schema";
-import { DisplayElement, DisplayElementParams, ElementFactory } from "./object";
+import { ElementFactory } from "./object";
+import { ShapeElement, ShapeElementParams } from "./shape";
 
-export interface CircleElementParams extends DisplayElementParams {
-  fill?: number | null;
-  stroke?: number | null;
-  strokeWidth?: number | null;
-}
+export interface CircleElementParams extends ShapeElementParams {}
 
-export class CircleElement extends DisplayElement {
+export class CircleElement extends ShapeElement {
   protected readonly elementType = ElementType.CIRCLE;
-
-  private _fill: number | null;
-  private _stroke: number | null;
-  private _strokeWidth: number | null;
 
   public constructor(params: CircleElementParams = {}) {
     super(params);
-
-    this._fill = params.fill ?? null;
-    this._stroke = params.stroke ?? null;
-    this._strokeWidth = params.strokeWidth ?? null;
 
     this.draw();
   }
@@ -31,66 +20,28 @@ export class CircleElement extends DisplayElement {
     const graphics = this.createGraphics();
 
     if (
-      this._stroke !== null &&
-      this._strokeWidth !== null &&
-      this._strokeWidth > 0
+      this.strokeColor !== null &&
+      this.strokeWidth !== null &&
+      this.strokeWidth > 0
     ) {
       graphics.setStrokeStyle({
-        width: this._strokeWidth,
-        color: this._stroke,
+        width: this.strokeWidth,
+        color: this.strokeColor,
       });
     }
 
     const radius = Math.min(this._width, this._height) / 2;
 
     graphics.circle(0, 0, radius);
-    if (this._fill !== null) graphics.fill(this._fill);
+    if (this.fillColor !== null) graphics.fill(this.fillColor);
 
     this.addChild(graphics);
-  }
-
-  public setStroke(color: number | null): this {
-    this._stroke = color;
-    this.redraw();
-    return this;
-  }
-
-  public setFill(color: number | null): this {
-    this._fill = color;
-    this.redraw();
-    return this;
-  }
-
-  public getStroke(): number | null {
-    return this._stroke;
-  }
-
-  public setStrokeWidth(width: number | null): this {
-    this._strokeWidth = width;
-    this.redraw();
-    return this;
-  }
-
-  public getStrokeWidth(): number | null {
-    return this._strokeWidth;
-  }
-
-  public resize(width: number, height: number): this {
-    this._width = width;
-    this._height = height;
-    this.redraw();
-    return this;
   }
 
   public override toJSON(): typeof CircleElementSchema.static {
     return {
       ...super.baseToJSON(),
       type: this.elementType,
-      stroke: this._stroke,
-      strokeWidth: this._strokeWidth,
-      fill: this._fill,
-      width: this._width,
-      height: this._height,
     };
   }
 
@@ -107,6 +58,7 @@ export class CircleElement extends DisplayElement {
       zIndex: json.zIndex,
       width: json.width,
       height: json.height,
+      fill: json.fill,
       stroke: json.stroke,
       strokeWidth: json.strokeWidth,
     });
