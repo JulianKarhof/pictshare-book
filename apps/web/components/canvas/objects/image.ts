@@ -7,8 +7,6 @@ import { AssetManager } from "../managers/asset-manager";
 import { DisplayElement, DisplayElementParams, ElementFactory } from "./object";
 
 export interface ImageElementParams extends DisplayElementParams {
-  width?: number;
-  height?: number;
   assetId: string;
   keepAspectRatio?: boolean;
 }
@@ -37,8 +35,6 @@ export class ImageElement extends DisplayElement {
     this._assetId = params.assetId;
     this._targetWidth = params.width ?? baseImageSize;
     this._targetHeight = params.height ?? baseImageSize;
-    this._width = params.width ?? baseImageSize;
-    this._height = params.height ?? baseImageSize;
     this._keepAspectRatio = params.keepAspectRatio ?? true;
 
     this.draw();
@@ -175,7 +171,7 @@ export class ImageElement extends DisplayElement {
     return {
       ...baseJson,
       type: this.elementType,
-      assetId: this._assetId ?? "",
+      assetId: this._assetId,
     };
   }
 
