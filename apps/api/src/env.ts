@@ -13,4 +13,5 @@ export default {
   GOOGLE_CLIENT_SECRET: getRequiredEnvVar("GOOGLE_CLIENT_SECRET"),
   S3_ENDPOINT: getRequiredEnvVar("S3_ENDPOINT"),
   S3_BUCKET_NAME: getRequiredEnvVar("S3_BUCKET_NAME"),
+  S3_ACCESS_STYLE: process.env.S3_ACCESS_STYLE || "path",
 } as const;

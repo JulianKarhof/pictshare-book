@@ -17,6 +17,14 @@ import { ImageDeleteSchema, ImageReturnSchema } from "./image.schema";
 
 const endpoint = env.S3_ENDPOINT;
 const bucket = env.S3_BUCKET_NAME;
+const accessStyle = env.S3_ACCESS_STYLE;
+
+const constructImageUrl = (key: string) => {
+  const cleanEndpoint = endpoint.replace(/^https?:\/\//, "");
+  return accessStyle === "virtual"
+    ? `${endpoint.startsWith("https") ? "https" : "http"}://${bucket}.${cleanEndpoint}/${key}`
+    : `${endpoint}/${bucket}/${key}`;
+};
 
 const imageRoute = new Elysia()
   .use(authMacro)
@@ -30,7 +38,7 @@ const imageRoute = new Elysia()
 
       const imageAssets = images.map((image) => ({
         ...image,
-        src: `${endpoint}/${bucket}/${image.key}`,
+        src: constructImageUrl(image.key),
       }));
 
       return imageAssets;
@@ -99,7 +107,7 @@ const imageRoute = new Elysia()
 
           uploadedImages.push({
             ...imageAsset,
-            src: `${endpoint}/${bucket}/${imageAsset.key}`,
+            src: constructImageUrl(imageAsset.key),
           });
         }
 
