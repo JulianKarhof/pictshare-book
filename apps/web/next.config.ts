@@ -13,12 +13,14 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "**.pict.sh",
-        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "**.fly.storage.tigris.dev",
       },
       {
         protocol: "http",
         hostname: "localhost",
-        pathname: "/**",
       },
     ],
   },
