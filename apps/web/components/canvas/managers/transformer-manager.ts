@@ -3,6 +3,7 @@ import { StageService } from "@web/services/stage.service";
 import { Viewport } from "pixi-viewport";
 import { Application, FederatedPointerEvent, Graphics } from "pixi.js";
 import { DisplayElement, ImageElement } from "../objects";
+import { TextElement } from "../objects/text";
 
 export class TransformerManager {
   private _app: Application;
@@ -98,6 +99,7 @@ export class TransformerManager {
         )
         .stroke({ color: 0x3c82f6, width: lineSize, alignment: 0 });
 
+      if (this._target instanceof TextElement && this._target.isEditing) return;
       this._signs.forEach((offset, index) => {
         this._handles[index]
           .rect(
@@ -114,20 +116,21 @@ export class TransformerManager {
     }
   }
 
-  private _onResizeMove(event: FederatedPointerEvent, index: number): void {
+  private _onResizeMove(event: PointerEvent, index: number): void {
     if (!this._isResizing || !this._target) return;
 
     const signX = this._signs[index].x;
     const signY = this._signs[index].y;
 
+    const canvas = this._app.canvas;
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
     const dx =
-      ((event.global.x - this._initialPointerPosition.x) /
-        this._viewport.scale.x) *
-      signX;
+      ((x - this._initialPointerPosition.x) / this._viewport.scale.x) * signX;
     const dy =
-      ((event.global.y - this._initialPointerPosition.y) /
-        this._viewport.scale.y) *
-      signY;
+      ((y - this._initialPointerPosition.y) / this._viewport.scale.y) * signY;
 
     let scaleX: number;
     let scaleY: number;
@@ -135,7 +138,9 @@ export class TransformerManager {
     let deltaHeight: number;
 
     const shouldKeepAspect =
-      this._target instanceof ImageElement && !this._ctrlPressed
+      (this._target instanceof ImageElement ||
+        this._target instanceof TextElement) &&
+      !this._ctrlPressed
         ? true
         : this._shiftPressed;
 
@@ -211,8 +216,7 @@ export class TransformerManager {
     };
     this._initialScale = { x: this._target.scale.x, y: this._target.scale.y };
 
-    const handleMove = (e: FederatedPointerEvent) =>
-      this._onResizeMove(e, index);
+    const handleMove = (e: PointerEvent) => this._onResizeMove(e, index);
 
     const handleEnd = () => {
       if (this._target) {
@@ -223,12 +227,15 @@ export class TransformerManager {
       this._app.stage.off("pointerup", handleEnd);
     };
 
-    this._app.stage.on("pointermove", handleMove);
-    this._app.stage.on("pointerup", handleEnd);
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleEnd);
   }
 
   public select(target: DisplayElement): void {
-    if (this._target !== target) this._target = target;
+    if (this._target?.getId() !== target.getId()) this._target = target;
+    if (this._target instanceof TextElement && this._target.isEditing) {
+      this._target.onInput(() => this.moveTransformer());
+    }
     this.moveTransformer();
   }
 
