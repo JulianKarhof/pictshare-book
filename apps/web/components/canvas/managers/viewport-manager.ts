@@ -129,7 +129,7 @@ export class ViewportManager {
 
     const texture = this._app.renderer.generateTexture({
       target: gridGraphics,
-      resolution: 2,
+      resolution: this._viewport.scale.x * 5,
     });
     texture.source.scaleMode = "nearest";
 
