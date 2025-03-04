@@ -16,6 +16,7 @@ import { client } from "@web/lib/client";
 import { StageService } from "@web/services/stage.service";
 import { Application, Assets, Container, Rectangle } from "pixi.js";
 import { ShapeElement } from "../objects/shape";
+import { TextElement } from "../objects/text";
 
 interface InteractiveChildOptions {
   selectAfterCreation?: boolean;
@@ -178,13 +179,20 @@ export class StageManager {
     this._app?.stage.on("drag-end", this.save.bind(this));
 
     window.addEventListener("keydown", this.handleKeyPress.bind(this));
+
+    document.addEventListener("wheel", this._preventWheelZoom.bind(this), {
+      passive: false,
+    });
   }
 
   public handleKeyPress(event: KeyboardEvent): void {
     if (event.key === "Backspace" || event.key === "Delete") {
       const target = this._transformerManager?.target;
-      if (target && target instanceof DisplayElement)
+
+      if (target && target instanceof DisplayElement) {
+        if (target instanceof TextElement && target.isEditing) return;
         this._removeElement(target);
+      }
     }
   }
 
@@ -209,6 +217,12 @@ export class StageManager {
     this._stageService.sendCreate(element.toJSON()).then((id) => {
       element.setId(id);
     });
+  }
+
+  private _preventWheelZoom(event: WheelEvent) {
+    if (event.ctrlKey || event.metaKey) {
+      event.preventDefault();
+    }
   }
 
   private _addInteractiveChild(

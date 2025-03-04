@@ -6,6 +6,7 @@ import Dropzone from "react-dropzone";
 import { ImageShelf } from "./image-shelf";
 import { useAssetManager } from "./managers/asset-manager";
 import { CircleElement, RectangleElement } from "./objects";
+import { TextElement } from "./objects/text";
 import { Toolbar } from "./toolbar";
 import { ZoomControls } from "./zoom-controls";
 
@@ -56,7 +57,7 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
     };
   }, []);
 
-  const handleAddShape = useCallback((type: "square" | "circle") => {
+  const handleAddShape = useCallback((type: "square" | "circle" | "text") => {
     if (!stageManagerRef.current) return;
 
     let element;
@@ -66,6 +67,9 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
         break;
       case "circle":
         element = new CircleElement();
+        break;
+      case "text":
+        element = new TextElement();
         break;
     }
 

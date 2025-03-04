@@ -7,6 +7,7 @@ import {
   Moon,
   Square,
   Sun,
+  Type,
   Upload,
 } from "lucide-react";
 import Image from "next/image";
@@ -14,7 +15,7 @@ import Link from "next/link";
 import { ReactNode } from "react";
 
 interface ToolbarProps {
-  onAddShape: (type: "square" | "circle") => void;
+  onAddShape: (type: "square" | "circle" | "text") => void;
   onImageUpload: (files: File[]) => void;
   onDownload: () => void;
   className?: string;
@@ -55,6 +56,13 @@ export const Toolbar = ({
           onClick={() => onAddShape("circle")}
           title="Add Circle"
           data-testid="add-circle"
+        />
+
+        <ToolbarButton
+          icon={Type}
+          onClick={() => onAddShape("text")}
+          title="Add Text"
+          data-testid="add-text"
         />
 
         <ToolbarButton icon={Upload} title="Upload Image" asChild>
