@@ -3,35 +3,38 @@ import { StageManager } from "@web/components/canvas/managers";
 import { StageService } from "@web/services/stage.service";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Dropzone from "react-dropzone";
+import { MemberModal } from "../blocks/auth/member-modal";
 import { ImageShelf } from "./image-shelf";
 import { useAssetManager } from "./managers/asset-manager";
 import { CircleElement, RectangleElement } from "./objects";
 import { TextElement } from "./objects/text";
+import { SettingsBar } from "./settings-bar";
 import { Toolbar } from "./toolbar";
 import { ZoomControls } from "./zoom-controls";
 
-const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
+const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [currentScale, setCurrentScale] = useState(0.2);
   const stageManagerRef = useRef<StageManager | null>(null);
+  const [userModalOpen, setUserModalOpen] = useState(false);
 
   const { uploadFiles, fetchImages, assets } = useAssetManager();
 
   useEffect(() => {
-    fetchImages(id).catch(console.error);
-  }, [fetchImages, id]);
+    fetchImages(projectId).catch(console.error);
+  }, [fetchImages, projectId]);
 
   useEffect(() => {
-    StageService.getInstance().init(id);
+    StageService.getInstance().init(projectId);
     return () => {
       StageService.getInstance().destroy();
     };
-  }, [id]);
+  }, [projectId]);
 
   useEffect(() => {
     const setup = async () => {
       const newStageManager = new StageManager({
-        canvasId: id,
+        canvasId: projectId,
         onScaleChange: setCurrentScale,
       });
       stageManagerRef.current = newStageManager;
@@ -79,20 +82,30 @@ const BookCanvas = ({ canvasId: id }: { canvasId: string }) => {
   const handleFiles = useCallback(
     async (files: File[]) => {
       try {
-        await uploadFiles(files, id);
+        await uploadFiles(files, projectId);
       } catch (error) {
         console.error("Failed to upload files:", error);
       }
     },
-    [uploadFiles, id],
+    [uploadFiles, projectId],
   );
 
   return (
-    <div className="flex flex-col justify-center items-center">
+    <div>
+      <MemberModal
+        projectId={projectId}
+        open={userModalOpen}
+        onOpenChange={(newState) => setUserModalOpen(newState)}
+      />
+
       <Toolbar
-        className="absolute left-4 top-4 z-50"
+        className="absolute z-50 top-4 left-4"
         onAddShape={handleAddShape}
-        onImageUpload={handleFiles}
+      />
+
+      <SettingsBar
+        className="absolute top-4 right-4 z-50"
+        onManageUsers={() => setUserModalOpen(true)}
         onDownload={() => stageManagerRef.current?.download()}
       />
 

@@ -13,3 +13,18 @@ export const ProjectSchema = t.Object({
 
 export const ProjectWithoutElementsSchema = t.Omit(ProjectSchema, ["elements"]);
 export const ProjectCreateSchema = t.Pick(ProjectSchema, ["name"]);
+
+export const MemberSchema = t.Object({
+  userId: t.String({
+    examples: ["cljk3d4g50000pb56j8qhm8nz"],
+  }),
+  projectId: t.String({
+    examples: ["cljk3d4g50000pb56j8qhm8nz"],
+  }),
+  email: t.String({
+    examples: ["user@example.com"],
+  }),
+  role: t.String({
+    examples: ["OWNER", "EDITOR", "VIEWER"],
+  }),
+});

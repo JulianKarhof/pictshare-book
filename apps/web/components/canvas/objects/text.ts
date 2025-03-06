@@ -96,7 +96,6 @@ export class TextElement extends DisplayElement {
       },
       paragraph: {
         margin: "0",
-        width: "100%",
         height: `${this._fontSize * 1.1}px`,
       },
     };
