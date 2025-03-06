@@ -50,9 +50,10 @@ export class ImageElement extends DisplayElement {
     try {
       const texture: Texture = await Assets.load(this._src);
 
-      texture.source.autoGenerateMipmaps = true;
-
       this._sprite = new Sprite(texture);
+
+      this._sprite.texture.source.autoGenerateMipmaps = true;
+      this._sprite.texture.source.style.maxAnisotropy = 16;
 
       this._originalWidth = texture.width;
       this._originalHeight = texture.height;
