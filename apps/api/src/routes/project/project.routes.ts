@@ -11,6 +11,7 @@ import { Elysia, t } from "elysia";
 import { ElementService } from "../element/element.service";
 import { flattenElement } from "../element/element.utils";
 import {
+  MemberCreateSchema,
   MemberSchema,
   ProjectCreateSchema,
   ProjectSchema,
@@ -210,10 +211,7 @@ const projectRoute = new Elysia()
     },
     {
       isAuth: true,
-      body: t.Object({
-        email: t.String({ format: "email" }),
-        role: t.Enum(Role),
-      }),
+      body: MemberCreateSchema,
       response: {
         200: MemberSchema,
         403: Common403ErrorSchema,

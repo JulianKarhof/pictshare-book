@@ -1,3 +1,4 @@
+import { Role } from "@prisma/client";
 import { ElementSchema } from "@routes/element/element.schema";
 import { t } from "elysia/type-system";
 
@@ -23,8 +24,9 @@ export const MemberSchema = t.Object({
   }),
   email: t.String({
     examples: ["user@example.com"],
+    format: "email",
   }),
-  role: t.String({
-    examples: ["OWNER", "EDITOR", "VIEWER"],
-  }),
+  role: t.Enum(Role),
 });
+
+export const MemberCreateSchema = t.Pick(MemberSchema, ["email", "role"]);

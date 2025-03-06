@@ -1,4 +1,8 @@
-import { MemberSchema } from "@api/routes/project/project.schema";
+import {
+  MemberCreateSchema,
+  MemberSchema,
+} from "@api/routes/project/project.schema";
+import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { Role } from "@prisma/client";
 import { Button } from "@web/components/ui/button";
 import {
@@ -7,6 +11,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@web/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@web/components/ui/form";
 import { Input } from "@web/components/ui/input";
 import {
   Select,
@@ -27,6 +38,7 @@ import { client } from "@web/lib/client";
 import { capitalize } from "@web/lib/utils";
 import { Trash } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 interface MemberModalProps {
@@ -40,19 +52,21 @@ export function MemberModal({
   projectId,
   onOpenChange,
 }: MemberModalProps) {
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [selectedRole, setSelectedRole] = useState<Role>(Role.VIEWER);
   const [members, setMembers] = useState<(typeof MemberSchema.static)[]>([]);
   const memberRoles = [Role.EDITOR, Role.VIEWER].map((role) => ({
     key: capitalize(role),
     value: role,
   }));
 
-  const handleInviteUser = async () => {
-    setInviteEmail("");
+  const form = useForm<typeof MemberCreateSchema.state>({
+    resolver: typeboxResolver(MemberCreateSchema),
+    defaultValues: { email: "", role: Role.EDITOR },
+  });
+
+  const handleInviteUser = async (values: typeof MemberCreateSchema.static) => {
     client
       .projects({ id: projectId })
-      .users.post({ email: inviteEmail, role: selectedRole })
+      .users.post({ email: values.email, role: values.role })
       .then((res) => {
         if (res.error) {
           switch (res.error.status) {
@@ -65,10 +79,10 @@ export function MemberModal({
             default:
               toast.error("Something went wrong");
           }
-
           return;
         }
-        setMembers(() => [...members, res.data]);
+        setMembers((prev) => [...prev, res.data]);
+        form.reset();
       });
   };
 
@@ -109,35 +123,58 @@ export function MemberModal({
           <DialogTitle>Manage Access</DialogTitle>
         </DialogHeader>
 
-        <div className="flex gap-2 mb-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Enter email address"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-            />
-          </div>
-          <Select
-            value={selectedRole}
-            onValueChange={(value: Role) => setSelectedRole(value)}
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleInviteUser)}
+            className="flex gap-2 mb-4"
           >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Select role" />
-            </SelectTrigger>
-            <SelectContent>
-              {memberRoles.map((role) => (
-                <SelectItem
-                  key={role.key}
-                  value={role.value}
-                  className="capitalize"
-                >
-                  {role.key}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button onClick={handleInviteUser}>Invite User</Button>
-        </div>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormControl>
+                    <Input
+                      placeholder="Enter email address"
+                      data-1p-ignore
+                      data-lpignore
+                      data-protonpass-ignore
+                      autoComplete="off"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {memberRoles.map((role) => (
+                        <SelectItem
+                          key={role.key}
+                          value={role.value}
+                          className="capitalize"
+                        >
+                          {role.key}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <Button type="submit">Invite User</Button>
+          </form>
+        </Form>
 
         <Table>
           <TableHeader>
