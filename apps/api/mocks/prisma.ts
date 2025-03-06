@@ -10,8 +10,16 @@ import { mockUsers } from "./user";
 export const PrismaMock = {
   user: {
     findUnique: mock((args) => {
-      if (args.where.id === "user-1") {
+      if (
+        args.where.id === "user-1" ||
+        args.where.email === "user1@example.com"
+      ) {
         return mockUsers[0];
+      } else if (
+        args.where.id === "user-2" ||
+        args.where.email === "user2@example.com"
+      ) {
+        return mockUsers[1];
       }
       return null;
     }),
@@ -25,22 +33,52 @@ export const PrismaMock = {
       updatedAt: new Date(),
     })),
   },
+
   member: {
     findUnique: mock((args) => {
-      if (
-        args.where.memberId.userId === "user-1" &&
-        args.where.memberId.projectId === "project-1"
-      ) {
-        return mockMembers[0];
-      }
-      return null;
+      return (
+        mockMembers.find(
+          (member) =>
+            member.userId === args.where.memberId.userId &&
+            member.projectId === args.where.memberId.projectId,
+        ) || null
+      );
     }),
+    create: mock((args) => ({
+      projectId: args.data.projectId,
+      userId: args.data.userId,
+      role: args.data.role,
+      user: {
+        email: mockUsers.find((user) => user.id === args.data.userId)?.email,
+      },
+    })),
+    delete: mock(() => ({
+      projectId: "project-1",
+      userId: "user-2",
+      role: "EDITOR",
+    })),
   },
+
   project: {
-    findMany: mock(() => mockProjects.map(({ elements, ...rest }) => rest)),
+    findMany: mock((args) => {
+      const projects = mockProjects.map(({ elements, ...rest }) => rest);
+
+      if (args.where.members.some.userId) {
+        return projects.filter(
+          (project) =>
+            project.members.find(
+              (member) => member.userId === args.where.members.some.userId,
+            )?.projectId === project.id,
+        );
+      }
+
+      return projects;
+    }),
     findUnique: mock((args) => {
       if (args.where.id === "project-1") {
         return mockProjects[0];
+      } else if (args.where.id === "project-2") {
+        return mockProjects[1];
       }
       return null;
     }),
@@ -53,6 +91,7 @@ export const PrismaMock = {
     })),
     delete: mock(() => mockProjects.map(({ elements, ...rest }) => rest)),
   },
+
   element: {
     findMany: mock(() => mockElements),
     findUnique: mock((args) => {
@@ -106,6 +145,7 @@ export const PrismaMock = {
           : null,
       };
     }),
+
     update: mock((args) => ({
       id: args.where.id,
       type: ElementType.IMAGE,
@@ -145,6 +185,7 @@ export const PrismaMock = {
       return null;
     }),
   },
+
   imageAsset: {
     findMany: mock((args) => {
       if (args.where.projectId === "project-1") {
@@ -155,8 +196,7 @@ export const PrismaMock = {
     findUnique: mock((args) => {
       if (args.where.id === "image-asset-1") {
         return mockImageAssets[0];
-      }
-      if (args.where.id === "image-asset-2") {
+      } else if (args.where.id === "image-asset-2") {
         return mockImageAssets[1];
       }
       return null;

@@ -7,7 +7,7 @@ export const AuthMock = {
       return {
         session: {
           id: "test-session-id",
-          token: "gZi3FToPB8eYKkDdqOYab6u973PhBcmr",
+          token: "test-token",
           userId: mockUsers[0].id,
         },
         user: mockUsers[0],

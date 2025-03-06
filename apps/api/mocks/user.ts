@@ -10,4 +10,13 @@ export const mockUsers = [
     createdAt: mockDate.toISOString(),
     updatedAt: mockDate.toISOString(),
   },
+  {
+    id: "user-2",
+    name: "User Two",
+    email: "user2@example.com",
+    emailVerified: true,
+    image: "",
+    createdAt: mockDate.toISOString(),
+    updatedAt: mockDate.toISOString(),
+  },
 ];

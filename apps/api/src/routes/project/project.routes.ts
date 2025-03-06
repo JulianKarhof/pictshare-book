@@ -132,9 +132,6 @@ const projectRoute = new Elysia()
     },
     {
       isAuth: true,
-      params: t.Object({
-        id: t.String(),
-      }),
       response: {
         200: t.Array(MemberSchema),
         403: Common403ErrorSchema,
@@ -152,26 +149,15 @@ const projectRoute = new Elysia()
     async ({ params: { id }, body: { email, role }, user, error }) => {
       const project = await prisma.project.findUnique({
         where: { id },
-        include: {
-          members: {
-            where: {
-              userId: user.id,
-            },
-          },
-        },
       });
 
       if (!project) {
         return error(404, { message: "Project not found" });
       }
 
-      const hasAccess = await ElementService.hasProjectAccess(
-        project.id,
-        user.id,
-        {
-          roles: [Role.OWNER],
-        },
-      );
+      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
+        roles: [Role.OWNER],
+      });
 
       if (!hasAccess) {
         return error(403, { message: "You are not an owner of this project" });
