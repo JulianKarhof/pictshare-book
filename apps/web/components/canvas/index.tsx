@@ -1,8 +1,11 @@
 "use client";
+import { Role } from "@prisma/client";
 import { StageManager } from "@web/components/canvas/managers";
+import { useSession } from "@web/lib/auth-client";
 import { StageService } from "@web/services/stage.service";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Dropzone from "react-dropzone";
+import { toast } from "sonner";
 import { MemberModal } from "../blocks/auth/member-modal";
 import { ImageShelf } from "./image-shelf";
 import { useAssetManager } from "./managers/asset-manager";
@@ -17,11 +20,14 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
   const [currentScale, setCurrentScale] = useState(0.2);
   const stageManagerRef = useRef<StageManager | null>(null);
   const [userModalOpen, setUserModalOpen] = useState(false);
-
+  const session = useSession();
   const { uploadFiles, fetchImages, assets } = useAssetManager();
 
   useEffect(() => {
-    fetchImages(projectId).catch(console.error);
+    fetchImages(projectId).catch((error) => {
+      toast.error("Failed to fetch images");
+      console.error(error);
+    });
   }, [fetchImages, projectId]);
 
   useEffect(() => {
@@ -90,11 +96,16 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
     [uploadFiles, projectId],
   );
 
+  const userRole =
+    session.data?.members.find((member) => member.projectId === projectId)
+      ?.role ?? Role.VIEWER;
+
   return (
     <div>
       <MemberModal
         projectId={projectId}
         open={userModalOpen}
+        role={userRole}
         onOpenChange={(newState) => setUserModalOpen(newState)}
       />
 

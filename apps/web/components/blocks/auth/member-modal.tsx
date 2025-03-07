@@ -8,6 +8,7 @@ import { Button } from "@web/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@web/components/ui/dialog";
@@ -35,8 +36,9 @@ import {
   TableRow,
 } from "@web/components/ui/table";
 import { client } from "@web/lib/client";
+import { useOrigin } from "@web/lib/use-origin";
 import { capitalize } from "@web/lib/utils";
-import { Trash } from "lucide-react";
+import { Copy, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -45,14 +47,17 @@ interface MemberModalProps {
   open: boolean;
   projectId: string;
   onOpenChange: (open: boolean) => void;
+  role: Role;
 }
 
 export function MemberModal({
   open,
   projectId,
   onOpenChange,
+  role,
 }: MemberModalProps) {
   const [members, setMembers] = useState<(typeof MemberSchema.static)[]>([]);
+  const inviteUrl = `${useOrigin()}/${projectId}`;
   const memberRoles = [Role.EDITOR, Role.VIEWER].map((role) => ({
     key: capitalize(role),
     value: role,
@@ -103,6 +108,11 @@ export function MemberModal({
       });
   };
 
+  const handleCopyInviteLink = () => {
+    navigator.clipboard.writeText(inviteUrl);
+    toast.success("Link copied to clipboard");
+  };
+
   useEffect(() => {
     client
       .projects({ id: projectId })
@@ -119,62 +129,88 @@ export function MemberModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Manage Access</DialogTitle>
+        <DialogHeader className="flex flex-col justify-between">
+          <div>
+            <DialogTitle>
+              {role === Role.OWNER ? "Manage Access" : "Members"}
+            </DialogTitle>
+            <DialogDescription>
+              {role === Role.OWNER
+                ? "Manage access to your book."
+                : "View members of this book."}
+            </DialogDescription>
+          </div>
         </DialogHeader>
 
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleInviteUser)}
-            className="flex gap-2 mb-4"
+        <div className="flex items-center gap-2">
+          <Input className="flex-1" value={inviteUrl} readOnly />
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            autoFocus={role !== Role.OWNER}
+            onClick={handleCopyInviteLink}
           >
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormControl>
-                    <Input
-                      placeholder="Enter email address"
-                      data-1p-ignore
-                      data-lpignore
-                      data-protonpass-ignore
-                      autoComplete="off"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <Copy className="h-4 w-4" />
+            Copy Link
+          </Button>
+        </div>
 
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {memberRoles.map((role) => (
-                        <SelectItem
-                          key={role.key}
-                          value={role.value}
-                          className="capitalize"
-                        >
-                          {role.key}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-            <Button type="submit">Invite User</Button>
-          </form>
-        </Form>
+        {role === Role.OWNER && (
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleInviteUser)}
+              className="flex gap-2"
+            >
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="flex-1 space-y-0">
+                    <FormControl>
+                      <Input
+                        placeholder="Enter email address"
+                        data-1p-ignore
+                        data-lpignore
+                        data-protonpass-ignore
+                        autoComplete="off"
+                        autoFocus
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem className="space-y-0">
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {memberRoles.map((role) => (
+                          <SelectItem
+                            key={role.key}
+                            value={role.value}
+                            className="capitalize"
+                          >
+                            {role.key}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">Invite User</Button>
+            </form>
+          </Form>
+        )}
 
         <Table>
           <TableHeader>
