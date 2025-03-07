@@ -2,6 +2,7 @@ import env from "@api/env";
 import prisma from "@api/prisma";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { customSession } from "better-auth/plugins";
 
 export const auth = betterAuth({
   trustedOrigins: [env.FRONTEND_URL, "book.pict.sh"],
@@ -26,4 +27,19 @@ export const auth = betterAuth({
         process.env.NODE_ENV === "production" ? "book.pict.sh" : "localhost",
     },
   },
+  plugins: [
+    customSession(async ({ user, session }) => {
+      const members = await prisma.member.findMany({
+        where: {
+          userId: user.id,
+        },
+      });
+
+      return {
+        members,
+        user,
+        session,
+      };
+    }),
+  ],
 });
