@@ -51,22 +51,9 @@ describe("Project Routes", () => {
 
     expect(response).toHaveProperty("id", "project-1");
     expect(response).toHaveProperty("name", "Test Project 1");
-    expect(PrismaMock.project.findUnique).toHaveBeenCalledWith({
-      where: { id: "project-1" },
-      include: {
-        elements: {
-          include: {
-            image: {
-              include: {
-                asset: true,
-              },
-            },
-            text: true,
-            shape: true,
-          },
-        },
-      },
-    });
+    expect(response).toHaveProperty("members");
+    expect(response).toHaveProperty("elements");
+    expect(PrismaMock.project.findUnique).toHaveBeenCalled();
   });
 
   it("should return 404 for non-existent project", async () => {

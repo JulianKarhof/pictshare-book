@@ -10,7 +10,7 @@ test.describe("Authentication", () => {
       .getByRole("textbox", { name: "Email" })
       .fill("test@registration.com");
     await page
-      .getByRole("textbox", { name: "Password Confirm Password" })
+      .getByRole("textbox", { name: "Password", exact: true })
       .fill("password");
     await page
       .getByRole("textbox", { name: "Confirm Password", exact: true })

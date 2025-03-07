@@ -146,7 +146,6 @@ export function MemberModal({
           <Input className="flex-1" value={inviteUrl} readOnly />
           <Button
             variant="outline"
-            size="sm"
             className="flex items-center gap-2"
             autoFocus={role !== Role.OWNER}
             onClick={handleCopyInviteLink}

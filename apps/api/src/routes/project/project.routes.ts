@@ -15,7 +15,7 @@ import {
   MemberSchema,
   ProjectCreateSchema,
   ProjectSchema,
-  ProjectWithoutElementsSchema,
+  ProjectWithIncludesSchema,
 } from "./project.schema";
 
 const projectRoute = new Elysia()
@@ -40,7 +40,7 @@ const projectRoute = new Elysia()
     {
       isAuth: true,
       response: {
-        200: t.Array(ProjectWithoutElementsSchema),
+        200: t.Array(ProjectSchema),
       },
       detail: {
         description: "List all projects (excludes elements)",
@@ -66,6 +66,15 @@ const projectRoute = new Elysia()
               shape: true,
             },
           },
+          members: {
+            include: {
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -76,6 +85,10 @@ const projectRoute = new Elysia()
       return {
         ...project,
         elements: project.elements.map(flattenElement),
+        members: project.members.map((member) => ({
+          ...member,
+          email: member.user.email,
+        })),
       };
     },
     {
@@ -83,7 +96,7 @@ const projectRoute = new Elysia()
         id: t.String(),
       }),
       response: {
-        200: ProjectSchema,
+        200: ProjectWithIncludesSchema,
         404: Common404ErrorSchema,
       },
       detail: {
@@ -286,7 +299,7 @@ const projectRoute = new Elysia()
       isAuth: true,
       body: ProjectCreateSchema,
       response: {
-        200: ProjectWithoutElementsSchema,
+        200: ProjectSchema,
       },
       detail: {
         description: "Create a new project",
