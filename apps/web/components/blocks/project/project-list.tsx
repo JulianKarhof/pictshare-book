@@ -1,6 +1,7 @@
 "use client";
 import { ProjectCreateSchema } from "@api/routes/project/project.schema";
 import { typeboxResolver } from "@hookform/resolvers/typebox";
+import { Role } from "@prisma/client";
 import { Button } from "@web/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@web/components/ui/card";
 import {
@@ -28,6 +29,7 @@ import {
 } from "@web/components/ui/form";
 import { Input } from "@web/components/ui/input";
 import { ModeToggle } from "@web/components/ui/mode-toggle";
+import { useSession } from "@web/lib/auth-client";
 import { client } from "@web/lib/client";
 import {
   LayoutGrid,
@@ -40,6 +42,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { MemberModal } from "../auth/member-modal";
 import ProfileButton from "../auth/profile-button";
 
 interface Project {
@@ -62,9 +66,13 @@ export default function ProjectList({
     defaultValues: { name: "" },
   });
   const router = useRouter();
+  const session = useSession();
   const [projects, setProjects] = useState(initialProjects);
   const [isGridView, setIsGridView] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [memberModalProjectId, setMemberModalProjectId] = useState<
+    string | null
+  >(null);
 
   const handleCreateProject = async (
     newProject: SubmitHandler<typeof ProjectCreateSchema.static>,
@@ -77,7 +85,7 @@ export default function ProjectList({
       };
 
       setProjects([...projects, loadingProject]);
-      setIsDialogOpen(false);
+      setIsCreateDialogOpen(false);
 
       const [{ data, error }] = await Promise.all([
         client.projects.post(newProject),
@@ -110,10 +118,12 @@ export default function ProjectList({
       if (error) {
         switch (error.status) {
           case 422:
-            return; // TODO
+            toast.error("Failed to delete project");
+            return;
         }
       }
 
+      toast.success("Project deleted successfully");
       onChange?.(projects);
       setProjects((projects) =>
         projects.map((p) =>
@@ -128,6 +138,10 @@ export default function ProjectList({
       console.error("Failed to delete project:", error);
     }
   };
+
+  const getUserRole = (projectId: string) =>
+    session.data?.members.find((member) => member.projectId === projectId)
+      ?.role ?? Role.VIEWER;
 
   return (
     <div className="min-h-screen bg-background">
@@ -154,11 +168,22 @@ export default function ProjectList({
                 )}
               </Button>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            {memberModalProjectId !== null && (
+              <MemberModal
+                projectId={memberModalProjectId}
+                open={memberModalProjectId !== null}
+                onOpenChange={() => setMemberModalProjectId(null)}
+                role={getUserRole(memberModalProjectId)}
+              />
+            )}
+            <Dialog
+              open={isCreateDialogOpen}
+              onOpenChange={setIsCreateDialogOpen}
+            >
               <DialogTrigger asChild>
                 <Button
                   className="bg-primary text-primary-foreground"
-                  onClick={() => setIsDialogOpen(true)}
+                  onClick={() => setIsCreateDialogOpen(true)}
                 >
                   <Plus className="mr-2 h-4 w-4" /> New Project
                 </Button>
@@ -239,8 +264,14 @@ export default function ProjectList({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem>Share</DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMemberModalProjectId(project.id);
+                            }}
+                          >
+                            Share
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive"
                             onClick={(e) => {
