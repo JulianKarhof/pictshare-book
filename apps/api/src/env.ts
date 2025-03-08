@@ -14,4 +14,5 @@ export default {
   S3_ENDPOINT: getRequiredEnvVar("S3_ENDPOINT"),
   S3_BUCKET_NAME: getRequiredEnvVar("S3_BUCKET_NAME"),
   S3_ACCESS_STYLE: process.env.S3_ACCESS_STYLE || "path",
+  REDIS_URL: process.env.REDIS_URL,
 } as const;

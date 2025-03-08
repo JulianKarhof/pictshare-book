@@ -1,4 +1,5 @@
 import { auth } from "@api/auth";
+import { wsService } from "@api/index";
 import { log } from "@api/logger";
 import { Role } from "@prisma/client";
 import { ElementService } from "@routes/element/element.service";
@@ -36,6 +37,9 @@ const websocketRoute = new Elysia()
 
       log.debug(`[opened] ID: ${ws.id} User: ${session.user.id}`);
       ws.subscribe(ws.data.params.id);
+      wsService?.subscribe(ws.data.params.id, ws.id, (message) => {
+        ws.publish(ws.data.params.id, message);
+      });
     },
     error(error) {
       log.error(error);
@@ -65,9 +69,11 @@ const websocketRoute = new Elysia()
         }
       }
 
+      wsService?.publish(ws.data.params.id, message);
       ws.publish(ws.data.params.id, message);
     },
     close(ws) {
+      wsService?.unsubscribe(ws.data.params.id, ws.id);
       log.debug(`[closed] ID: ${ws.id}`);
     },
   });
