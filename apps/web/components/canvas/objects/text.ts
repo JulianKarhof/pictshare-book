@@ -170,6 +170,7 @@ export class TextElement extends DisplayElement {
   }
 
   private _updateLoop(): void {
+    if (!this._isEditing) return;
     this._updateInputPosition();
     requestAnimationFrame(this._updateLoop.bind(this));
   }
@@ -204,6 +205,7 @@ export class TextElement extends DisplayElement {
   }
 
   public startEditing(): void {
+    requestAnimationFrame(this._updateLoop.bind(this));
     if (!this._inputElement) return;
     this._isEditing = true;
     this._inputElement.style.display = "inline-block";
