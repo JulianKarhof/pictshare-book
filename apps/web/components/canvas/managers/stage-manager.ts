@@ -17,6 +17,7 @@ import { StageService } from "@web/services/stage.service";
 import { Application, Assets, Container, Rectangle } from "pixi.js";
 import { ShapeElement } from "../objects/shape";
 import { TextElement } from "../objects/text";
+import { CursorManager } from "./cursor-manager";
 
 interface InteractiveChildOptions {
   selectAfterCreation?: boolean;
@@ -26,9 +27,12 @@ export class StageManager {
   private _canvasId: string;
   private _app: Application;
   private _settings = Settings.getInstance();
+
   private _viewportManager?: ViewportManager;
   private _dragManager?: DragManager;
   private _transformerManager?: TransformerManager;
+  private _cursorManager?: CursorManager;
+
   private _currentScale: number = 0.2;
   private _parentContainer: Container;
   private _stageService: StageService;
@@ -72,6 +76,10 @@ export class StageManager {
       app: this._app,
       viewport: this._viewportManager.viewport,
     });
+    this._cursorManager = new CursorManager({
+      projectId: this._canvasId,
+      viewport: this._viewportManager.viewport,
+    });
 
     this._app.stage.eventMode = "static";
     this._app.stage.hitArea = this._app.screen;
@@ -98,6 +106,21 @@ export class StageManager {
     });
 
     this._setupEventListeners();
+    this._loadAssets();
+  }
+
+  private _loadAssets(): void {
+    Assets.add({
+      alias: "cursor",
+      src: `${window.location.origin}/cursor.png`,
+    });
+    Assets.add({
+      alias: "cursor-inside",
+      src: `${window.location.origin}/cursor-inside.png`,
+    });
+
+    Assets.load("cursor");
+    Assets.load("cursor-inside");
   }
 
   private _updateElement(data: typeof ElementSchema.static): void {
@@ -196,6 +219,12 @@ export class StageManager {
     }
   }
 
+  private _preventWheelZoom(event: WheelEvent) {
+    if (event.ctrlKey || event.metaKey) {
+      event.preventDefault();
+    }
+  }
+
   public addElement(element: DisplayElement): void {
     if (this._viewportManager) {
       const center = this._viewportManager.viewport.center;
@@ -217,12 +246,6 @@ export class StageManager {
     this._stageService.sendCreate(element.toJSON()).then((id) => {
       element.setId(id);
     });
-  }
-
-  private _preventWheelZoom(event: WheelEvent) {
-    if (event.ctrlKey || event.metaKey) {
-      event.preventDefault();
-    }
   }
 
   private _addInteractiveChild(
