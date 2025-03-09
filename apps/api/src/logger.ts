@@ -1,7 +1,7 @@
 import { createPinoLogger } from "@bogeychan/elysia-logger";
 
 export const log = createPinoLogger({
-  level: "debug",
+  level: process.env.NODE_ENV === "production" ? "info" : "debug",
   transport: {
     target: "pino-pretty",
     options: {
