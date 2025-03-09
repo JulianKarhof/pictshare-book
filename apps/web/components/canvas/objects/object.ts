@@ -64,8 +64,6 @@ export abstract class DisplayElement extends Container {
    * Updates multiple properties at once
    */
   public update(params: Partial<DisplayElementParams>): this {
-    const needsRedraw = false;
-
     if (params.x !== undefined || params.y !== undefined) {
       this.position.set(
         params.x ?? this.position.x,
@@ -93,10 +91,7 @@ export abstract class DisplayElement extends Container {
       this.zIndex = params.zIndex;
     }
 
-    if (needsRedraw) {
-      this.redraw();
-    }
-
+    this.redraw();
     return this;
   }
 

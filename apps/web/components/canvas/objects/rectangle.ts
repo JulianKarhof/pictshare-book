@@ -50,6 +50,14 @@ export class RectangleElement extends ShapeElement {
     return this;
   }
 
+  public update(params: Partial<RectangleElementParams>): this {
+    if (params.cornerRadius !== undefined) {
+      this._cornerRadius = params.cornerRadius ?? 0;
+    }
+    super.update(params);
+    return this;
+  }
+
   public override toJSON(): typeof RectangleElementSchema.static {
     return {
       ...super.baseToJSON(),

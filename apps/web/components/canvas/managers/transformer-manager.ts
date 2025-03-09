@@ -43,13 +43,19 @@ export class TransformerManager {
     this.createTransformer();
     this._stageService = StageService.getInstance();
 
-    this._stageService.subscribe(WebSocketEventType.FRAME_UPDATE, () => {
-      this.reset();
-    });
+    this._stageService.subscribe(
+      WebSocketEventType.FRAME_UPDATE,
+      this.reset.bind(this),
+    );
+
+    this._stageService.subscribe(
+      WebSocketEventType.SHAPE_UPDATE,
+      this.moveTransformer.bind(this),
+    );
   }
 
   private _setupEventListeners(): void {
-    this._app.stage.on("dragging", this.moveTransformer.bind(this));
+    this._app.stage.on("dragging", this._clearTransformer.bind(this));
     this._viewport.on("zoomed", this.moveTransformer.bind(this));
     this._viewport.on("moved", this.moveTransformer.bind(this));
     window.addEventListener("keydown", this.handleKeyDown.bind(this));
@@ -73,47 +79,52 @@ export class TransformerManager {
   }
 
   public moveTransformer(): void {
+    if (!this._target) return;
+
     this._transformer.clear();
     this._handles.forEach((handle) => handle.clear());
 
-    if (this._target) {
-      const padding = 0;
+    const padding = 0;
 
-      const scaleFactor =
-        Math.pow(2, Math.log2((100 / this._viewport.scale.x) * 1)) / 100;
-      const lineSize = 1.5 * scaleFactor;
-      const handleSize = 10 * scaleFactor;
+    const scaleFactor =
+      Math.pow(2, Math.log2(100 / this._viewport.scale.x)) / 100;
+    const lineSize = 1.5 * scaleFactor;
+    const handleSize = 10 * scaleFactor;
 
-      const pos = this._target.position;
-      const dimensions = {
-        width: this._target.width,
-        height: this._target.height,
-      };
+    const pos = this._target.position;
+    const dimensions = {
+      width: this._target.width,
+      height: this._target.height,
+    };
 
-      this._transformer
+    this._transformer
+      .rect(
+        pos.x - dimensions.width / 2 - padding,
+        pos.y - dimensions.height / 2 - padding,
+        dimensions.width + padding * 2,
+        dimensions.height + padding * 2,
+      )
+      .stroke({ color: 0x3c82f6, width: lineSize, alignment: 0 });
+
+    if (this._target instanceof TextElement && this._target.isEditing) return;
+    this._signs.forEach((offset, index) => {
+      this._handles[index]
         .rect(
-          pos.x - dimensions.width / 2 - padding,
-          pos.y - dimensions.height / 2 - padding,
-          dimensions.width + padding * 2,
-          dimensions.height + padding * 2,
+          pos.x + dimensions.width * offset.x * 0.5 - handleSize / 2,
+          pos.y + dimensions.height * offset.y * 0.5 - handleSize / 2,
+          handleSize,
+          handleSize,
         )
-        .stroke({ color: 0x3c82f6, width: lineSize, alignment: 0 });
+        .fill(0xffffff)
+        .stroke({ color: 0x3c82f6, width: lineSize });
+      this._handles[index].cursor =
+        offset.x * offset.y === 1 ? "nwse-resize" : "nesw-resize";
+    });
+  }
 
-      if (this._target instanceof TextElement && this._target.isEditing) return;
-      this._signs.forEach((offset, index) => {
-        this._handles[index]
-          .rect(
-            pos.x + dimensions.width * offset.x * 0.5 - handleSize / 2,
-            pos.y + dimensions.height * offset.y * 0.5 - handleSize / 2,
-            handleSize,
-            handleSize,
-          )
-          .fill(0xffffff)
-          .stroke({ color: 0x3c82f6, width: lineSize });
-        this._handles[index].cursor =
-          offset.x * offset.y === 1 ? "nwse-resize" : "nesw-resize";
-      });
-    }
+  private _clearTransformer(): void {
+    this._transformer.clear();
+    this._handles.forEach((handle) => handle.clear());
   }
 
   private _onResizeMove(event: PointerEvent, index: number): void {
@@ -234,7 +245,10 @@ export class TransformerManager {
   public select(target: DisplayElement): void {
     if (this._target?.getId() !== target.getId()) this._target = target;
     if (this._target instanceof TextElement && this._target.isEditing) {
-      this._target.onInput(() => this.moveTransformer());
+      this._target.onInput(() => {
+        this._stageService.sendUpdate(target.toJSON());
+        this._clearTransformer();
+      });
     }
     this.moveTransformer();
   }
@@ -245,7 +259,7 @@ export class TransformerManager {
 
   public reset(): void {
     this._target = null;
-    this.moveTransformer();
+    this._clearTransformer();
   }
 
   public cleanup(): void {

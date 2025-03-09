@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   distDir: "build",
+  reactStrictMode: false,
   eslint: {
     ignoreDuringBuilds: true,
   },

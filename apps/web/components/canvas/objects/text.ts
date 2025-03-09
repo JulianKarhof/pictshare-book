@@ -71,8 +71,8 @@ export class TextElement extends DisplayElement {
     this.addChild(this._textElement);
   }
 
-  private _createInputElement(): HTMLDivElement {
-    const styles = {
+  private _getInputStyles() {
+    return {
       div: {
         display: "none",
         position: "absolute",
@@ -99,24 +99,32 @@ export class TextElement extends DisplayElement {
         height: `${this._fontSize * 1.1}px`,
       },
     };
+  }
 
+  private _createInputElement(): HTMLDivElement {
     const div = document.createElement("div");
-    Object.assign(div.style, styles.div);
+    Object.assign(div.style, this._getInputStyles().div);
     div.contentEditable = "true";
     div.spellcheck = false;
 
-    const lines = this._content.split("\n");
-    lines.forEach((line) => {
-      const p = document.createElement("p");
-      Object.assign(p.style, styles.paragraph);
-      p.textContent = line;
-      div.appendChild(p);
-    });
+    this._setInputContent(this._content, div);
 
     document.body.appendChild(div);
     this._setupEventListeners(div);
 
     return div;
+  }
+
+  private _setInputContent(content: string, input: HTMLDivElement) {
+    const lines = content.split("\n");
+    lines.forEach((line) => {
+      const p = document.createElement("p");
+      Object.assign(p.style, this._getInputStyles().paragraph);
+      p.textContent = line;
+      input.appendChild(p);
+    });
+
+    return input;
   }
 
   private _setupEventListeners(div: HTMLDivElement) {
@@ -273,6 +281,22 @@ export class TextElement extends DisplayElement {
   public setAlign(align: "left" | "center" | "right"): this {
     this._align = align;
     this.redraw();
+    return this;
+  }
+
+  public update(params: Partial<TextElementParams>): this {
+    if (params.content !== undefined) {
+      this._content = params.content;
+      this._setInputContent(params.content, this._inputElement!);
+    }
+    if (params.fontSize !== undefined) this._fontSize = params.fontSize;
+    if (params.fontFamily !== undefined)
+      this._fontFamily = params.fontFamily ?? "";
+    if (params.fontWeight !== undefined) this._fontWeight = params.fontWeight;
+    if (params.color !== undefined) this._color = params.color ?? 0xffffff;
+    if (params.align !== undefined) this._align = params.align;
+
+    super.update(params);
     return this;
   }
 
