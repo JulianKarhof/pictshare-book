@@ -9,6 +9,11 @@ export const MemberSchema = t.Object({
   projectId: t.String({
     examples: ["cljk3d4g50000pb56j8qhm8nz"],
   }),
+  name: t.String({
+    examples: ["John Doe"],
+    minLength: 2,
+    maxLength: 100,
+  }),
   email: t.String({
     examples: ["user@example.com"],
     format: "email",

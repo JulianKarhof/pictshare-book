@@ -71,6 +71,7 @@ const projectRoute = new Elysia()
               user: {
                 select: {
                   email: true,
+                  name: true,
                 },
               },
             },
@@ -88,6 +89,7 @@ const projectRoute = new Elysia()
         members: project.members.map((member) => ({
           ...member,
           email: member.user.email,
+          name: member.user.name,
         })),
       };
     },
@@ -126,6 +128,7 @@ const projectRoute = new Elysia()
               user: {
                 select: {
                   email: true,
+                  name: true,
                 },
               },
             },
@@ -141,6 +144,7 @@ const projectRoute = new Elysia()
         userId: member.userId,
         projectId: member.projectId,
         email: member.user.email,
+        name: member.user.name,
         role: member.role,
       }));
     },
@@ -210,15 +214,19 @@ const projectRoute = new Elysia()
           user: {
             select: {
               email: true,
+              name: true,
             },
           },
         },
       });
 
+      console.log(member);
+
       return {
         userId: member.userId,
         projectId: member.projectId,
         email: member.user.email,
+        name: member.user.name,
         role: member.role,
       };
     },

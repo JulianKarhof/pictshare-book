@@ -4,17 +4,18 @@ import { log } from "@api/logger";
 import { Role } from "@prisma/client";
 import { ElementService } from "@routes/element/element.service";
 import { Elysia, t } from "elysia";
-import { WebSocketEventSchema } from "./ws.schema";
+import { WebSocketEventSendSchema, WebSocketEventType } from "./ws.schema";
 
 const websocketRoute = new Elysia()
 
   .state("role", undefined as Role | null | undefined)
+  .state("userId", undefined as string | undefined)
 
   .ws("/canvas/:id", {
     params: t.Object({
       id: t.String(),
     }),
-    body: WebSocketEventSchema,
+    body: WebSocketEventSendSchema,
     async open(ws) {
       const session = await auth.api.getSession({
         headers: new Headers({
@@ -34,6 +35,7 @@ const websocketRoute = new Elysia()
       );
 
       ws.data.store.role = access;
+      ws.data.store.userId = session.user.id;
 
       log.debug(`[opened] ID: ${ws.id} User: ${session.user.id}`);
       ws.subscribe(ws.data.params.id);
@@ -45,13 +47,18 @@ const websocketRoute = new Elysia()
       log.error(error);
     },
     message(ws, message) {
+      const userId = ws.data.store.userId;
       const logData = {
         type: message.type,
-        userId: ws.id,
+        userId: userId,
         payload: message.payload,
       };
 
-      if (ws.data.store.role === null || ws.data.store.role === Role.VIEWER) {
+      if (
+        ws.data.store.role === null ||
+        ws.data.store.role === Role.VIEWER ||
+        !userId
+      ) {
         ws.send({
           type: "ERROR",
           payload: "Unauthorized",
@@ -59,18 +66,30 @@ const websocketRoute = new Elysia()
         return;
       }
 
-      if (message.type !== "FRAME_UPDATE") log.info(logData);
-      else log.debug(logData);
+      const isAtomicUpdate =
+        message.type === WebSocketEventType.FRAME_UPDATE ||
+        message.type === WebSocketEventType.CURSOR_SYNC;
 
-      if (message.type === "FRAME_UPDATE") {
+      if (!isAtomicUpdate) log.info(logData);
+      else {
         const now = Date.now();
         if (now - message.timestamp > 1000) {
           return;
         }
+
+        log.debug(logData);
       }
 
-      wsService?.publish(ws.data.params.id, message);
-      ws.publish(ws.data.params.id, message);
+      const response =
+        message.type === WebSocketEventType.CONNECTION
+          ? message
+          : {
+              ...message,
+              userId,
+            };
+
+      wsService?.publish(ws.data.params.id, response);
+      ws.publish(ws.data.params.id, response);
     },
     close(ws) {
       wsService?.unsubscribe(ws.data.params.id, ws.id);

@@ -129,6 +129,7 @@ describe("Project Routes", () => {
             user: {
               select: {
                 email: true,
+                name: true,
               },
             },
           },
@@ -162,12 +163,15 @@ describe("Project Routes", () => {
       )
       .then((res) => res.json());
 
+    console.log(response);
+
     expect(ElementServiceMock.hasProjectAccess).toHaveBeenCalledWith(
       "project-2",
       "user-2",
       { roles: ["OWNER"] },
     );
     expect(response).toHaveProperty("email", "user1@example.com");
+    expect(response).toHaveProperty("name", "User One");
     expect(response).toHaveProperty("role", "EDITOR");
   });
 

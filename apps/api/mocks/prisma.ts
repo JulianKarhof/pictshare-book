@@ -48,9 +48,7 @@ export const PrismaMock = {
       projectId: args.data.projectId,
       userId: args.data.userId,
       role: args.data.role,
-      user: {
-        email: mockUsers.find((user) => user.id === args.data.userId)?.email,
-      },
+      user: mockUsers.find((user) => user.id === args.data.userId),
     })),
     delete: mock(() => ({
       projectId: "project-1",

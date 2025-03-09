@@ -13,6 +13,7 @@ export class StageService {
   private _initializationPromise: Promise<void> | null = null;
 
   private static readonly _FRAME_UPDATE_THROTTLE_MS = 50;
+  private static readonly _CURSOR_SYNC_THROTTLE_MS = 50;
 
   private constructor() {}
 
@@ -69,6 +70,29 @@ export class StageService {
       payload: element,
     });
     this._lastInBetweenUpdate = now;
+  }
+
+  private _lastCursorSync = 0;
+
+  public sendCursorSync({
+    x,
+    y,
+    cursor,
+  }: { x: number; y: number; cursor?: string }): void {
+    const now = Date.now();
+    if (now - this._lastCursorSync < StageService._CURSOR_SYNC_THROTTLE_MS) {
+      return;
+    }
+
+    this._ws.send({
+      type: WebSocketEventType.CURSOR_SYNC,
+      payload: {
+        x: x,
+        y: y,
+        cursor: cursor ?? "default",
+      },
+    });
+    this._lastCursorSync = now;
   }
 
   public async sendCreate(
