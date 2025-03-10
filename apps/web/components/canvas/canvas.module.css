@@ -1,0 +1,4 @@
+.noScroll {
+  overflow: hidden;
+  overscroll-behavior-y: none;
+}

@@ -57,7 +57,7 @@ export function MemberModal({
   role,
 }: MemberModalProps) {
   const [members, setMembers] = useState<(typeof MemberSchema.static)[]>([]);
-  const inviteUrl = `${useOrigin()}/${projectId}`;
+  const inviteUrl = `${useOrigin()}/b/${projectId}`;
   const memberRoles = [Role.EDITOR, Role.VIEWER].map((role) => ({
     key: capitalize(role),
     value: role,

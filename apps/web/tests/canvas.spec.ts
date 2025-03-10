@@ -7,8 +7,8 @@ test.describe("Canvas", () => {
   test("should test two canvases interacting via ws", async ({ one, two }) => {
     const topLeftClip = { x: 50, y: 50, width: 200, height: 200 };
 
-    await one.goto(`/${projectId}`);
-    await two.goto(`/${projectId}`);
+    await one.goto(`/b/${projectId}`);
+    await two.goto(`/b/${projectId}`);
 
     const canvasOne = one.locator("canvas");
     await expect(canvasOne).toBeVisible();
@@ -69,7 +69,7 @@ test.describe("Canvas", () => {
     await page.route(`**/projects/*/elements`, async (route) => {
       await route.fulfill({ json: [] });
     });
-    await page.goto(`/${projectId}`);
+    await page.goto(`/b/${projectId}`);
 
     const canvas = page.locator("canvas");
     await expect(canvas).toBeVisible();
@@ -100,7 +100,7 @@ test.describe("Canvas", () => {
     await page.route(`**/projects/*/elements`, async (route) => {
       await route.fulfill({ json: [] });
     });
-    await page.goto(`/${projectId}`);
+    await page.goto(`/b/${projectId}`);
 
     const request = page.waitForRequest((request) => {
       const isPost = request.method() === "POST";

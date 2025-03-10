@@ -5,9 +5,10 @@ import type { NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
 
-  if (!sessionCookie) {
+  if (!sessionCookie && !request.nextUrl.pathname.startsWith("/auth")) {
     return NextResponse.redirect(new URL("/auth/sign-in", request.url));
   }
+
   return NextResponse.next();
 }
 

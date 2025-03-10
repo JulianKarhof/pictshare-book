@@ -236,7 +236,7 @@ export default function ProjectList({
             project.isLoading ? (
               <LoadingCard key={project.id} isGridView={isGridView} />
             ) : (
-              <Link href={`/${project.id}`} key={project.id}>
+              <Link href={`/b/${project.id}`} key={project.id}>
                 <Card
                   style={{ animationDelay: i * 50 + "ms" }}
                   className={`overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer group bg-card motion-preset-slide-down-sm

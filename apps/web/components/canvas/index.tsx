@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Dropzone from "react-dropzone";
 import { toast } from "sonner";
 import { MemberModal } from "../blocks/auth/member-modal";
+import styles from "./canvas.module.css";
 import { ImageShelf } from "./image-shelf";
 import { useAssetManager } from "./managers/asset-manager";
 import { CircleElement, RectangleElement } from "./objects";
@@ -36,6 +37,14 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
       StageService.getInstance().destroy();
     };
   }, [projectId]);
+
+  useEffect(() => {
+    document.body.classList.add(styles.noScroll);
+
+    return () => {
+      document.body.classList.remove(styles.noScroll);
+    };
+  }, []);
 
   useEffect(() => {
     const setup = async () => {
@@ -101,7 +110,7 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
       ?.role ?? Role.VIEWER;
 
   return (
-    <div>
+    <div className="!overflow-hidden ![overscroll-behavior-y:none]">
       <MemberModal
         projectId={projectId}
         open={userModalOpen}
