@@ -8,6 +8,7 @@ import projectRoute from "@routes/project/project.routes";
 import { Elysia } from "elysia";
 import { createClient } from "redis";
 import { PORT, SHORT_SERVER_ID } from "./config";
+import { securityHeaders } from "./headers";
 import { log } from "./logger";
 import imageRoute from "./routes/image/image.routes";
 import { WebSocketSyncService } from "./routes/ws/ws.service";
@@ -33,8 +34,11 @@ const app = new Elysia()
         process.env.NODE_ENV === "production"
           ? /.*\.pict\.sh$/
           : env.FRONTEND_URL,
+      allowedHeaders: ["Content-Type", "Authorization"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     }),
   )
+  .use(securityHeaders)
 
   .use(authRoute)
   .use(projectRoute)
