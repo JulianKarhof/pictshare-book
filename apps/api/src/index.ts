@@ -6,6 +6,7 @@ import authRoute from "@routes/auth/auth.routes";
 import elementRoute from "@routes/element/element.routes";
 import projectRoute from "@routes/project/project.routes";
 import { Elysia } from "elysia";
+import { sentry } from "elysiajs-sentry";
 import { createClient } from "redis";
 import { PORT, SHORT_SERVER_ID } from "./config";
 import { securityHeaders } from "./headers";
@@ -59,6 +60,11 @@ const app = new Elysia()
   )
 
   .use(log.into())
+  .use(
+    env.SENTRY_DSN
+      ? sentry({ enabled: process.env.NODE_ENV !== "development" })
+      : new Elysia(),
+  )
 
   .listen(PORT);
 

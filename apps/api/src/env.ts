@@ -15,4 +15,6 @@ export default {
   S3_BUCKET_NAME: getRequiredEnvVar("S3_BUCKET_NAME"),
   S3_ACCESS_STYLE: process.env.S3_ACCESS_STYLE || "path",
   REDIS_URL: process.env.REDIS_URL,
+  SENTRY_DSN: process.env.SENTRY_DSN,
+  SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT || "development",
 } as const;

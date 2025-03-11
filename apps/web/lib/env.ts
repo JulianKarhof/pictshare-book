@@ -10,4 +10,5 @@ export default {
     "NEXT_PUBLIC_BACKEND_URL",
     process.env.NEXT_PUBLIC_BACKEND_URL,
   ),
+  NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
 } as const;
