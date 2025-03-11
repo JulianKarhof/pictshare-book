@@ -130,7 +130,7 @@ jobs:
       redis:
         image: redis:7
         ports:
-          - 6379:6379
+          - 6381:6379
 
     steps:
       - uses: actions/checkout@v4
@@ -184,9 +184,10 @@ jobs:
         run: |
           timeout 30s sh -c 'until curl -s http://localhost:3000 >/dev/null; do sleep 1; done'
           timeout 30s sh -c 'until curl -s http://localhost:4000 >/dev/null; do sleep 1; done'
+          trap 'pkill -f "bun run start"' EXIT
 
       - name: Install playwright
-        run: npx playwright install chromium --with-deps --only-shell
+        run: npx playwright install chrome --with-deps --only-shell
 
       - name: Run frontend tests
         run: cd apps/web && bun run test

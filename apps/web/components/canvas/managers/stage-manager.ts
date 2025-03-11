@@ -13,6 +13,7 @@ import {
 } from "@web/components/canvas/objects";
 import { Settings } from "@web/components/canvas/settings";
 import { client } from "@web/lib/client";
+import { isTest } from "@web/lib/env";
 import { StageService } from "@web/services/stage.service";
 import { Application, Assets, Container, Rectangle } from "pixi.js";
 import { ShapeElement } from "../objects/shape";
@@ -76,10 +77,13 @@ export class StageManager {
       app: this._app,
       viewport: this._viewportManager.viewport,
     });
-    this._cursorManager = new CursorManager({
-      projectId: this._canvasId,
-      viewport: this._viewportManager.viewport,
-    });
+
+    if (!isTest) {
+      this._cursorManager = new CursorManager({
+        projectId: this._canvasId,
+        viewport: this._viewportManager.viewport,
+      });
+    }
 
     this._app.stage.eventMode = "static";
     this._app.stage.hitArea = this._app.screen;
@@ -231,7 +235,6 @@ export class StageManager {
       element.position.set(center.x, center.y);
     }
 
-    const isTest = process.env.NEXT_PUBLIC_IS_TEST === "true";
     const colorScheme = [0x640d5f, 0xd91656, 0xeb5b00, 0xffb200];
     if (element instanceof ShapeElement) {
       element.setFill({

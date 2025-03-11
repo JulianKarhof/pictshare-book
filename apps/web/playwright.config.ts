@@ -4,9 +4,9 @@ const isCI = !!process.env.CI;
 
 export default defineConfig({
   testDir: "./tests",
-  timeout: 1000 * 60,
   snapshotPathTemplate: "./tests/snaps/{testFilePath}/{arg}{ext}",
   workers: 1,
+  timeout: isCI ? 1000 * 60 : 1000 * 30,
   projects: [
     {
       name: "chrome",
@@ -24,6 +24,7 @@ export default defineConfig({
     },
   ],
   expect: {
+    timeout: isCI ? 1000 * 30 : 1000 * 5,
     toHaveScreenshot: {
       maxDiffPixels: 100,
       stylePath: "./tests/hide-ui.css",
@@ -37,10 +38,10 @@ export default defineConfig({
   webServer: [
     {
       command: "bun run dev",
-      port: 3001,
       timeout: 120 * 1000,
       reuseExistingServer: !isCI,
       stdout: "pipe",
+      url: "http://localhost:3001",
       env: {
         NEXT_PUBLIC_IS_TEST: "true",
         PORT: "3001",
@@ -50,10 +51,10 @@ export default defineConfig({
     {
       command: "bun run dev",
       cwd: "../api",
-      port: 4001,
       timeout: 120 * 1000,
       reuseExistingServer: !isCI,
       stdout: "pipe",
+      url: "http://localhost:4001/docs",
       env: {
         NODE_ENV: "test",
         PORT: "4001",

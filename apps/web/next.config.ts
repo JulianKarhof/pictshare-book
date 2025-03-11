@@ -97,12 +97,11 @@ const nextConfig: NextConfig = {
 export default withSentryConfig(nextConfig, {
   org: "juliankarhof",
   project: "pictshare-book-web",
-  silent: !process.env.CI,
+  silent: true,
   widenClientFileUpload: true,
   reactComponentAnnotation: {
     enabled: true,
   },
-  tunnelRoute: "/monitoring",
   disableLogger: true,
   automaticVercelMonitors: true,
 });

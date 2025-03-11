@@ -12,3 +12,5 @@ export default {
   ),
   NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
 } as const;
+
+export const isTest = process.env.NEXT_PUBLIC_IS_TEST === "true";
