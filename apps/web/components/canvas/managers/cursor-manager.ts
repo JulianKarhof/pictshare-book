@@ -136,7 +136,7 @@ class Cursor extends Container {
 
   private _startAnimation(): void {
     this._ticker.add(() => {
-      const ease = 0.4;
+      const ease = 0.2;
       this._currentX += (this._targetX - this._currentX) * ease;
       this._currentY += (this._targetY - this._currentY) * ease;
 
