@@ -31,6 +31,7 @@ import { Input } from "@web/components/ui/input";
 import { ModeToggle } from "@web/components/ui/mode-toggle";
 import { useSession } from "@web/lib/auth-client";
 import { client } from "@web/lib/client";
+import Color, { ColorInstance } from "color";
 import {
   LayoutGrid,
   LayoutList,
@@ -38,6 +39,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -52,6 +54,61 @@ interface Project {
   coverImage?: string;
   isLoading?: boolean;
   isDeleted?: boolean;
+}
+
+function generateGradient(projectId: string, isHovered = false) {
+  const hash = projectId.split("").reduce((acc, char) => {
+    return char.charCodeAt(0) + ((acc << 5) - acc);
+  }, 0);
+
+  const palettes = [
+    ["#FF9A9E", "#FAD0C4"],
+    ["#A6C1EE", "#FBC2EB"],
+    ["#96E6A1", "#D4FC79"],
+    ["#FFD1FF", "#FAD0C4"],
+    ["#A8EDEA", "#FED6E3"],
+    ["#E2D1C3", "#FDE6E9"],
+    ["#BFF098", "#6FD6FF"],
+    ["#F6D5F7", "#FBE9D7"],
+    ["#E6DEE9", "#CBD6E4"],
+    ["#C2E9FB", "#A1C4FD"],
+  ];
+
+  const palette = palettes[Math.abs(hash) % palettes.length];
+
+  const color1 = Color(palette[0]);
+  const color2 = Color(palette[1]);
+
+  const processColor = (color: ColorInstance) => {
+    return isHovered
+      ? color.darken(0.2).desaturate(0.1).toString()
+      : color.darken(0.3).desaturate(0.2).toString();
+  };
+
+  return `linear-gradient(135deg,
+    ${processColor(color1)} 0%,
+    ${processColor(color2)} 100%)`;
+}
+const emojiMap = {
+  "📓": "Notebook",
+} as const;
+
+function getProjectEmoji(projectId: string): keyof typeof emojiMap {
+  const emoji = Object.keys(emojiMap);
+
+  const hash = projectId.split("").reduce((acc, char) => {
+    return char.charCodeAt(0) + ((acc << 5) - acc);
+  }, 0);
+
+  return emoji[Math.abs(hash) % emoji.length] as keyof typeof emojiMap;
+}
+
+function urlFromEmoji(emoji: keyof typeof emojiMap): string | undefined {
+  const baseUrl = "https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji/assets";
+  const name = emojiMap[emoji as keyof typeof emojiMap];
+  if (!name) return undefined;
+
+  return `${baseUrl}/${name}/3D/${name.toLowerCase().replace(/\s+/g, "_")}_3d.png`;
 }
 
 export default function ProjectList({
@@ -245,12 +302,31 @@ export default function ProjectList({
                   <div
                     className={`relative overflow-hidden ${isGridView ? "aspect-video" : "w-1/3"}`}
                   >
-                    <img
-                      src={project.coverImage || "https://placehold.co/600x400"}
-                      alt={project.name}
-                      className={`object-cover w-full h-full transition-transform duration-300
-                      ${isGridView ? "group-hover:scale-110" : ""}`}
-                    />
+                    <div
+                      style={{
+                        background: generateGradient(project.id, false),
+                      }}
+                      className={`w-full h-full transition-all duration-300 group-hover:scale-120`}
+                    >
+                      <div
+                        className="absolute inset-0 transition-opacity duration-300
+                          bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)]
+                          [background-size:20px_20px]
+                          opacity-25
+                          group-hover:opacity-40
+                          z-[1]"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center z-[2]">
+                        <Image
+                          src={urlFromEmoji(getProjectEmoji(project.id)) ?? ""}
+                          alt="book"
+                          className="w-24 h-24 select-none pointer-events-none opacity-[0.8] group-hover:opacity-100 transition-opacity mix-blend-hard-light"
+                          loading={i < 9 ? "eager" : "lazy"}
+                          height={96}
+                          width={96}
+                        />
+                      </div>
+                    </div>
                   </div>
                   <CardHeader className={isGridView ? "" : "w-2/3"}>
                     <div className="flex justify-between items-start">
