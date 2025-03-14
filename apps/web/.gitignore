@@ -17,6 +17,7 @@
 
 # production
 /build
+/build_test
 /dist
 
 # misc

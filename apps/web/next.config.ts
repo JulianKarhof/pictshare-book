@@ -4,9 +4,11 @@ import type { NextConfig } from "next";
 import nextSafe from "next-safe";
 
 const isDev = process.env.NODE_ENV !== "production";
+const isTest = process.env.NEXT_PUBLIC_IS_TEST === "true";
 
 const nextConfig: NextConfig = {
-  distDir: "build",
+  distDir: isTest ? "build_test" : "build",
+  devIndicators: false,
   reactStrictMode: false,
   async headers() {
     return [
@@ -25,7 +27,7 @@ const nextConfig: NextConfig = {
               "*.pict.sh",
               "data:",
               "https://pictshare-book-staging.fly.storage.tigris.dev",
-              "sentry.io",
+              "*.sentry.io",
             ],
             "img-src": [
               "'self'",
@@ -34,6 +36,7 @@ const nextConfig: NextConfig = {
               "localhost:*",
               "*.pict.sh",
               "https://pictshare-book-staging.fly.storage.tigris.dev",
+              "https://cdn.jsdelivr.net",
             ],
             "worker-src": ["'self'", "blob:", "localhost:*", "*.pict.sh"],
             "report-uri": `https://o4508958935089152.ingest.de.sentry.io/api/4508959034114128/security/?sentry_key=40aea8f571a3f3894ddb37cb9eec7607&sentry_environment=${env.NEXT_PUBLIC_SENTRY_ENVIRONMENT}`,
@@ -59,6 +62,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "http",
         hostname: "localhost",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.jsdelivr.net",
       },
     ],
   },

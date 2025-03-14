@@ -45,7 +45,10 @@ jspm_packages/
 
 # Next.js build output
 .next
-out
+build_test
+build
+dist
+
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
