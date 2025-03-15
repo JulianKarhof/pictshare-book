@@ -234,12 +234,12 @@ export class TransformerManager {
         this._stageService.sendUpdate(this._target.toJSON());
       }
       this._isResizing = false;
-      this._app.stage.off("pointermove", handleMove);
-      this._app.stage.off("pointerup", handleEnd);
+      this._viewport.off("pointermove", handleMove);
+      this._viewport.off("pointerup", handleEnd);
     };
 
-    window.addEventListener("pointermove", handleMove);
-    window.addEventListener("pointerup", handleEnd);
+    this._viewport.addEventListener("pointermove", handleMove);
+    this._viewport.addEventListener("pointerup", handleEnd);
   }
 
   public select(target: DisplayElement): void {
