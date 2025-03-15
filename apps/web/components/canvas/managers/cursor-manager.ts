@@ -20,7 +20,7 @@ export class CursorManager {
     viewport,
   }: { projectId: string; viewport: Viewport }) {
     this._viewport = viewport;
-    this._cursorContainer.zIndex = 1000;
+    this._cursorContainer.zIndex = 10000;
     this._viewport.addChild(this._cursorContainer);
 
     this._membersPromise = this._fetchMembers(projectId);
@@ -57,7 +57,7 @@ export class CursorManager {
             y: data.payload.y,
           });
 
-          cursor.position.set(data.payload.x - 12, data.payload.y - 12);
+          cursor.position.set(data.payload.x, data.payload.y);
           this._cursors.set(data.userId, cursor);
           this._cursorContainer.addChild(cursor);
         }
@@ -124,6 +124,7 @@ class Cursor extends Container {
     this._targetY = y - 12;
 
     this._ticker = new Ticker();
+    this.eventMode = "none";
 
     this.draw()
       .then(() => {
@@ -140,7 +141,7 @@ class Cursor extends Container {
       this._currentX += (this._targetX - this._currentX) * ease;
       this._currentY += (this._targetY - this._currentY) * ease;
 
-      this.position.set(this._currentX, this._currentY);
+      this.position?.set(this._currentX, this._currentY);
     });
     this._ticker.start();
   }

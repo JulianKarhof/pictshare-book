@@ -16,9 +16,11 @@ import { client } from "@web/lib/client";
 import { isTest } from "@web/lib/env";
 import { StageService } from "@web/services/stage.service";
 import { Application, Assets, Container, Rectangle } from "pixi.js";
+import { DrawingElement } from "../objects/drawing";
 import { ShapeElement } from "../objects/shape";
 import { TextElement } from "../objects/text";
 import { CursorManager } from "./cursor-manager";
+import { DrawManager } from "./draw-manager";
 
 interface InteractiveChildOptions {
   selectAfterCreation?: boolean;
@@ -33,6 +35,7 @@ export class StageManager {
   private _dragManager?: DragManager;
   private _transformerManager?: TransformerManager;
   private _cursorManager?: CursorManager;
+  private _drawManager?: DrawManager;
 
   private _currentScale: number = 0.2;
   private _parentContainer: Container;
@@ -55,8 +58,6 @@ export class StageManager {
   }
 
   public async init(): Promise<void> {
-    initDevtools({ app: this._app });
-
     await this._app.init({
       background: this._settings.backgroundColor,
       resizeTo: window,
@@ -69,13 +70,39 @@ export class StageManager {
       powerPreference: "high-performance",
     });
 
-    this._viewportManager = new ViewportManager(this._app);
+    initDevtools({ app: this._app });
+
+    this._viewportManager = new ViewportManager({ app: this._app });
     this._dragManager = new DragManager({
       app: this._app,
     });
     this._transformerManager = new TransformerManager({
       app: this._app,
       viewport: this._viewportManager.viewport,
+    });
+    this._drawManager = new DrawManager({
+      viewport: this._viewportManager.viewport,
+      onStart: () => {
+        this._parentContainer.eventMode = "none";
+      },
+      onStop: () => {
+        this._parentContainer.eventMode = "static";
+      },
+      onDone: ({ points, position, settings }) => {
+        const drawing = new DrawingElement({
+          points,
+          x: position.x,
+          y: position.y,
+          strokeWidth: settings.lineWidth,
+          stroke: settings.color,
+        });
+
+        this._addInteractiveChild(drawing, { selectAfterCreation: false });
+
+        this._stageService.sendCreate(drawing.toJSON()).then((id) => {
+          drawing.setId(id);
+        });
+      },
     });
 
     if (!isTest) {
@@ -85,9 +112,7 @@ export class StageManager {
       });
     }
 
-    this._app.stage.eventMode = "static";
     this._app.stage.hitArea = this._app.screen;
-
     this._viewportManager?.viewport.addChild(this._parentContainer);
 
     this._loadCanvas();
@@ -96,7 +121,8 @@ export class StageManager {
       WebSocketEventType.SHAPE_CREATE,
       async (data) => {
         const element = ElementFactory.fromJSON(data.payload);
-        if (element) this._addInteractiveChild(element);
+        if (element)
+          this._addInteractiveChild(element, { selectAfterCreation: false });
       },
     );
     this._stageService.subscribe(WebSocketEventType.SHAPE_UPDATE, (data) => {
@@ -176,16 +202,6 @@ export class StageManager {
     await client
       .projects({ id: this._canvasId })
       .elements.bulk.put(stageObjects);
-  }
-
-  public zoomIn(): void {
-    this._viewportManager?.zoom(0.25);
-    this._onScaleChange?.(this._viewportManager?.scale ?? 0.2);
-  }
-
-  public zoomOut(): void {
-    this._viewportManager?.zoom(-0.25);
-    this._onScaleChange?.(this._viewportManager?.scale ?? 0.2);
   }
 
   private _setupEventListeners(): void {
@@ -329,6 +345,28 @@ export class StageManager {
     });
     this._dragManager?.cleanup();
     this._transformerManager?.cleanup();
+  }
+
+  public startDrawing(): void {
+    this._drawManager?.startDrawing();
+  }
+
+  public stopDrawing(): void {
+    this._drawManager?.stopDrawing();
+  }
+
+  public get isDrawing(): boolean {
+    return this._drawManager?.isDrawing ?? false;
+  }
+
+  public zoomIn(): void {
+    this._viewportManager?.zoom(0.25);
+    this._onScaleChange?.(this._viewportManager?.scale ?? 0.2);
+  }
+
+  public zoomOut(): void {
+    this._viewportManager?.zoom(-0.25);
+    this._onScaleChange?.(this._viewportManager?.scale ?? 0.2);
   }
 
   public get app(): Application {

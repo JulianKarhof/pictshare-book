@@ -52,6 +52,19 @@ export function flattenElement(
             cornerRadius,
             type: ElementType.RECTANGLE,
           };
+        case ShapeType.DRAWING:
+          return {
+            ...rest,
+            ...shapeProps,
+            points: points
+              ?.map((_, i, arr) => {
+                if (i % 2 === 0) {
+                  return { x: arr[i], y: arr[i + 1] };
+                }
+              })
+              .filter((point) => point !== undefined),
+            type: ElementType.DRAWING,
+          };
       }
     }
   }
@@ -143,6 +156,28 @@ export function createPrismaData(
         },
       };
     }
+
+    case ElementType.DRAWING: {
+      const { points, stroke, strokeWidth, ...rest } = body;
+
+      return {
+        ...rest,
+        type: PrismaElementType.SHAPE,
+        project: {
+          connect: {
+            id: projectId,
+          },
+        },
+        shape: {
+          create: {
+            shapeType: ShapeType.DRAWING,
+            stroke,
+            strokeWidth,
+            points: points.flatMap(({ x, y }) => [x, y]),
+          },
+        },
+      };
+    }
   }
 }
 
@@ -210,6 +245,21 @@ export function createUpdateData(
                   stroke: body.stroke,
                   strokeWidth: body.strokeWidth,
                   cornerRadius: body.cornerRadius,
+                },
+              },
+            }
+          : {}),
+      };
+
+    case ElementType.DRAWING:
+      return {
+        ...baseData,
+        ...(body.stroke || body.strokeWidth
+          ? {
+              shape: {
+                update: {
+                  stroke: body.stroke,
+                  strokeWidth: body.strokeWidth,
                 },
               },
             }

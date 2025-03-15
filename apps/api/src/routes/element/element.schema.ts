@@ -5,6 +5,7 @@ export enum ElementType {
   TEXT = "TEXT",
   CIRCLE = "CIRCLE",
   RECTANGLE = "RECTANGLE",
+  DRAWING = "DRAWING",
 }
 
 const ElementBaseSchema = t.Object({
@@ -65,12 +66,20 @@ export const RectangleElementSchema = t.Composite([
   ElementBaseSchema,
   t.Object({
     type: t.Literal(ElementType.RECTANGLE),
-    width: t.Number({ examples: [100] }),
-    height: t.Number({ examples: [50] }),
     fill: t.Nullable(t.Number({ examples: [0xff0000] })),
     stroke: t.Nullable(t.Number({ examples: [0x000000] })),
     strokeWidth: t.Nullable(t.Number({ examples: [2] })),
     cornerRadius: t.Nullable(t.Number({ examples: [10] })),
+  }),
+]);
+
+export const DrawingElementSchema = t.Composite([
+  ElementBaseSchema,
+  t.Object({
+    type: t.Literal(ElementType.DRAWING),
+    points: t.Array(t.Object({ x: t.Number(), y: t.Number() })),
+    stroke: t.Nullable(t.Number({ examples: [0x000000] })),
+    strokeWidth: t.Nullable(t.Number({ examples: [2] })),
   }),
 ]);
 
@@ -79,6 +88,7 @@ export const ElementSchema = t.Union([
   TextElementSchema,
   CircleElementSchema,
   RectangleElementSchema,
+  DrawingElementSchema,
 ]);
 
 export const ElementCreateSchema = t.Omit(ElementSchema, [

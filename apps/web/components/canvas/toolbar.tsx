@@ -1,14 +1,28 @@
-import { ArrowLeft, Circle, LucideIcon, Square, Type } from "lucide-react";
+import {
+  ArrowLeft,
+  Circle,
+  LucideIcon,
+  Pencil,
+  Square,
+  Type,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode } from "react";
 
 interface ToolbarProps {
   onAddShape: (type: "square" | "circle" | "text") => void;
+  onDraw: () => void;
+  isDrawing: boolean;
   className?: string;
 }
 
-export const Toolbar = ({ onAddShape, className }: ToolbarProps) => {
+export const Toolbar = ({
+  onAddShape,
+  onDraw,
+  isDrawing,
+  className,
+}: ToolbarProps) => {
   return (
     <div id="toolbar" className={className}>
       <Link
@@ -46,6 +60,14 @@ export const Toolbar = ({ onAddShape, className }: ToolbarProps) => {
           title="Add Text"
           data-testid="add-text"
         />
+
+        <ToolbarButton
+          icon={Pencil}
+          active={isDrawing}
+          onClick={() => onDraw()}
+          title="Draw"
+          data-testid="draw"
+        />
       </div>
     </div>
   );
@@ -54,6 +76,7 @@ export const Toolbar = ({ onAddShape, className }: ToolbarProps) => {
 interface ToolbarButtonProps {
   icon: LucideIcon;
   onClick?: () => void;
+  active?: boolean;
   title: string;
   className?: string;
   asChild?: boolean;
@@ -67,10 +90,15 @@ export const ToolbarButton = ({
   className,
   asChild,
   children,
+  active,
   ...rest
 }: ToolbarButtonProps) => {
   const baseClassName =
     "bg-secondary/80 backdrop-blur-sm hover:bg-secondary/60 text-secondary-foreground p-2 rounded-full border border-border";
+
+  const activeClassName = active
+    ? "bg-secondary text-primary-foreground border-primary"
+    : "";
 
   if (asChild) {
     return (
@@ -86,7 +114,7 @@ export const ToolbarButton = ({
 
   return (
     <button
-      className={`${baseClassName} ${className || ""}`}
+      className={`${baseClassName} ${activeClassName} ${className || ""}`}
       onClick={onClick}
       title={title}
       {...rest}

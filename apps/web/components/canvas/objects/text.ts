@@ -284,7 +284,7 @@ export class TextElement extends DisplayElement {
     return this;
   }
 
-  public update(params: Partial<TextElementParams>): this {
+  public override update(params: Partial<TextElementParams>): this {
     if (params.content !== undefined) {
       this._content = params.content;
       this._setInputContent(params.content, this._inputElement!);

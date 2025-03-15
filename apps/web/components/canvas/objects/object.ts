@@ -180,8 +180,8 @@ export abstract class DisplayElement extends Container {
     return {
       type: this.elementType,
       id: this.id,
-      x: this.position.x,
-      y: this.position.y,
+      x: this.x,
+      y: this.y,
       angle: this.rotation,
       scaleX: this.scale.x,
       scaleY: this.scale.y,

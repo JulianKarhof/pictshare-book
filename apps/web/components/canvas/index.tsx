@@ -23,6 +23,7 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
   const [userModalOpen, setUserModalOpen] = useState(false);
   const session = useSession();
   const { uploadFiles, fetchImages, assets } = useAssetManager();
+  const [isDrawing, setIsDrawing] = useState(false);
 
   useEffect(() => {
     fetchImages(projectId).catch((error) => {
@@ -105,6 +106,20 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
     [uploadFiles, projectId],
   );
 
+  const startDrawing = useCallback(() => {
+    if (!stageManagerRef.current) return;
+
+    setIsDrawing(true);
+    stageManagerRef.current.startDrawing();
+  }, [stageManagerRef]);
+
+  const stopDrawing = useCallback(() => {
+    if (!stageManagerRef.current) return;
+
+    setIsDrawing(false);
+    stageManagerRef.current.stopDrawing();
+  }, [stageManagerRef]);
+
   const userRole =
     session.data?.members.find((member) => member.projectId === projectId)
       ?.role ?? Role.VIEWER;
@@ -121,6 +136,14 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
       <Toolbar
         className="absolute z-50 top-4 left-4"
         onAddShape={handleAddShape}
+        isDrawing={isDrawing}
+        onDraw={() => {
+          if (isDrawing) {
+            stopDrawing();
+          } else {
+            startDrawing();
+          }
+        }}
       />
 
       <SettingsBar
@@ -153,8 +176,7 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
         noClick
       >
         {({ getRootProps, isDragActive }) => (
-          <div {...getRootProps()} className="relative">
-            <div ref={ref} />
+          <div {...getRootProps()} ref={ref} className="relative">
             {isDragActive && (
               <div className="absolute inset-0 bg-gray-500/30 backdrop-blur-sm border-2 border-dashed border-gray-500 flex items-center justify-center z-60">
                 <div className="text-white text-xl font-semibold">

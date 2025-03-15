@@ -19,7 +19,7 @@ export abstract class ShapeElement extends DisplayElement {
     this.strokeWidth = params.strokeWidth ?? null;
   }
 
-  public update(params: Partial<ShapeElementParams>): this {
+  public override update(params: Partial<ShapeElementParams>): this {
     let needsRedraw = false;
 
     if (

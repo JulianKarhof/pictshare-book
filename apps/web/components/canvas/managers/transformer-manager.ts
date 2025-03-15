@@ -200,13 +200,13 @@ export class TransformerManager {
   public createTransformer(): void {
     this._handles.forEach((handle, index) => {
       this._viewport.addChild(handle);
-      handle.zIndex = 1001;
+      handle.zIndex = 9999;
       handle.eventMode = "static";
 
       handle.on("pointerdown", (e) => this._onResizeStart(e, index));
     });
     this._viewport.addChild(this._transformer);
-    this._transformer.zIndex = 1000;
+    this._transformer.zIndex = 9998;
   }
 
   private _onResizeStart(event: FederatedPointerEvent, index: number): void {

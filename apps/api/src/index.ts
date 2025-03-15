@@ -35,7 +35,12 @@ const app = new Elysia()
         process.env.NODE_ENV === "production"
           ? /.*\.pict\.sh$/
           : env.FRONTEND_URL,
-      allowedHeaders: ["Content-Type", "Authorization"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "sentry-trace",
+        "baggage",
+      ],
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     }),
   )

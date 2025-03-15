@@ -220,8 +220,6 @@ const projectRoute = new Elysia()
         },
       });
 
-      console.log(member);
-
       return {
         userId: member.userId,
         projectId: member.projectId,

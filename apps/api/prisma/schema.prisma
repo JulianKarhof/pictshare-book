@@ -114,6 +114,7 @@ model ImageAsset {
 enum ShapeType {
   RECTANGLE
   CIRCLE
+  DRAWING
 }
 
 enum Role {

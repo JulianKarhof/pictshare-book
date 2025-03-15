@@ -11,7 +11,7 @@ export class ViewportManager {
 
   private _lastGridSize: number;
 
-  public constructor(app: Application) {
+  public constructor({ app }: { app: Application }) {
     this._app = app;
     this._settings = Settings.getInstance();
     this._viewport = this._createViewport();

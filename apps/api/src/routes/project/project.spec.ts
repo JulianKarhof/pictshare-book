@@ -163,8 +163,6 @@ describe("Project Routes", () => {
       )
       .then((res) => res.json());
 
-    console.log(response);
-
     expect(ElementServiceMock.hasProjectAccess).toHaveBeenCalledWith(
       "project-2",
       "user-2",

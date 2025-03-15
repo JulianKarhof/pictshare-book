@@ -50,7 +50,7 @@ export class RectangleElement extends ShapeElement {
     return this;
   }
 
-  public update(params: Partial<RectangleElementParams>): this {
+  public override update(params: Partial<RectangleElementParams>): this {
     if (params.cornerRadius !== undefined) {
       this._cornerRadius = params.cornerRadius ?? 0;
     }
