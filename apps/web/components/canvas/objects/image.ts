@@ -26,10 +26,10 @@ export class ImageElement extends DisplayElement {
   private _onDrawComplete: (() => void)[] = [];
 
   public constructor(params: ImageElementParams) {
-    super(params);
+    const baseImageSize = 1200;
+    super({ ...params, height: baseImageSize, width: baseImageSize });
 
     const asset = AssetManager.getInstance().getAsset(params.assetId);
-    const baseImageSize = 1200;
 
     this._src = asset?.src;
     this._assetId = params.assetId;
