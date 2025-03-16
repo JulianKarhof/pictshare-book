@@ -1,11 +1,13 @@
 import { t } from "elysia/type-system";
 import { ElementSchema } from "../element/element.schema";
+import { ImageReturnSchema } from "../image/image.schema";
 
 export enum WebSocketEventType {
   SHAPE_CREATE = "SHAPE_CREATE",
   SHAPE_UPDATE = "SHAPE_UPDATE",
   SHAPE_DELETE = "SHAPE_DELETE",
   FRAME_UPDATE = "FRAME_UPDATE",
+  IMAGE_CREATE = "IMAGE_CREATE",
   CURSOR_SYNC = "CURSOR_SYNC",
   CONNECTION = "CONNECTION",
   ERROR = "ERROR",
@@ -62,6 +64,17 @@ export const FrameUpdateEventSchema = t.Composite([
 
 type FrameUpdateEvent = typeof FrameUpdateEventSchema.static;
 
+export const ImageCreateEventSchema = t.Composite([
+  BaseEventSchema,
+  t.Object({
+    type: t.Literal(WebSocketEventType.IMAGE_CREATE),
+    payload: t.Object({
+      images: t.Array(ImageReturnSchema),
+    }),
+  }),
+]);
+export type ImageCreateEvent = typeof ImageCreateEventSchema.static;
+
 export const ConnectionEventSchema = t.Composite([
   t.Omit(BaseEventSchema, ["userId"]),
   t.Object({
@@ -105,6 +118,7 @@ export const WebSocketEventSchema = t.Union([
   ShapeUpdateEventSchema,
   ShapeDeleteEventSchema,
   FrameUpdateEventSchema,
+  ImageCreateEventSchema,
   ConnectionEventSchema,
   CursorSyncEventSchema,
   ErrorEventSchema,
@@ -122,6 +136,7 @@ export type WebSocketEventMap = {
   [WebSocketEventType.SHAPE_UPDATE]: ShapeUpdateEvent;
   [WebSocketEventType.SHAPE_DELETE]: ShapeDeleteEvent;
   [WebSocketEventType.FRAME_UPDATE]: FrameUpdateEvent;
+  [WebSocketEventType.IMAGE_CREATE]: ImageCreateEvent;
   [WebSocketEventType.CONNECTION]: ConnectionEvent;
   [WebSocketEventType.CURSOR_SYNC]: CursorSyncEvent;
   [WebSocketEventType.ERROR]: ErrorEvent;

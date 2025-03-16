@@ -98,7 +98,7 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
   const handleFiles = useCallback(
     async (files: File[]) => {
       try {
-        await uploadFiles(files, projectId);
+        await uploadFiles(files);
       } catch (error) {
         console.error("Failed to upload files:", error);
       }

@@ -1,6 +1,9 @@
 import { ImageReturnSchema } from "@api/routes/image/image.schema";
+import { WebSocketEventType } from "@api/routes/ws/ws.schema";
 import { client } from "@web/lib/client";
+import { StageService } from "@web/services/stage.service";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type AssetListener = (
   assets: Map<string, typeof ImageReturnSchema.static>,
@@ -64,6 +67,16 @@ export function useAssetManager() {
   useEffect(() => {
     setAssets(AssetManager.getInstance().getAssetList());
 
+    StageService.getInstance().subscribe(
+      WebSocketEventType.IMAGE_CREATE,
+      (event) => {
+        AssetManager.getInstance().addAssets(
+          new Map(event.payload.images.map((image) => [image.id, image])),
+        );
+        setAssets(AssetManager.getInstance().getAssetList());
+      },
+    );
+
     const unsubscribe = AssetManager.getInstance().subscribe((assetMap) => {
       setAssets(Array.from(assetMap.values()));
     });
@@ -71,37 +84,19 @@ export function useAssetManager() {
     return unsubscribe;
   }, []);
 
-  const createFileList = (files: File[]): FileList => {
-    const dataTransfer = new DataTransfer();
-    files.forEach((file) => {
-      dataTransfer.items.add(file);
-    });
-    return dataTransfer.files;
-  };
+  const uploadFiles = useCallback(async (files: File[]) => {
+    try {
+      const data = await StageService.getInstance().sendImageCreate(files);
 
-  const uploadFiles = useCallback(async (files: File[], projectId: string) => {
-    const { error, data } = await client
-      .projects({ id: projectId })
-      .images.post({
-        files: createFileList(files),
-      });
+      AssetManager.getInstance().addAssets(
+        new Map(data.map((item) => [item.id, item])),
+      );
 
-    if (error) {
-      switch (error.status) {
-        case 400:
-          throw error.value;
-        case 401:
-          throw error.value;
-        case 422:
-          throw error.value;
-      }
+      return data;
+    } catch (error) {
+      toast.error("Failed to upload files");
+      throw error;
     }
-
-    AssetManager.getInstance().addAssets(
-      new Map(data.map((item) => [item.id, item])),
-    );
-
-    return data;
   }, []);
 
   const fetchImages = useCallback(async (projectId: string) => {

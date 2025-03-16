@@ -1,4 +1,5 @@
 import { ElementSchema } from "@api/routes/element/element.schema";
+import { ImageReturnSchema } from "@api/routes/image/image.schema";
 import { WebSocketEventType } from "@api/routes/ws/ws.schema";
 import {
   WebSocketManager,
@@ -99,14 +100,14 @@ export class StageService {
     element: typeof ElementSchema.static,
   ): Promise<string> {
     if (!this._canvasId) {
-      throw new Error("canvas id not initialized");
+      throw new Error("Canvas id not initialized");
     }
 
-    const result = await client
+    const { data, error } = await client
       .projects({ id: this._canvasId })
       .elements.post(element);
 
-    if (!result.data) {
+    if (error) {
       throw new Error("Failed to create element");
     }
 
@@ -114,11 +115,11 @@ export class StageService {
       type: WebSocketEventType.SHAPE_CREATE,
       payload: {
         ...element,
-        id: result.data.id,
+        id: data.id,
       },
     });
 
-    return result.data.id;
+    return data.id;
   }
 
   public sendDelete(element: typeof ElementSchema.static): void {
@@ -135,6 +136,41 @@ export class StageService {
       payload: element,
     });
     client.elements({ id: element.id }).put(element);
+  }
+
+  private _createFileList = (files: File[]): FileList => {
+    const dataTransfer = new DataTransfer();
+    files.forEach((file) => {
+      dataTransfer.items.add(file);
+    });
+    return dataTransfer.files;
+  };
+
+  public async sendImageCreate(
+    files: File[],
+  ): Promise<(typeof ImageReturnSchema.static)[]> {
+    if (!this._canvasId) {
+      throw new Error("Canvas id not initialized");
+    }
+
+    const { data, error } = await client
+      .projects({ id: this._canvasId })
+      .images.post({
+        files: this._createFileList(files),
+      });
+
+    if (error) {
+      throw new Error(`Failed to upload images`);
+    }
+
+    this._ws.send({
+      type: WebSocketEventType.IMAGE_CREATE,
+      payload: {
+        images: data,
+      },
+    });
+
+    return data;
   }
 
   public get ws(): WebSocketManager {
