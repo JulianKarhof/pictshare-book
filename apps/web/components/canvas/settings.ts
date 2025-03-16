@@ -34,7 +34,7 @@ export class Settings {
     this._imageShelfPinned =
       localStorage.getItem("image_shelf_pinned") === "true";
 
-    if (savedTheme === "system") {
+    if (savedTheme === "system" || !savedTheme) {
       if (
         window.matchMedia &&
         window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -56,7 +56,7 @@ export class Settings {
         | "system"
         | undefined;
 
-      if (currentSavedTheme === "system") {
+      if (currentSavedTheme === "system" || !currentSavedTheme) {
         if (
           window.matchMedia &&
           window.matchMedia("(prefers-color-scheme: dark)").matches
