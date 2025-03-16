@@ -1,5 +1,6 @@
 import { ImageReturnSchema } from "@api/routes/image/image.schema";
 import { ImageElement } from "@web/components/canvas/objects";
+import { useSession } from "@web/lib/auth-client";
 import {
   Image as ImageIcon,
   PinIcon,
@@ -7,6 +8,7 @@ import {
   UploadIcon,
 } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 import { useSettings } from "./settings";
 
 interface ImageShelfProps {
@@ -23,6 +25,13 @@ export const ImageShelf = ({
   className,
 }: ImageShelfProps) => {
   const { imageShelfPinned: isPinned, setImageShelfPinned } = useSettings();
+  const session = useSession();
+  const [activeTab, setActiveTab] = useState<"all" | "my">("all");
+
+  const myImages = images.filter(
+    (image) => image.uploaderId === session.data?.user.id,
+  );
+  const displayedImages = activeTab === "all" ? images : myImages;
 
   return (
     <div
@@ -34,7 +43,7 @@ export const ImageShelf = ({
       } rounded-t-xl border border-border group ${className}`}
     >
       <div className="flex flex-col h-full relative">
-        <div className="flex items-center justify-between p-4 border-b border-border z-10 relative">
+        <div className="flex items-center justify-between p-4 border-border z-10 relative">
           <div className="flex items-center gap-2">
             <ImageIcon className="h-5 w-5 text-card-foreground" />
             <h2 className="text-card-foreground text-lg font-semibold">
@@ -62,9 +71,7 @@ export const ImageShelf = ({
               />
             </label>
             <button
-              onClick={() => {
-                setImageShelfPinned(!isPinned);
-              }}
+              onClick={() => setImageShelfPinned(!isPinned)}
               className={`p-1.5 rounded-md hover:bg-accent ${
                 isPinned ? "text-primary bg-accent/50" : "text-card-foreground"
               }`}
@@ -79,14 +86,39 @@ export const ImageShelf = ({
           </div>
         </div>
 
+        <div className="flex border-b border-border z-10">
+          <button
+            className={`flex-1 py-2 px-4 text-sm font-medium ${
+              activeTab === "all"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground hover:text-card-foreground"
+            }`}
+            onClick={() => setActiveTab("all")}
+          >
+            All Images
+          </button>
+          <button
+            className={`flex-1 py-2 px-4 text-sm font-medium ${
+              activeTab === "my"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground hover:text-card-foreground"
+            }`}
+            onClick={() => setActiveTab("my")}
+          >
+            My Images
+          </button>
+        </div>
+
         <div className="flex-1 overflow-y-auto p-4 relative z-10">
-          {images.length === 0 ? (
+          {displayedImages.length === 0 ? (
             <div className="text-muted-foreground text-center mt-4">
-              No images added yet
+              {activeTab === "all"
+                ? "No images added yet"
+                : "You haven't uploaded any images yet"}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4">
-              {[...images].reverse().map((image) => (
+              {[...displayedImages].reverse().map((image) => (
                 <ImageTile
                   key={image.id}
                   url={image.src}
