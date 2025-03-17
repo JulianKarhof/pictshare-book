@@ -137,6 +137,11 @@ jobs:
 
       - uses: actions/cache@v4
         with:
+          path: apps/web/build_test/cache
+          key: ${{ runner.os }}-next-${{ hashFiles('bun.lock', 'apps/**/*.{ts,tsx,js,jsx}') }}
+
+      - uses: actions/cache@v4
+        with:
           path: apps/web/build/cache
           key: ${{ runner.os }}-next-${{ hashFiles('bun.lock', 'apps/**/*.{ts,tsx,js,jsx}') }}
 

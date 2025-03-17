@@ -70,5 +70,8 @@ export default defineConfig({
   ],
   forbidOnly: !!process.env.CI,
   retries: isCI ? 2 : 0,
-  reporter: [["html"], isCI ? ["github"] : ["list"]],
+  reporter: [
+    ["html", { open: isCI ? "never" : "on-failure" }],
+    isCI ? ["github"] : ["list"],
+  ],
 });

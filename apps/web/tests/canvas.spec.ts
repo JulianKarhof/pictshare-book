@@ -78,6 +78,7 @@ test.describe("Canvas", () => {
     const request = page.waitForRequest((request) => {
       const isPost = request.method() === "POST";
       const isElementsUrl = request.url().includes("/elements");
+      if (!isElementsUrl) return false;
       const isSquare = request.postDataJSON()?.type === "RECTANGLE";
 
       return isPost && isElementsUrl && isSquare;
@@ -105,9 +106,10 @@ test.describe("Canvas", () => {
     const request = page.waitForRequest((request) => {
       const isPost = request.method() === "POST";
       const isElementsUrl = request.url().includes("/elements");
-      const isSquare = request.postDataJSON()?.type === "CIRCLE";
+      if (!isElementsUrl) return false;
+      const isCircle = request.postDataJSON()?.type === "CIRCLE";
 
-      return isPost && isElementsUrl && isSquare;
+      return isPost && isElementsUrl && isCircle;
     });
 
     await expect(page).toHaveScreenshot("before-add-circle.png", {
