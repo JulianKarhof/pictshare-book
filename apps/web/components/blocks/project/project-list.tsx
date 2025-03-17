@@ -1,115 +1,28 @@
 "use client";
+
 import { ProjectCreateSchema } from "@api/routes/project/project.schema";
-import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { Role } from "@prisma/client";
+import { ProjectCard } from "@web/components/blocks/project/project-card";
+import { CreateProjectDialog } from "@web/components/blocks/project/project-create-dialog";
 import { Button } from "@web/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@web/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@web/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@web/components/ui/dropdown-menu";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@web/components/ui/form";
-import { Input } from "@web/components/ui/input";
 import { ModeToggle } from "@web/components/ui/mode-toggle";
 import { useSession } from "@web/lib/auth-client";
 import { client } from "@web/lib/client";
-import Color, { ColorInstance } from "color";
-import {
-  LayoutGrid,
-  LayoutList,
-  MoreVertical,
-  Plus,
-  Trash2,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
+import { LayoutGrid, LayoutList } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler } from "react-hook-form";
 import { toast } from "sonner";
 import { MemberModal } from "../auth/member-modal";
-import ProfileButton from "../auth/profile-button";
 
-interface Project {
+export interface Project {
   id: string;
   name: string;
   coverImage?: string;
   isLoading?: boolean;
   isDeleted?: boolean;
 }
-
-function generateGradient(projectId: string, isHovered = false) {
-  const hash = projectId.split("").reduce((acc, char) => {
-    return char.charCodeAt(0) + ((acc << 5) - acc);
-  }, 0);
-
-  const palettes = [
-    ["#FF9A9E", "#FAD0C4"],
-    ["#A6C1EE", "#FBC2EB"],
-    ["#96E6A1", "#D4FC79"],
-    ["#FFD1FF", "#FAD0C4"],
-    ["#A8EDEA", "#FED6E3"],
-    ["#E2D1C3", "#FDE6E9"],
-    ["#BFF098", "#6FD6FF"],
-    ["#F6D5F7", "#FBE9D7"],
-    ["#E6DEE9", "#CBD6E4"],
-    ["#C2E9FB", "#A1C4FD"],
-  ];
-
-  const palette = palettes[Math.abs(hash) % palettes.length];
-
-  const color1 = Color(palette[0]);
-  const color2 = Color(palette[1]);
-
-  const processColor = (color: ColorInstance) => {
-    return isHovered
-      ? color.darken(0.2).desaturate(0.1).toString()
-      : color.darken(0.3).desaturate(0.2).toString();
-  };
-
-  return `linear-gradient(135deg,
-    ${processColor(color1)} 0%,
-    ${processColor(color2)} 100%)`;
-}
-const emojiMap = {
-  "📓": "Notebook",
-} as const;
-
-function getProjectEmoji(projectId: string): keyof typeof emojiMap {
-  const emoji = Object.keys(emojiMap);
-
-  const hash = projectId.split("").reduce((acc, char) => {
-    return char.charCodeAt(0) + ((acc << 5) - acc);
-  }, 0);
-
-  return emoji[Math.abs(hash) % emoji.length] as keyof typeof emojiMap;
-}
-
-function urlFromEmoji(emoji: keyof typeof emojiMap): string | undefined {
-  const baseUrl = "https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji/assets";
-  const name = emojiMap[emoji as keyof typeof emojiMap];
-  if (!name) return undefined;
-
-  return `${baseUrl}/${name}/3D/${name.toLowerCase().replace(/\s+/g, "_")}_3d.png`;
-}
+import ProfileButton from "../auth/profile-button";
 
 export default function ProjectList({
   initialProjects = [],
@@ -118,10 +31,6 @@ export default function ProjectList({
   initialProjects: Project[];
   onChange?: (projects: Project[]) => void;
 }) {
-  const form = useForm<typeof ProjectCreateSchema.state>({
-    resolver: typeboxResolver(ProjectCreateSchema),
-    defaultValues: { name: "" },
-  });
   const router = useRouter();
   const session = useSession();
   const [projects, setProjects] = useState(initialProjects);
@@ -153,7 +62,11 @@ export default function ProjectList({
         switch (error.status) {
           case 422:
             error.value.type === "validation";
-            return; // TODO
+            toast.error("Validation error");
+            return;
+          default:
+            toast.error("Failed to create project");
+            return;
         }
       }
 
@@ -233,52 +146,11 @@ export default function ProjectList({
                 role={getUserRole(memberModalProjectId)}
               />
             )}
-            <Dialog
-              open={isCreateDialogOpen}
+            <CreateProjectDialog
+              isOpen={isCreateDialogOpen}
               onOpenChange={setIsCreateDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button
-                  className="bg-primary text-primary-foreground"
-                  onClick={() => setIsCreateDialogOpen(true)}
-                >
-                  <Plus className="mr-2 h-4 w-4" /> New Project
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-semibold">
-                    Create New Project
-                  </DialogTitle>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleCreateProject)}>
-                    <FormField
-                      name="name"
-                      control={form.control}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Project Title</FormLabel>
-                          <FormControl>
-                            <Input id="title" {...field} />
-                          </FormControl>
-                          <FormDescription />
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter className="mt-4">
-                      <Button
-                        type="submit"
-                        className="bg-primary text-primary-foreground"
-                      >
-                        Create Project
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+              onSubmit={handleCreateProject}
+            />
             <Suspense fallback={<p>...</p>}>
               <ProfileButton />
             </Suspense>
@@ -289,120 +161,18 @@ export default function ProjectList({
         <div
           className={`grid gap-6 ${isGridView ? "sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}
         >
-          {projects.map((project, i) =>
-            project.isLoading ? (
-              <LoadingCard key={project.id} isGridView={isGridView} />
-            ) : (
-              <Link href={`/b/${project.id}`} key={project.id}>
-                <Card
-                  style={{ animationDelay: i * 50 + "ms" }}
-                  className={`overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer group bg-card motion-preset-slide-down-sm
-                  ${isGridView ? "" : "flex"} ${project.isDeleted ? "motion-translate-y-out-[10%] motion-duration-500 motion-opacity-out-0" : ""}`}
-                >
-                  <div
-                    className={`relative overflow-hidden ${isGridView ? "aspect-video" : "w-1/3"}`}
-                  >
-                    <div
-                      style={{
-                        background: generateGradient(project.id, false),
-                      }}
-                      className={`w-full h-full transition-all duration-300 group-hover:scale-120`}
-                    >
-                      <div
-                        className="absolute inset-0 transition-opacity duration-300
-                          bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)]
-                          [background-size:20px_20px]
-                          opacity-25
-                          group-hover:opacity-40
-                          z-[1]"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center z-[2]">
-                        <Image
-                          src={urlFromEmoji(getProjectEmoji(project.id)) ?? ""}
-                          alt="book"
-                          className="w-24 h-24 select-none pointer-events-none opacity-[0.8] group-hover:opacity-100 transition-opacity mix-blend-hard-light"
-                          loading={i < 9 ? "eager" : "lazy"}
-                          height={96}
-                          width={96}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <CardHeader className={isGridView ? "" : "w-2/3"}>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-xl font-semibold text-card-foreground">
-                        {project.name}
-                      </CardTitle>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setMemberModalProjectId(project.id);
-                            }}
-                          >
-                            Share
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteProject(project.id);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardHeader>
-                </Card>
-              </Link>
-            ),
-          )}
+          {projects.map((project, i) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              isGridView={isGridView}
+              index={i}
+              onDelete={handleDeleteProject}
+              onShare={(projectId) => setMemberModalProjectId(projectId)}
+            />
+          ))}
         </div>
       </main>
     </div>
   );
 }
-
-const LoadingCard = ({ isGridView }: { isGridView: boolean }) => (
-  <Card
-    className={`overflow-hidden transition-all duration-300 bg-card motion-preset-bounce ${
-      isGridView ? "" : "flex"
-    }`}
-  >
-    <div
-      className={`relative overflow-hidden ${
-        isGridView ? "aspect-video" : "w-1/3"
-      }`}
-    >
-      <div className="w-full h-full bg-muted animate-pulse flex items-center justify-center">
-        <Spinner />
-      </div>
-    </div>
-    <CardHeader className={isGridView ? "" : "w-2/3"}>
-      <div className="flex justify-between items-start">
-        <div className="w-2/3 h-6 bg-muted animate-pulse rounded" />
-        <div className="w-8 h-8 bg-muted animate-pulse rounded-full" />
-      </div>
-    </CardHeader>
-  </Card>
-);
-
-const Spinner = () => (
-  <div
-    className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
-    role="status"
-  >
-    <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
-      Loading...
-    </span>
-  </div>
-);
