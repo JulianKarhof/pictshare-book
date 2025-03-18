@@ -53,3 +53,7 @@ dist
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 .vercel
+
+# Vitepress
+.vitepress/dist
+.vitepress/cache

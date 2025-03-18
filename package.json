@@ -1,20 +1,29 @@
 {
   "name": "pictshare-book",
+  "type": "module",
   "dependencies": {
     "better-auth": "1.1.17",
+    "dotenv": "^16.4.7",
     "elysia": "^1.2.12"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "concurrently": "^9.1.2",
     "husky": "^9.1.7",
-    "turbo": "^2.4.2"
+    "turbo": "^2.4.2",
+    "vitepress": "^1.6.3"
   },
   "packageManager": "bun@1.1.42",
   "scripts": {
     "dev": "turbo dev",
-    "test": "(cd apps/api && bun test) && (cd apps/web && bun run test)",
+    "test": "bun run test:api && bun run test:web",
+    "test:web": "(cd apps/web && bun run test)",
+    "test:api": "(cd apps/api && bun test)",
+    "test:update-screenshots": "(cd apps/web && bunx playwright test -u)",
     "build": "turbo run build",
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview",
     "db": "docker compose up -d",
     "lint": "biome check",
     "format": "biome format",
@@ -23,7 +32,7 @@
     "generate": "bunx prisma generate --schema ./apps/api/prisma/schema.prisma",
     "migrate": "(cd apps/api && bunx prisma migrate dev --schema ./prisma/schema.prisma)",
     "migrate:test": "(cd apps/api && DATABASE_URL=postgresql://postgres:postgres@localhost:5434/postgres?schema=test bunx prisma migrate deploy --schema ./prisma/schema.prisma)",
-    "setup": "bun db && bun generate && (cd apps/api && cp example.env .env) && (cd apps/web && cp example.env.local .env.local) ",
+    "setup": "bun install && bun run db && bun run migrate && bun run generate && cp example.env.example .env && (cd apps/api && cp example.env .env) && (cd apps/web && cp example.env.local .env.local)",
     "prepare": "bunx husky"
   },
   "workspaces": ["apps/*"]
