@@ -218,3 +218,15 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.PRODUCTION_VERCEL_PROJECT_ID }}
           vercel-args: "--prod"
+
+  deploy-backend:
+    needs: [run-tests]
+    if: inputs.production-deploy == true || startswith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
