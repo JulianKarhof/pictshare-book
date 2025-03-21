@@ -5,7 +5,7 @@ Pictshare Book is setup as a monorepo, to make setup easier and facilitate type 
 It currently just includes the two main packages you would expect:
 
 - [`apps/web`](/apps/web): The nextjs based web frontend
-- [`apps/api`](/apps/api): The backend rest api
+- [`apps/api`](/apps/api): The elysiajs based REST api
 
 To make development easier, we use docker-compose to run the `postgres` and `redis` database as well as an s3 compatible storage service called `MinIO`.
 
@@ -26,4 +26,4 @@ To ensure code quality and maintainability we use the following:
 
 - [Husky](https://github.com/typicode/husky) to enforce commit hooks and pre-push checks
 - [Biome](https://biomejs.dev/) for code formatting and linting
-- Test to ensure functionality [(read more)](/docs/testing.md)
+- Tests to ensure functionality ([read more](/docs/testing.md))
