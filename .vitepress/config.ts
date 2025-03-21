@@ -48,6 +48,10 @@ export default defineConfig({
                     text: "Elements",
                     link: "/apps/web/components/canvas/objects/",
                   },
+                  {
+                    text: "Managers",
+                    link: "/apps/web/components/canvas/managers/",
+                  },
                 ],
               },
             ],
