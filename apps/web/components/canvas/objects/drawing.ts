@@ -3,6 +3,7 @@ import {
   ElementType,
 } from "@api/routes/element/element.schema";
 import { Graphics, PointData } from "pixi.js";
+import { Settings } from "../settings";
 import { DisplayElement, DisplayElementParams, ElementFactory } from "./object";
 
 export interface DrawingElementParams extends DisplayElementParams {
@@ -21,7 +22,10 @@ export class DrawingElement extends DisplayElement {
   public constructor(params: DrawingElementParams = {}) {
     super(params);
 
-    this._color = params.stroke ?? 0x000000;
+    const defaultColor =
+      Settings.getInstance().getTheme() === "dark" ? 0xffffff : 0x000000;
+
+    this._color = params.stroke ?? defaultColor;
     this._lineWidth = params.strokeWidth ?? 8;
     this._points = params.points ?? [];
 

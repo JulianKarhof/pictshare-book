@@ -20,8 +20,6 @@ export abstract class ShapeElement extends DisplayElement {
   }
 
   public override update(params: Partial<ShapeElementParams>): this {
-    let needsRedraw = false;
-
     if (
       params.fill !== undefined ||
       params.stroke !== undefined ||
@@ -32,17 +30,10 @@ export abstract class ShapeElement extends DisplayElement {
         this.strokeColor = params.stroke ?? 0x000000;
       if (params.strokeWidth !== undefined)
         this.strokeWidth = params.strokeWidth;
-      needsRedraw = true;
     }
-
-    const dimensionsChanged =
-      params.width !== undefined || params.height !== undefined;
 
     super.update(params);
-
-    if (needsRedraw || dimensionsChanged) {
-      this.redraw();
-    }
+    this.redraw();
 
     return this;
   }

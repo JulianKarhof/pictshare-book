@@ -1,6 +1,7 @@
 import { Viewport } from "pixi-viewport";
 import { FederatedPointerEvent, Graphics, PointData } from "pixi.js";
 import simplify from "simplify-js";
+import { Settings } from "../settings";
 
 interface DrawSettings {
   color?: number;
@@ -37,12 +38,15 @@ export class DrawManager {
     onStop: () => void;
     settings?: DrawSettings;
   }) {
+    const defaultColor =
+      Settings.getInstance().getTheme() === "dark" ? 0xffffff : 0x000000;
+
     this._viewport = viewport;
     this._onDone = onDone;
     this._onStart = onStart;
     this._onStop = onStop;
     this._settings = settings ?? {
-      color: 0xffffff,
+      color: defaultColor,
       lineWidth: 8,
     };
 
