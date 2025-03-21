@@ -158,20 +158,42 @@ export default function ProjectList({
         </div>
       </nav>
       <main className="container mx-auto p-4">
-        <div
-          className={`grid gap-6 ${isGridView ? "sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}
-        >
-          {projects.map((project, i) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              isGridView={isGridView}
-              index={i}
-              onDelete={handleDeleteProject}
-              onShare={(projectId) => setMemberModalProjectId(projectId)}
-            />
-          ))}
-        </div>
+        {projects.length > 0 ? (
+          <div
+            className={`grid gap-6 ${isGridView ? "sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}
+          >
+            {projects.map((project, i) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                isGridView={isGridView}
+                index={i}
+                onDelete={handleDeleteProject}
+                onShare={(projectId) => setMemberModalProjectId(projectId)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col justify-center items-center h-[calc(100vh-150px)]">
+            <div className="flex flex-col items-center justify-center px-4 text-center">
+              <div className="bg-muted/30 rounded-full p-6 mb-6">
+                <LayoutGrid className="h-12 w-12 text-muted-foreground" />
+              </div>
+              <h2 className="text-2xl font-semibold mb-2">No books yet</h2>
+              <p className="text-muted-foreground max-w-md mb-6">
+                You don't have any books in your collection yet. Create your
+                first book to get started.
+              </p>
+              <Button
+                onClick={() => setIsCreateDialogOpen(true)}
+                size="lg"
+                className="px-6"
+              >
+                Create your first book
+              </Button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

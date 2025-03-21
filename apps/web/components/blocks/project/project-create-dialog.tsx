@@ -47,13 +47,13 @@ export function CreateProjectDialog({
           className="bg-primary text-primary-foreground"
           onClick={() => onOpenChange(true)}
         >
-          <Plus className="mr-2 h-4 w-4" /> New Project
+          <Plus className="mr-2 h-4 w-4" /> New Book
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-semibold">
-            Create New Project
+            Create New Book
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -63,7 +63,7 @@ export function CreateProjectDialog({
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Project Title</FormLabel>
+                  <FormLabel>Book Title</FormLabel>
                   <FormControl>
                     <Input id="title" {...field} />
                   </FormControl>
@@ -77,7 +77,7 @@ export function CreateProjectDialog({
                 type="submit"
                 className="bg-primary text-primary-foreground"
               >
-                Create Project
+                Create Book
               </Button>
             </DialogFooter>
           </form>
