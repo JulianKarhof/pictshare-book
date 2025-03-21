@@ -316,7 +316,15 @@ const projectRoute = new Elysia()
 
   .delete(
     "/projects/:id",
-    async ({ params: { id }, user }) => {
+    async ({ params: { id }, user, error }) => {
+      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
+        roles: [Role.OWNER],
+      });
+
+      if (!hasAccess) {
+        return error(403, { message: "You are not an owner of this project" });
+      }
+
       await prisma.project.delete({
         where: {
           id,
@@ -337,6 +345,8 @@ const projectRoute = new Elysia()
       }),
       response: {
         200: CommonSuccessMessageSchema,
+        403: Common403ErrorSchema,
+        404: Common404ErrorSchema,
       },
       detail: {
         description: "Delete a project",
