@@ -37,3 +37,8 @@ React also sanitizes most inputs for us as long as dangerouslySetInnerHTML is av
 - **Cross-Site Request Forgery (CSRF)**: We use a separate URL to host the backend, which only allows requests from our frontend.
 Furthermore, all API actions are required to only use application/json body, which prevents any potential XHR based attacks.
 - **SSL Certificate Security**: We use Cloudflare encrypted SSL certificates to ensure secure communication between services.
+
+### Deployment Security
+
+- **Code Security**: We use code review and static analysis tools to ensure secure code.
+- **Secret Leakage**: We use GitGuardian to prevent leaking of secrets in the codebase.
