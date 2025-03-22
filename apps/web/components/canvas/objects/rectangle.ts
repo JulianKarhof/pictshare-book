@@ -1,6 +1,6 @@
 import { ElementType } from "@api/routes/element/element.schema";
 import { RectangleElementSchema } from "@api/routes/element/element.schema";
-import { ElementFactory } from "./object";
+import { ElementFactory } from "./element";
 import { ShapeElement, ShapeElementParams } from "./shape";
 
 export interface RectangleElementParams extends ShapeElementParams {

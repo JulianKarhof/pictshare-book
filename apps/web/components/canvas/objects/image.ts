@@ -4,7 +4,11 @@ import {
 } from "@api/routes/element/element.schema";
 import { Assets, Sprite, Texture } from "pixi.js";
 import { AssetManager } from "../managers/asset-manager";
-import { DisplayElement, DisplayElementParams, ElementFactory } from "./object";
+import {
+  DisplayElement,
+  DisplayElementParams,
+  ElementFactory,
+} from "./element";
 
 export interface ImageElementParams extends DisplayElementParams {
   assetId: string;

@@ -39,7 +39,7 @@ T
 The `DrawManager` handles drawing on the canvas. It creates a new `Drawing` object once the user is finished drawing a stroke,
 and includes the visual stroke data like the stroke points, color, and width. (currently the color and width can't be changed from the frontend)
 It also simplifies the stroke points using the [`simplify.js`](https://mourner.github.io/simplify-js/) library.
-Finally, the `DrawManager` also calculates the bounds of the stroke after drawing to properly set the bounds of the `Drawing` object.
+Finally, the `DrawManager` also calculates the bounds of the stroke after drawing to properly set the position of the `Drawing` object.
 
 ## TransfomerManager
 

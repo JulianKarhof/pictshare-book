@@ -2,7 +2,7 @@ import {
   CircleElementSchema,
   ElementType,
 } from "@api/routes/element/element.schema";
-import { ElementFactory } from "./object";
+import { ElementFactory } from "./element";
 import { ShapeElement, ShapeElementParams } from "./shape";
 
 export interface CircleElementParams extends ShapeElementParams {}

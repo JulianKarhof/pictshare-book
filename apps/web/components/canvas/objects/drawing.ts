@@ -4,7 +4,11 @@ import {
 } from "@api/routes/element/element.schema";
 import { Graphics, PointData } from "pixi.js";
 import { Settings } from "../settings";
-import { DisplayElement, DisplayElementParams, ElementFactory } from "./object";
+import {
+  DisplayElement,
+  DisplayElementParams,
+  ElementFactory,
+} from "./element";
 
 export interface DrawingElementParams extends DisplayElementParams {
   stroke?: number | null;

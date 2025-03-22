@@ -1,4 +1,4 @@
-import { DisplayElement, DisplayElementParams } from "./object";
+import { DisplayElement, DisplayElementParams } from "./element";
 
 export interface ShapeElementParams extends DisplayElementParams {
   fill?: number | null;
