@@ -20,7 +20,7 @@ memory = "512mb"
 processes = ["fly_app_release_command"]
 
 [deploy]
-strategy = "canary"
+strategy = "bluegreen"
 release_command = "bunx prisma migrate deploy --schema apps/api/prisma/schema.prisma"
 
 [deploy.release_command_vm]
