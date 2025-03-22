@@ -1,0 +1,189 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table Project {
+  id String [pk]
+  name String [not null]
+  members Member [not null]
+  elements Element [not null]
+  imageAssets ImageAsset [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table Element {
+  id String [pk]
+  type ElementType [not null]
+  x Float [not null]
+  y Float [not null]
+  width Float [not null]
+  height Float [not null]
+  scaleX Float [not null, default: 1]
+  scaleY Float [not null, default: 1]
+  angle Float [not null, default: 0]
+  zIndex Int [not null, default: 0]
+  image Image
+  text Text
+  shape Shape
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  project Project [not null]
+  projectId String [not null]
+
+  indexes {
+    (id, type) [unique]
+    (id, projectId) [unique]
+  }
+}
+
+Table Image {
+  id String [pk]
+  element Element [not null]
+  elementId String [unique, not null]
+  asset ImageAsset [not null]
+  assetId String [not null]
+}
+
+Table Text {
+  id String [pk]
+  content String [not null]
+  fontSize Int [not null, default: 16]
+  fontFamily String
+  color Int
+  element Element [not null]
+  elementId String [unique, not null]
+}
+
+Table Shape {
+  id String [pk]
+  shapeType ShapeType [not null]
+  fill Int
+  stroke Int
+  strokeWidth Float
+  cornerRadius Float
+  points Float[] [not null]
+  element Element [not null]
+  elementId String [unique, not null]
+}
+
+Table ImageAsset {
+  id String [pk]
+  key String [unique, not null]
+  mimeType String [not null]
+  size Int [not null]
+  height Int [not null]
+  width Int [not null]
+  orientation Int
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  project Project [not null]
+  projectId String [not null]
+  uploader User
+  uploaderId String
+  images Image [not null]
+}
+
+Table Member {
+  userId String [not null]
+  projectId String [not null]
+  role Role [not null, default: 'VIEWER']
+  user User [not null]
+  project Project [not null]
+
+  indexes {
+    (userId, projectId) [pk]
+  }
+}
+
+Table User {
+  id String [pk]
+  name String [not null]
+  email String [unique, not null]
+  emailVerified Boolean [not null]
+  image String
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  sessions Session [not null]
+  accounts Account [not null]
+  members Member [not null]
+  imageAssets ImageAsset [not null]
+}
+
+Table Session {
+  id String [pk]
+  expiresAt DateTime [not null]
+  token String [unique, not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  ipAddress String
+  userAgent String
+  userId String [not null]
+  user User [not null]
+}
+
+Table Account {
+  id String [pk]
+  accountId String [not null]
+  providerId String [not null]
+  userId String [not null]
+  user User [not null]
+  accessToken String
+  refreshToken String
+  idToken String
+  accessTokenExpiresAt DateTime
+  refreshTokenExpiresAt DateTime
+  scope String
+  password String
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+}
+
+Table Verification {
+  id String [pk]
+  identifier String [not null]
+  value String [not null]
+  expiresAt DateTime [not null]
+  createdAt DateTime
+  updatedAt DateTime
+}
+
+Enum ElementType {
+  IMAGE
+  TEXT
+  SHAPE
+}
+
+Enum ShapeType {
+  RECTANGLE
+  CIRCLE
+  DRAWING
+}
+
+Enum Role {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+Ref: Element.projectId > Project.id [delete: Cascade]
+
+Ref: Image.elementId - Element.id [delete: Cascade]
+
+Ref: Image.assetId > ImageAsset.id [delete: Cascade]
+
+Ref: Text.elementId - Element.id [delete: Cascade]
+
+Ref: Shape.elementId - Element.id [delete: Cascade]
+
+Ref: ImageAsset.projectId > Project.id [delete: Cascade]
+
+Ref: ImageAsset.uploaderId > User.id [delete: Set Null]
+
+Ref: Member.userId > User.id [delete: Cascade]
+
+Ref: Member.projectId > Project.id [delete: Cascade]
+
+Ref: Session.userId > User.id [delete: Cascade]
+
+Ref: Account.userId > User.id [delete: Cascade]

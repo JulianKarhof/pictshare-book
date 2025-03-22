@@ -62,6 +62,7 @@ export default defineConfig({
             link: "/apps/api",
             items: [
               { text: "Overview", link: "/apps/api/" },
+              { text: "Database", link: "/apps/api/prisma/" },
               {
                 text: "Routes",
                 items: [

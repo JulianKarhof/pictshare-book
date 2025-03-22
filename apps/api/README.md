@@ -31,3 +31,28 @@ Here are the routes of the backend:
 - [`/images`](/apps/api/src/routes/images): Image endpoints
 - [`/projects`](/apps/api/src/routes/projects): Project endpoints
 - [`/ws`](/apps/api/src/routes/ws): WebSocket endpoints
+
+## Source Files
+
+Here is select documentation about some of the files in the `/src` directory:
+
+### `auth.ts`
+
+Contains the configuration for [`better-auth`](https://github.com/elysiajs/better-auth).
+Notably we here use the `customSession` plugin to return the `member` array with the user, everytime the session is fetched to make it easier to check the users role on the frontend.
+
+### `headers.ts`
+
+This sets security headers for the API. Most of the configuration is based on the [helmet](https://github.com/helmetjs/helmet) library.
+
+### `schemas.ts`
+
+Contains convenience `typebox` schemas for returning errors from the routes.
+
+### `s3.ts`
+
+Uses [bun's own `s3` module](https://bun.sh/docs/api/s3) to upload and download files from any s3 compatible object storage.
+
+### `prisma.ts`
+
+Sets up the prisma client, and provides a prisma client extension, that deletes the corresponding image from the s3 bucket, whenever an image record is deleted from the postgres database.
