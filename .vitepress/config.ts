@@ -54,6 +54,7 @@ export default defineConfig({
                   },
                 ],
               },
+              { text: "Services", link: "/apps/web/services/" },
             ],
           },
           {
