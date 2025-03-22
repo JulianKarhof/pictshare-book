@@ -13,7 +13,7 @@ export default defineConfig({
   },
   themeConfig: {
     outline: "deep",
-    logo: "/apps/web/public/logo.svg",
+    logo: "/logo.svg",
     nav: [
       { text: "Home", link: "/" },
       { text: "API Reference", link: `${process.env.BACKEND_URL}/docs` },
