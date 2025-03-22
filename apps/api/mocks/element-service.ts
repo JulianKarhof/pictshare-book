@@ -1,6 +1,6 @@
 import { mock } from "bun:test";
 
-export const ElementServiceMock = {
+export const AuthServiceMock = {
   hasProjectAccess: mock((projectId, userId) => {
     if (projectId === "project-1" && userId === "user-1") {
       return Promise.resolve(true);

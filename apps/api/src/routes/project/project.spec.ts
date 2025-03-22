@@ -1,6 +1,6 @@
 import { describe, expect, it, mock } from "bun:test";
 import { AuthMock } from "@mocks/auth";
-import { ElementServiceMock } from "@mocks/element-service";
+import { AuthServiceMock } from "@mocks/element-service";
 import { PrismaMock } from "@mocks/prisma";
 import { mockUsers } from "@mocks/user";
 import type { Project } from "@prisma/client";
@@ -15,8 +15,8 @@ mock.module("@api/prisma", () => ({
   default: PrismaMock,
 }));
 
-mock.module("@routes/element/element.service", () => ({
-  ElementService: ElementServiceMock,
+mock.module("@routes/auth/auth.service", () => ({
+  ElementService: AuthServiceMock,
 }));
 
 describe("Project Routes", () => {
@@ -117,7 +117,7 @@ describe("Project Routes", () => {
       .then((res) => res.json());
 
     expect(Array.isArray(response)).toBe(true);
-    expect(ElementServiceMock.hasProjectAccess).toHaveBeenCalledWith(
+    expect(AuthServiceMock.hasProjectAccess).toHaveBeenCalledWith(
       "project-1",
       "user-1",
     );
@@ -163,7 +163,7 @@ describe("Project Routes", () => {
       )
       .then((res) => res.json());
 
-    expect(ElementServiceMock.hasProjectAccess).toHaveBeenCalledWith(
+    expect(AuthServiceMock.hasProjectAccess).toHaveBeenCalledWith(
       "project-2",
       "user-2",
       { roles: ["OWNER"] },
@@ -189,7 +189,7 @@ describe("Project Routes", () => {
       )
       .then((res) => res.json());
 
-    expect(ElementServiceMock.hasProjectAccess).toHaveBeenCalledWith(
+    expect(AuthServiceMock.hasProjectAccess).toHaveBeenCalledWith(
       "project-1",
       "user-1",
       { roles: ["OWNER"] },
@@ -201,7 +201,7 @@ describe("Project Routes", () => {
   });
 
   it("should error when non-owner tries to add member", async () => {
-    ElementServiceMock.hasProjectAccess.mockImplementationOnce(() =>
+    AuthServiceMock.hasProjectAccess.mockImplementationOnce(() =>
       Promise.resolve(false),
     );
 
@@ -236,7 +236,7 @@ describe("Project Routes", () => {
       .then((res) => res.json());
 
     expect(response).toHaveProperty("message", "User removed successfully");
-    expect(ElementServiceMock.hasProjectAccess).toHaveBeenCalledWith(
+    expect(AuthServiceMock.hasProjectAccess).toHaveBeenCalledWith(
       "project-1",
       "user-1",
       { roles: ["OWNER"] },
@@ -252,7 +252,7 @@ describe("Project Routes", () => {
   });
 
   it("should error when non-owner tries to remove member", async () => {
-    ElementServiceMock.hasProjectAccess.mockImplementationOnce(() =>
+    AuthServiceMock.hasProjectAccess.mockImplementationOnce(() =>
       Promise.resolve(false),
     );
 

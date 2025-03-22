@@ -1,5 +1,7 @@
 import { authMacro } from "@api/middleware/auth-middleware";
 import prisma from "@api/prisma";
+import { AuthService } from "@api/routes/auth/auth.service";
+import { flattenElement } from "@api/routes/element/element.utils";
 import {
   Common403ErrorSchema,
   Common404ErrorSchema,
@@ -8,8 +10,6 @@ import {
 } from "@api/schemas";
 import { Role } from "@prisma/client";
 import { Elysia, t } from "elysia";
-import { ElementService } from "../element/element.service";
-import { flattenElement } from "../element/element.utils";
 import {
   MemberCreateSchema,
   MemberSchema,
@@ -111,10 +111,7 @@ const projectRoute = new Elysia()
   .get(
     "projects/:id/users",
     async ({ params: { id: projectId }, user, error }) => {
-      const hasAccess = await ElementService.hasProjectAccess(
-        projectId,
-        user.id,
-      );
+      const hasAccess = await AuthService.hasProjectAccess(projectId, user.id);
 
       if (!hasAccess) {
         return error(403, { message: "Forbidden" });
@@ -173,7 +170,7 @@ const projectRoute = new Elysia()
         return error(404, { message: "Project not found" });
       }
 
-      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
+      const hasAccess = await AuthService.hasProjectAccess(id, user.id, {
         roles: [Role.OWNER],
       });
 
@@ -247,13 +244,9 @@ const projectRoute = new Elysia()
   .delete(
     "projects/:id/users/:userId",
     async ({ params: { id: projectId, userId }, user, error }) => {
-      const hasAccess = await ElementService.hasProjectAccess(
-        projectId,
-        user.id,
-        {
-          roles: [Role.OWNER],
-        },
-      );
+      const hasAccess = await AuthService.hasProjectAccess(projectId, user.id, {
+        roles: [Role.OWNER],
+      });
 
       if (!hasAccess) {
         return error(403, { message: "You are not an owner of this project" });
@@ -317,7 +310,7 @@ const projectRoute = new Elysia()
   .delete(
     "/projects/:id",
     async ({ params: { id }, user, error }) => {
-      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
+      const hasAccess = await AuthService.hasProjectAccess(id, user.id, {
         roles: [Role.OWNER],
       });
 

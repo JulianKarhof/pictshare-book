@@ -1,6 +1,6 @@
 import { describe, expect, it, mock } from "bun:test";
 import { AuthMock } from "@mocks/auth";
-import { ElementServiceMock } from "@mocks/element-service";
+import { AuthServiceMock } from "@mocks/element-service";
 import { PrismaMock } from "@mocks/prisma";
 import { S3ServiceMock } from "@mocks/s3";
 import imageRoute from "@routes/image/image.routes";
@@ -18,8 +18,8 @@ mock.module("@api/s3", () => ({
   S3Service: S3ServiceMock,
 }));
 
-mock.module("@routes/element/element.service", () => ({
-  ElementService: ElementServiceMock,
+mock.module("@routes/auth/auth.service", () => ({
+  AuthService: AuthServiceMock,
 }));
 
 mock.module("image-size", () => {
@@ -83,7 +83,7 @@ describe("Image Routes", () => {
         .then((res) => res.json());
 
       expect(Array.isArray(response)).toBe(true);
-      expect(ElementServiceMock.hasProjectAccess).toHaveBeenCalledWith(
+      expect(AuthServiceMock.hasProjectAccess).toHaveBeenCalledWith(
         "project-1",
         "user-1",
         { roles: ["EDITOR", "OWNER"] },
@@ -107,7 +107,7 @@ describe("Image Routes", () => {
         .then((res) => res.json());
 
       expect(response).toHaveProperty("message", "Image deleted successfully");
-      expect(ElementServiceMock.hasProjectAccess).toHaveBeenCalledWith(
+      expect(AuthServiceMock.hasProjectAccess).toHaveBeenCalledWith(
         "project-1",
         "user-1",
         { roles: ["EDITOR", "OWNER"] },

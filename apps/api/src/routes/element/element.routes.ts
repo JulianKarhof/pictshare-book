@@ -1,5 +1,6 @@
 import { authMacro } from "@api/middleware/auth-middleware";
 import prisma from "@api/prisma";
+import { AuthService } from "@api/routes/auth/auth.service";
 import {
   Common400ErrorSchema,
   Common401ErrorSchema,
@@ -7,7 +8,6 @@ import {
   CommonSuccessMessageSchema,
 } from "@api/schemas";
 import { Role } from "@prisma/client";
-import { ElementService } from "@routes/element/element.service";
 import { Elysia, t } from "elysia";
 import {
   ElementCreateSchema,
@@ -92,7 +92,7 @@ const elementRoute = new Elysia()
   .post(
     "/projects/:id/elements",
     async ({ params: { id }, body, error, user }) => {
-      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
+      const hasAccess = await AuthService.hasProjectAccess(id, user.id, {
         roles: [Role.EDITOR, Role.OWNER],
       });
 
@@ -131,7 +131,7 @@ const elementRoute = new Elysia()
   .post(
     "/projects/:id/elements/bulk",
     async ({ params: { id }, body, user, error }) => {
-      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
+      const hasAccess = await AuthService.hasProjectAccess(id, user.id, {
         roles: [Role.EDITOR, Role.OWNER],
       });
 
@@ -169,7 +169,7 @@ const elementRoute = new Elysia()
   .put(
     "/projects/:id/elements/bulk",
     async ({ params: { id }, body, user, error }) => {
-      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
+      const hasAccess = await AuthService.hasProjectAccess(id, user.id, {
         roles: [Role.EDITOR, Role.OWNER],
       });
 
@@ -223,7 +223,7 @@ const elementRoute = new Elysia()
         return error(404, { message: "Element not found" });
       }
 
-      const hasAccess = await ElementService.hasProjectAccess(
+      const hasAccess = await AuthService.hasProjectAccess(
         existing.project.id,
         user.id,
         {
@@ -278,7 +278,7 @@ const elementRoute = new Elysia()
         return error(404, { message: "Element not found" });
       }
 
-      const hasAccess = await ElementService.hasProjectAccess(
+      const hasAccess = await AuthService.hasProjectAccess(
         element.project.id,
         user.id,
         {

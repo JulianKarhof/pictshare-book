@@ -1,8 +1,8 @@
 import { auth } from "@api/auth";
 import { wsService } from "@api/index";
 import { log } from "@api/logger";
+import { AuthService } from "@api/routes/auth/auth.service";
 import { Role } from "@prisma/client";
-import { ElementService } from "@routes/element/element.service";
 import { Elysia, t } from "elysia";
 import { WebSocketEventSendSchema, WebSocketEventType } from "./ws.schema";
 
@@ -29,7 +29,7 @@ const websocketRoute = new Elysia()
         return;
       }
 
-      const access = await ElementService.hasProjectAccess(
+      const access = await AuthService.hasProjectAccess(
         ws.data.params.id,
         session.user.id,
       );

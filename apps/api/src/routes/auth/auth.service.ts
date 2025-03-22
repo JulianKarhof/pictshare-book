@@ -1,7 +1,7 @@
 import prisma from "@api/prisma";
 import { Role } from "@prisma/client";
 
-export abstract class ElementService {
+export abstract class AuthService {
   public static async hasProjectAccess(
     projectId: string,
     userId: string,

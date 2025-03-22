@@ -2,6 +2,7 @@ import env from "@api/env";
 import { log } from "@api/logger";
 import { authMacro } from "@api/middleware/auth-middleware";
 import prisma from "@api/prisma";
+import { AuthService } from "@api/routes/auth/auth.service";
 import { S3Service } from "@api/s3";
 import {
   Common400ErrorSchema,
@@ -10,7 +11,6 @@ import {
   CommonSuccessMessageSchema,
 } from "@api/schemas";
 import { Role } from "@prisma/client";
-import { ElementService } from "@routes/element/element.service";
 import { Elysia, t } from "elysia";
 import { imageSize } from "image-size";
 import { ImageDeleteSchema, ImageReturnSchema } from "./image.schema";
@@ -60,7 +60,7 @@ const imageRoute = new Elysia()
   .post(
     "/projects/:id/images",
     async ({ params: { id }, body, user, error }) => {
-      const hasAccess = await ElementService.hasProjectAccess(id, user.id, {
+      const hasAccess = await AuthService.hasProjectAccess(id, user.id, {
         roles: [Role.EDITOR, Role.OWNER],
       });
 
@@ -152,7 +152,7 @@ const imageRoute = new Elysia()
         return error(404, { message: "Image not found" });
       }
 
-      const hasAccess = await ElementService.hasProjectAccess(
+      const hasAccess = await AuthService.hasProjectAccess(
         image.project.id,
         user.id,
         {

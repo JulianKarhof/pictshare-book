@@ -89,7 +89,7 @@ export default defineConfig({
               },
               {
                 text: "API Reference",
-                link: "https://api.book.pict.sh/docs",
+                link: `${process.env.BACKEND_URL}/docs`,
               },
             ],
           },

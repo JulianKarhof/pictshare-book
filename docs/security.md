@@ -26,7 +26,7 @@ Furthermore, all API actions are required to only use application/json body, whi
 ### Server Security
 
 - **Denial of Service**: We use Cloudflare's as well as Vercel's DDoS protection to mitigate denial of service attacks.
-- **SQL Injection**: Prisma uses prevents SQL injection as long as model based queries are used.
+- **SQL Injection**: Prisma prevents SQL injection as long as model based queries are used.
 - **Command Injection**: We use input validation and sanitization to prevent command injection attacks.
 - **Rate Limiting**: We currently employ rate limiting on our auth endpoints (3 requests per 10 seconds)
 
