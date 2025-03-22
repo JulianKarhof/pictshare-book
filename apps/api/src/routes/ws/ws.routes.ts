@@ -73,7 +73,7 @@ const websocketRoute = new Elysia()
       if (!isAtomicUpdate) log.info(logData);
       else {
         const now = Date.now();
-        if (now - message.timestamp > 1000) {
+        if (now - message.timestamp > 5000) {
           return;
         }
 
