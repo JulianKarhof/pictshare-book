@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
               "*.pict.sh",
               "data:",
               "https://pictshare-book-staging.fly.storage.tigris.dev",
-              "https://pictshare-book.fly.storage.tigris.dev",
+              "https://pictshare-book-prod.fly.storage.tigris.dev",
               "*.sentry.io",
             ],
             "img-src": [
@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
               "localhost:*",
               "*.pict.sh",
               "https://pictshare-book-staging.fly.storage.tigris.dev",
-              "https://pictshare-book.fly.storage.tigris.dev",
+              "https://pictshare-book-prod.fly.storage.tigris.dev",
               "https://cdn.jsdelivr.net",
             ],
             "worker-src": ["'self'", "blob:", "localhost:*", "*.pict.sh"],
