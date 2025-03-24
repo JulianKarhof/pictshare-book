@@ -5,6 +5,7 @@ import { useSession } from "@web/lib/auth-client";
 import { StageService } from "@web/services/stage.service";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Dropzone from "react-dropzone";
+import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import { toast } from "sonner";
 import { MemberModal } from "../blocks/auth/member-modal";
 import styles from "./canvas.module.css";
@@ -24,6 +25,7 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
   const session = useSession();
   const { uploadFiles, fetchImages, assets } = useAssetManager();
   const [isDrawing, setIsDrawing] = useState(false);
+  const handle = useFullScreenHandle();
 
   useEffect(() => {
     fetchImages(projectId).catch((error) => {
@@ -163,6 +165,8 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
         className="absolute top-4 right-4 z-50"
         onManageUsers={() => setUserModalOpen(true)}
         onDownload={() => stageManagerRef.current?.download()}
+        onFullscreen={handle.active ? handle.exit : handle.enter}
+        isFullscreen={handle.active}
       />
 
       <ZoomControls
@@ -189,15 +193,17 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
         noClick
       >
         {({ getRootProps, isDragActive }) => (
-          <div {...getRootProps()} ref={ref} className="relative">
-            {isDragActive && (
-              <div className="absolute inset-0 bg-gray-500/30 backdrop-blur-sm border-2 border-dashed border-gray-500 flex items-center justify-center z-60">
-                <div className="text-white text-xl font-semibold">
-                  Drop files here to upload
+          <FullScreen handle={handle}>
+            <div {...getRootProps()} ref={ref} className="relative">
+              {isDragActive && (
+                <div className="absolute inset-0 bg-gray-500/30 backdrop-blur-sm border-2 border-dashed border-gray-500 flex items-center justify-center z-60">
+                  <div className="text-white text-xl font-semibold">
+                    Drop files here to upload
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </FullScreen>
         )}
       </Dropzone>
     </div>

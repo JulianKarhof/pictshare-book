@@ -1,16 +1,20 @@
 import { ModeToggle } from "@web/components/ui/mode-toggle";
-import { Download, Moon, Sun } from "lucide-react";
+import { Download, Expand, Moon, Shrink, Sun } from "lucide-react";
 import { ToolbarButton } from "./toolbar";
 
 interface SettingsBarProps {
   onManageUsers: () => void;
   onDownload: () => void;
+  onFullscreen: () => void;
+  isFullscreen: boolean;
   className?: string;
 }
 
 export const SettingsBar = ({
   onManageUsers,
   onDownload,
+  onFullscreen,
+  isFullscreen,
   className,
 }: SettingsBarProps) => {
   return (
@@ -37,6 +41,12 @@ export const SettingsBar = ({
         onToggle={() => {
           window.location.reload();
         }}
+      />
+      <ToolbarButton
+        icon={isFullscreen ? Shrink : Expand}
+        onClick={onFullscreen}
+        title="Fullscreen"
+        data-testid="fullscreen"
       />
       <button
         onClick={onManageUsers}
