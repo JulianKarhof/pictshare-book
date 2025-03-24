@@ -10,7 +10,7 @@ Here's an overview of current and upcoming features of Pictshare Book:
 | [Drawing](#drawing)                  | ✅      | There is no eraser function, but you can delete lines individually   |
 | [Multiplayer](#multiplayer-features) | ✅      | The permission system is missing global (canvas level) permissions.  |
 | [Resizing](#resizing)                | ✅      | Look at the details for a list of shortcuts                          |
-| Rotation                             | 🚧      | Not yet implemented.                                                 |
+| Rotation                             | 🚧      | Work in progress.                                                 |
 
 ## Walkthrough
 
@@ -25,14 +25,16 @@ A book in Picshare Book is a single infinite canvas that you can collaborate on 
 ![Create Book 1](/assets/create-book-1.png)
 
 You can create a new book by clicking the "New Book" button in the top right corner of the screen on the homepage.
+<br/><br/>
 
 ![Create Book 2](/assets/create-book-2.png)
 
 This will open a dialog where you can choose a name for your book. Once you're done you can click "Create Book" to create your new book and it will appear in the list of books.
+<br/><br/>
 
 ![Create Book 3](/assets/create-book-3.png)
 
-Click on the the book to see its [canvas](#book-canvas).
+Click on the the book to see its [canvas](#canvas-elements).
 
 #### Deleting Books
 
@@ -40,6 +42,7 @@ Click on the the book to see its [canvas](#book-canvas).
 
 You can delete a book by clicking the three dots on the book card and then on `Delete`.
 This will open a dialog where you can confirm the deletion of your book. Be careful, this action is irreversible and will also delete all of the images that you uploaded to that book.
+<br/><br/>
 
 ### Canvas Elements
 
@@ -58,11 +61,11 @@ By clicking the shape buttons on the left toolbar, you can add shapes to your ca
 By hovering in the bottom right corner of the canvas, the image drawer will slide up.
 Clicking the image upload button will open a file picker dialog, allowing you to select an image from your device.
 The image will be added to the drawer. You can also pin the drawer to make it easier to add images to the canvas while you're planning your layout.
+<br/><br/>
 
 ![Image Upload 2](/assets/image-upload-2.png)
 
 Clicking an image in the drawer will add it to the canvas and select it. The image drawer will show everyones images by default, but you can select the My Images tab to only see the images you uploaded.
-
 
 #### Text
 
@@ -77,6 +80,7 @@ You can double click a selected text element to edit it. Multiline text is also 
 
 By clicking the drawing button on the left toolbar, you can start drawing on your canvas. The drawing tool will be highlighted to show that it is active.
 You can now draw on the canvas by clicking and dragging the mouse. The drawing tool will stay active until you deselect it by clicking the drawing button again.
+<br/><br/>
 
 ![Drawing 2](/assets/drawing-2.png)
 
@@ -89,11 +93,13 @@ Each individual line will be selectable by clicking on it. This way you can stre
 ![Share Button](/assets/share-button.png)
 
 You can invite friends to join your canvas by clicking the `Share` button in the top right corner.
+<br/><br/>
 
 ![Access Modal](/assets/access-modal.png)
 
 Clicking the share button will open a dialog where you can enter your friend's email address, set a role and invite them to your canvas.
 You can share a link to the canvas with them by clicking the Copy Link button. This will copy the link to your clipboard.
+<br/><br/>
 
 There are currently two roles available: Viewer and Editor.
 - Viewer: Can only view the canvas. (Currently anyone can view any canvas if they have the link, so this role doesn't do anything at the moment)
@@ -102,7 +108,8 @@ There are currently two roles available: Viewer and Editor.
 > [!NOTE]
 > Viewers can currently still move elements on the canvas, but the changes will not be saved and won't be reflected on other users' canvases.
 
-You can remove users from your canvas by clicking the trash icon next to their email in the table below.
+You can remove users from your canvas by clicking the trash icon next to their email in the table.
+<br/><br/>
 
 ![Multiplayer Cursors](/assets/multiplayer-cursors.png)
 

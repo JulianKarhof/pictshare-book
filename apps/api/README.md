@@ -27,9 +27,9 @@ This also has the added benefit of making it really easy to generate a [OpenAPI]
 Here are the routes of the backend:
 
 - [`/auth`](/apps/api/src/routes/auth): Authentication endpoints (using [better-auth](https://github.com/elysiajs/better-auth))
-- [`/elements`](/apps/api/src/routes/elements): Element endpoints
-- [`/images`](/apps/api/src/routes/images): Image endpoints
-- [`/projects`](/apps/api/src/routes/projects): Project endpoints
+- `/elements`: Element endpoints
+- `/images`: Image endpoints
+- `/projects`: Project endpoints
 - [`/ws`](/apps/api/src/routes/ws): WebSocket endpoints
 
 ## Source Files
