@@ -76,6 +76,19 @@ const BookCanvas = ({ canvasId: projectId }: { canvasId: string }) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (window.innerWidth < 500)
+      toast.warning(
+        "This view is currently not optimized for mobile devices.",
+        {
+          id: "mobile-warning",
+          duration: 5000,
+          closeButton: true,
+          position: "top-center",
+        },
+      );
+  });
+
   const handleAddShape = useCallback((type: "square" | "circle" | "text") => {
     if (!stageManagerRef.current) return;
 
