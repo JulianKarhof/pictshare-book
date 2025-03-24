@@ -46,6 +46,7 @@ export default defineConfig({
         NEXT_PUBLIC_IS_TEST: "true",
         PORT: "3001",
         NEXT_PUBLIC_BACKEND_URL: "http://localhost:4001",
+        NEXT_PUBLIC_PICTSHARE_BOOK_ENV: "test",
       },
     },
     {
@@ -65,6 +66,7 @@ export default defineConfig({
         BETTER_AUTH_URL: "http://localhost:4001/auth",
         S3_ENDPOINT: "http://localhost:9000",
         S3_BUCKET_NAME: "test",
+        PICTSHARE_BOOK_ENV: "test",
       },
     },
   ],

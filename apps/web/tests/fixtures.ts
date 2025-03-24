@@ -20,7 +20,7 @@ const loginUser = async (request: APIRequestContext, email: string) => {
   return response
     .headers()
     ["set-cookie"].split("; ")
-    .find((cookie) => cookie.startsWith("better-auth.session_token="))
+    .find((cookie) => cookie.startsWith("pctsh-book-test.session_token="))
     ?.split("=")?.[1];
 };
 
@@ -34,7 +34,7 @@ export const test = base.extend<Fixtures>({
 
     page.context().addCookies([
       {
-        name: "better-auth.session_token",
+        name: "pctsh-book-test.session_token",
         value: token,
         url: "http://localhost",
       },
@@ -56,7 +56,7 @@ export const test = base.extend<Fixtures>({
 
     one.context().addCookies([
       {
-        name: "better-auth.session_token",
+        name: "pctsh-book-test.session_token",
         value: token,
         url: "http://localhost",
       },
@@ -78,7 +78,7 @@ export const test = base.extend<Fixtures>({
 
     two.context().addCookies([
       {
-        name: "better-auth.session_token",
+        name: "pctsh-book-test.session_token",
         value: token,
         url: "http://localhost",
       },

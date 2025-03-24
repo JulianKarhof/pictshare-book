@@ -21,6 +21,7 @@ export const auth = betterAuth({
     },
   },
   advanced: {
+    cookiePrefix: `pctsh-book-${env.PICTSHARE_BOOK_ENV}`,
     crossSubDomainCookies: {
       enabled: true,
       domain:

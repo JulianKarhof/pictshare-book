@@ -47,6 +47,9 @@ next run the setup command:
 bun run setup
 ```
 
+> [!WARNING]
+> If you want to be able to use google login, you need to provide the `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the `apps/api/.env` file. Email login will work out of the box. You should also consider replacing the `BETTER_AUTH_SECRET` with a more secure value.
+
 then start the development server:
 
 ```bash

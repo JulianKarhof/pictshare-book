@@ -7,6 +7,7 @@ const getRequiredEnvVar = (key: string): string => {
 };
 
 export default {
+  PICTSHARE_BOOK_ENV: getRequiredEnvVar("PICTSHARE_BOOK_ENV"),
   DATABASE_URL: getRequiredEnvVar("DATABASE_URL"),
   FRONTEND_URL: getRequiredEnvVar("FRONTEND_URL"),
   GOOGLE_CLIENT_ID: getRequiredEnvVar("GOOGLE_CLIENT_ID"),
