@@ -70,6 +70,7 @@ export default function ProjectList({
         }
       }
 
+      session.refetch();
       router.refresh();
       onChange?.(projects);
       setProjects((projects) =>
