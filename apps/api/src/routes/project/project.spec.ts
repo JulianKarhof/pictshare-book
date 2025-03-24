@@ -202,7 +202,7 @@ describe("Project Routes", () => {
 
   it("should error when non-owner tries to add member", async () => {
     AuthServiceMock.hasProjectAccess.mockImplementationOnce(() =>
-      Promise.resolve(false),
+      Promise.resolve(null),
     );
 
     const response = await app
@@ -253,7 +253,7 @@ describe("Project Routes", () => {
 
   it("should error when non-owner tries to remove member", async () => {
     AuthServiceMock.hasProjectAccess.mockImplementationOnce(() =>
-      Promise.resolve(false),
+      Promise.resolve(null),
     );
 
     const response = await app
