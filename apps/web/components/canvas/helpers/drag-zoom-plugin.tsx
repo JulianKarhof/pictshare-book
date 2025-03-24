@@ -1,5 +1,9 @@
 import { Plugin, Viewport } from "pixi-viewport";
 
+/*
+ * Part of the code in this file is adapted from here: https://github.com/pixijs-userland/pixi-viewport/issues/143#issuecomment-635067544
+ */
+
 type Options = {
   moveSpeed: number;
   moveReverse: boolean;

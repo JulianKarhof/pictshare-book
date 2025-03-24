@@ -42,7 +42,6 @@ export default defineConfig({
               { text: "Overview", link: "/apps/web/" },
               {
                 text: "Canvas",
-                link: "/apps/web/components/canvas/",
                 items: [
                   {
                     text: "Elements",
@@ -69,18 +68,6 @@ export default defineConfig({
                   {
                     text: "Authentication",
                     link: "/apps/api/src/routes/auth/",
-                  },
-                  {
-                    text: "Elements",
-                    link: "/apps/api/src/routes/element/",
-                  },
-                  {
-                    text: "Images",
-                    link: "/apps/api/src/routes/image/",
-                  },
-                  {
-                    text: "Projects",
-                    link: "/apps/api/src/routes/project/",
                   },
                   {
                     text: "Websocket",

@@ -65,3 +65,5 @@ The resolution for  the tiles is adjusted dynamically to prevent the tiles from 
 The `WebsocketManager` class is a singleton that is responsible for all interactions with the websocket server.
 It handles sending and receiving updates, retrying using a message queue, and manages
 the connection, including reconnecting and handling errors.
+
+The websocket manager should ideally retry sending messages if the server hasn't acknowledged them and include a message id in each message to ensure that messages are not processed twice, but as of now this is not implemented due to time constraints. See [Exactly Once Delivery](https://exactly-once.github.io/posts/exactly-once-delivery/).

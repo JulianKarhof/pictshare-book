@@ -11,3 +11,7 @@ The staging environment on both fly.io and vercel are setup to deploy changes to
 while the production environment waits for all tests to pass before deploying.
 
 The deployment step includes migrating the database, which happens in the same step as deploying the backend using fly.io's release-command function. This ensures that if the database migration fails, deployment will not proceed.
+
+## Monitoring
+
+All deployed instances and the CI are monitored using [sentry](https://sentry.io/) for errors and performance metrics.
