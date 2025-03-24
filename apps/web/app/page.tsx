@@ -17,6 +17,8 @@ export default async function Home() {
 
   if (error) {
     switch (error.status) {
+      case 401:
+        return <div>Session Error, try deleting your cookies!</div>;
       case 422:
         return <div>Validation Error</div>;
       default:

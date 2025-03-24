@@ -3,6 +3,7 @@ import prisma from "@api/prisma";
 import { AuthService } from "@api/routes/auth/auth.service";
 import { flattenElement } from "@api/routes/element/element.utils";
 import {
+  Common401ErrorSchema,
   Common403ErrorSchema,
   Common404ErrorSchema,
   Common409ErrorSchema,
@@ -41,6 +42,7 @@ const projectRoute = new Elysia()
       isAuth: true,
       response: {
         200: t.Array(ProjectSchema),
+        401: Common401ErrorSchema,
       },
       detail: {
         description: "List all projects (excludes elements)",
