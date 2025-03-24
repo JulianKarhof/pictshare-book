@@ -46,6 +46,7 @@ export function CreateProjectDialog({
         <Button
           className="bg-primary text-primary-foreground"
           onClick={() => onOpenChange(true)}
+          data-testid="new-book-button"
         >
           <Plus className="mr-2 h-4 w-4" /> New Book
         </Button>
@@ -65,7 +66,11 @@ export function CreateProjectDialog({
                 <FormItem>
                   <FormLabel>Book Title</FormLabel>
                   <FormControl>
-                    <Input id="title" {...field} />
+                    <Input
+                      id="title"
+                      data-testid="book-title-input"
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription />
                   <FormMessage />
@@ -76,6 +81,7 @@ export function CreateProjectDialog({
               <Button
                 type="submit"
                 className="bg-primary text-primary-foreground"
+                data-testid="create-book-submit"
               >
                 Create Book
               </Button>

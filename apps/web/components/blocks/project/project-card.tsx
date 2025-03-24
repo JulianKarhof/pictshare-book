@@ -43,6 +43,7 @@ export function ProjectCard({
         style={{ animationDelay: index * 50 + "ms" }}
         className={`overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer group bg-card motion-preset-slide-down-sm
         ${isGridView ? "" : "flex"} ${project.isDeleted ? "motion-translate-y-out-[10%] motion-duration-500 motion-opacity-out-0" : ""}`}
+        data-testid="book-card"
       >
         <div
           className={`relative overflow-hidden ${isGridView ? "aspect-video" : "w-1/3"}`}
@@ -75,12 +76,19 @@ export function ProjectCard({
         </div>
         <CardHeader className={isGridView ? "" : "w-2/3"}>
           <div className="flex justify-between items-start">
-            <CardTitle className="text-xl font-semibold text-card-foreground">
+            <CardTitle
+              className="text-xl font-semibold text-card-foreground"
+              data-testid="book-name"
+            >
               {project.name}
             </CardTitle>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
+                  data-testid="book-details-button"
+                >
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -99,6 +107,7 @@ export function ProjectCard({
                     e.stopPropagation();
                     onDelete(project.id);
                   }}
+                  data-testid="delete-book-button"
                 >
                   <Trash2 className="h-4 w-4" />
                   Delete

@@ -20,7 +20,11 @@ export default function ProfileButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+        <Button
+          variant="ghost"
+          className="relative h-8 w-8 rounded-full"
+          data-testid="profile-button"
+        >
           <User className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
