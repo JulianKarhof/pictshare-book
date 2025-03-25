@@ -43,10 +43,9 @@ export class TransformerManager {
     this.createTransformer();
     this._stageService = StageService.getInstance();
 
-    this._stageService.subscribe(
-      WebSocketEventType.FRAME_UPDATE,
-      this.reset.bind(this),
-    );
+    this._stageService.subscribe(WebSocketEventType.FRAME_UPDATE, (event) => {
+      if (event.payload.id === this._target?.getId()) this.reset();
+    });
 
     this._stageService.subscribe(
       WebSocketEventType.SHAPE_UPDATE,
